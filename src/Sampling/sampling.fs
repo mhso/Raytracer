@@ -2,6 +2,7 @@
 
 open System
 open System.Drawing
+open System.Threading
 
 let rand = new Random()
 
@@ -109,17 +110,54 @@ let nRooks n =
         | c -> (getJitteredValue c n, getJitteredValue c n)::(placeDiagonals (c-1))
     shuffleDiagonals (placeDiagonals (n-1))
 
+let shuffleMultiPDF (sampleList:(float * float) list) n =
+    let samples = (List.toArray sampleList)
+    let ns = sampleList.Length
+    
+    for j in 0..n-1 do
+        for i in 0..n-1 do
+            let shuf = (j + rand.Next(n-j)) * n + i
+            let current = j * n + i
+            let replX, replY = samples.[shuf]
+            let currentX, currentY = samples.[current]
+            samples.[shuf] <- (currentX, replY)
+            samples.[current] <- (replX, currentY)
+
+    for i in 0..n-1 do
+        for j in 0..n-1 do
+            let shuf = j * n + (i + rand.Next(n-i))
+            let current = j * n + i
+            let replX, replY = samples.[shuf]
+            let currentX, currentY = samples.[current]
+            samples.[shuf] <- (replX, currentY)
+            samples.[current] <- (currentX, replY)
+
+    List.ofArray samples
+
 let shuffleMulti (sampleList:(float * float) list) n =
     let samples = (List.toArray sampleList)
     let ns = sampleList.Length
     
-    for i in ns-1..-1..0 do
-        let shufX = (rand.Next(i/n)) * i
-        printfn "%s" ("Swapping " + string i + " with " + string shufX)
-        let _, replY = samples.[shufX]
-        let _, currentY = samples.[i]
-        samples.[shufX] <- (getJitteredValue shufX n, currentY)
-        samples.[i] <- (getJitteredValue i n, replY)
+    for j in 0..n-1 do
+        let k = (j + rand.Next(n-j))
+        for i in 0..n-1 do
+            let shuf = k * n + i
+            let current = j * n + i
+            let replX, replY = samples.[shuf]
+            let currentX, currentY = samples.[current]
+            samples.[shuf] <- (currentX, replY)
+            samples.[current] <- (replX, currentY)
+
+    for i in 0..n-1 do
+        let k = (i + rand.Next(n-i))
+        for j in 0..n-1 do
+            let shuf = j * n + k
+            let current = j * n + i
+            let replX, replY = samples.[shuf]
+            let currentX, currentY = samples.[current]
+            samples.[shuf] <- (replX, currentY)
+            samples.[current] <- (currentX, replY)
+
     List.ofArray samples
 
 let multiJittered n =
@@ -132,10 +170,14 @@ let multiJittered n =
 (*let stressTest = 
     for i in [0..1920] do
         for j in[0..1080] do
-            nRooks 16*)
+            multiJittered 8*)
 
 [<EntryPoint>]
 let main argsv =
+    if Array.isEmpty argsv then 
+        printfn "Error: No arguments given! Expected: [sampleMethod] [sampleAmount]."
+        0
+    else
     let method = argsv.[0]
     let amount = Int32.Parse(argsv.[1])
     let fileName = "sampletest.png"
