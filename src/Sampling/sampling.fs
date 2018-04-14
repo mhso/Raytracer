@@ -2,7 +2,6 @@
 
 open System
 open System.Drawing
-open System.Threading
 
 let rand = new Random()
 
@@ -33,7 +32,31 @@ let drawSamples (sl:(float * float) list) sampleMethod fileName =
                 if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
     img.Save(fileName)  
 
-let regular n =
+let drawDiscSamples  (sl:(float * float) list) fileName =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in 0..size-1 do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    let SIZE_HALVED = float size/2.0
+    for i in 1..int 360 do
+        let theta = float i
+        let x  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Cos(theta))
+        let y  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Sin(theta))
+        for i in [x-1..x+1] do
+            for j in [y-1..y+1] do
+                img.SetPixel(i, j, Color.Black)
+    for (sx, sy) in sl do
+        let x = int (float (size)*((sx+1.0)/2.0))
+        let y = int (float (size)*((sy+1.0)/2.0))
+        for i in [x-(dotSize/2)..x+(dotSize/2)] do
+            for j in [y-(dotSize/2)..y+(dotSize/2)] do
+                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
+    img.Save(fileName)  
+
+let regular (ni:int) =
+    let n = float ni
     let rec innerX x = 
         let rec innerY = function
             | 1.0 -> [(x/(n+1.0), 1.0/(n+1.0))]
@@ -167,6 +190,19 @@ let multiJittered n =
         | c -> (getJitteredValue (((c%n)*n)+(c/n)) ns, getJitteredValue c ns)::placeDiag (c-1)
     shuffleMulti (placeDiag (ns-1)) n
 
+let mapToDisc (sl:(float * float) list) =
+    let samples = [for (x, y) in sl do yield (2.0*x-1.0, 2.0*y-1.0)]
+    let PI_QUART = Math.PI/4.0
+    let mapPoints (x,y) =
+        let (r, theta) = 
+            match (x > -y, x > y) with
+                | true, true    -> (x, PI_QUART * (y/x))
+                | true, false   -> (y, PI_QUART * (2.0-x/y))
+                | false, false  -> (-x, PI_QUART * (4.0+y/x))
+                | false, true   -> (-y, PI_QUART * (6.0-x/y))
+        (r * Math.Cos(theta), r*Math.Sin(theta))
+    List.map mapPoints samples
+
 (*let stressTest = 
     for i in [0..1920] do
         for j in[0..1080] do
@@ -181,11 +217,15 @@ let main argsv =
     let method = argsv.[0]
     let amount = Int32.Parse(argsv.[1])
     let fileName = "sampletest.png"
-    match method with
-        | "regular" -> drawSamples (regular (float amount)) method fileName
-        | "random"  -> drawSamples (random amount) method fileName
-        | "jittered" -> drawSamples (jittered amount) method fileName
-        | "nrooks"  -> drawSamples (nRooks amount) method fileName
-        | "multi"   -> drawSamples (multiJittered amount) method fileName
-        | _ -> drawSamples (regular (float 4)) method fileName
+    let samples = 
+        match method with
+            | "regular" -> regular amount
+            | "random"  -> random amount
+            | "jittered" -> jittered amount
+            | "nrooks"  -> nRooks amount
+            | "multi"   -> multiJittered amount
+            | _ -> regular 4
+    if argsv.Length > 2 && argsv.[2] = "disc" 
+    then drawDiscSamples (mapToDisc samples) fileName
+    else drawSamples samples method fileName
     0
