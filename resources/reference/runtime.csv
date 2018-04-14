@@ -1,0 +1,268 @@
+test name, construction, rendering, total
+material regular/AmbientLight, 0.1133546, 10.4164982, 10.5298528
+material regular/EnvironmentLight, 0.00211, 25.8880353, 25.8901453
+material regular/AmbientOcclusion, 0.0009902, 22.7707763, 22.7717665
+material regular/AmbientOclusionEnvironmentLight, 0.0008579, 44.1938009, 44.1946588
+material regular/matte, 0.0009365, 14.0714232, 14.0723597
+material regular/phongReflective, 0.0009126, 19.1647864, 19.165699
+material regular/phongPoint, 0.0010831, 14.7369904, 14.7380735
+material regular/phongDirectional, 0.0011623, 13.7731299, 13.7742922
+material regular/phongPointFar, 0.0010313, 11.8881952, 11.8892265
+material regular/phongDirectionalFar, 0.0010802, 10.6169011, 10.6179813
+material regular/matteGlossyReflective, 0.0012945, 24.9721965, 24.973491
+material regular/glossy, 0.0010114, 50.1657275, 50.1667389
+material multi/AmbientLight, 0.0001571, 11.49551, 11.4956671
+material multi/EnvironmentLight, 0.0008259, 28.8075118, 28.8083377
+material multi/AmbientOcclusion, 0.00068, 23.5222651, 23.5229451
+material multi/AmbientOclusionEnvironmentLight, 0.0012087, 44.4912631, 44.4924718
+material multi/matte, 0.0001489, 14.0054963, 14.0056452
+material multi/phongReflective, 0.000164, 19.6935698, 19.6937338
+material multi/phongPoint, 0.0001796, 15.5958639, 15.5960435
+material multi/phongDirectional, 0.0001647, 14.0851757, 14.0853404
+material multi/phongPointFar, 0.0002002, 11.9644643, 11.9646645
+material multi/phongDirectionalFar, 0.0001603, 11.0223022, 11.0224625
+material multi/matteGlossyReflective, 0.0025588, 25.7873919, 25.7899507
+material multi/glossy, 0.0021528, 49.0851302, 49.087283
+material high/AmbientLight, 0.0003401, 24.8121446, 24.8124847
+material high/EnvironmentLight, 0.0014116, 62.9814003, 62.9828119
+material high/AmbientOcclusion, 0.0013835, 51.3656257, 51.3670092
+material high/AmbientOclusionEnvironmentLight, 0.002521, 99.1075485, 99.1100695
+material high/matte, 0.00025, 31.6598967, 31.6601467
+material high/phongReflective, 0.0003652, 43.4408449, 43.4412101
+material high/phongPoint, 0.0002766, 33.3538847, 33.3541613
+material high/phongDirectional, 0.0002965, 31.3575308, 31.3578273
+material high/phongPointFar, 0.0003027, 26.0189062, 26.0192089
+material high/phongDirectionalFar, 0.0002688, 23.6837098, 23.6839786
+material high/matteGlossyReflective, 0.0058633, 58.362662, 58.3685253
+material high/glossy, 0.0047288, 112.7929149, 112.7976437
+thinLens/renderPlaneCloseRegular, 0.0029657, 100.0400411, 100.0430068
+thinLens/renderPlaneCenterRegular, 0.0001797, 100.1197283, 100.119908
+thinLens/renderPlaneFarRegular, 0.0002491, 100.4451744, 100.4454235
+thinLens/renderPlaneCloseRandom, 0.0006265, 25.8905431, 25.8911696
+thinLens/renderPlaneCenterRandom, 0.0005259, 25.8622044, 25.8627303
+thinLens/renderPlaneFarRandom, 0.0005496, 26.0361793, 26.0367289
+thinLens/renderPlaneCloseMultiJittered, 0.0005245, 25.9655084, 25.9660329
+thinLens/renderPlaneCenterMultiJittered, 0.0005648, 25.4254378, 25.4260026
+thinLens/renderPlaneFarMultiJittered, 0.0005531, 25.6245919, 25.625145
+areaLight/diskAreaLight, 0.00464, 26.7165153, 26.7211553
+areaLight/sphereAreaLight, 0.0027044, 27.6612183, 27.6639227
+areaLight/lanternAreaLight, 0.0061326, 36.5587653, 36.5648979
+areaLight/checkerSphere, 0.1389475, 40.4925935, 40.631541
+areaLight/planeGrid, 0.0028761, 19.9605544, 19.9634305
+shapes/sphere, 0.000875, 0.5231661, 0.5240411
+shapes/reflectiveSpheres, 0.0008877, 0.2926163, 0.293504
+shapes/hollowCylinder, 0.0007896, 0.3017699, 0.3025595
+shapes/solidCylinder, 0.0009773, 0.3150808, 0.3160581
+shapes/insideSphere, 0.0007431, 0.3366589, 0.337402
+shapes/sierpinskiGasket1, 0.0017907, 15.1452603, 15.147051
+shapes/sierpinskiGasket2, 0.0013924, 34.5186623, 34.5200547
+texture/discs, 0.0016646, 1.212725, 1.2143896
+texture/box, 1.3085942, 1.3137883, 2.6223825
+texture/boxes, 0.0014444, 2.937415, 2.9388594
+texture/cylinder, 0.0010038, 1.1537337, 1.1547375
+texture/earth, 1.2439185, 1.2248505, 2.468769
+texture/plane, 0.0016742, 20.5685366, 20.5702108
+texture/sphere, 0.0010277, 1.3449466, 1.3459743
+texture/rectangles, 1.2775339, 2.5030387, 3.7805726
+texture/marble, 1.3158356, 20.1936339, 21.5094695
+transparency/sphere, 0.0013496, 2.8727995, 2.8741491
+transparency/box, 0.0013833, 3.4704623, 3.4718456
+transparency/boxes, 0.0034854, 8.3726861, 8.3761715
+transparency/bunny, 0.3783548, 7.4878243, 7.8661791
+transparency/urn, 0.0547549, 10.2490561, 10.303811
+transparency/horse, 0.7930522, 4.5747647, 5.3678169
+transparency/porsche, 0.1116969, 8.1543034, 8.2660003
+transparency/water, 0.001449, 2.8373216, 2.8387706
+transparency/lantern, 0.0013532, 19.3884, 19.3897532
+transparency/die, 0.0027423, 8.2880421, 8.2907844
+transparency/water glass, 0.0021143, 7.8667145, 7.8688288
+transparency/fancy bunny, 1.6328068, 118.6055965, 120.2384033
+transparency/fancy water glass, 0.3188979, 92.4686625, 92.7875604
+shapes/sphere, 3.98E-05, 0.5051085, 0.5051483
+shapes/reflectiveSpheres, 5.66E-05, 0.2834638, 0.2835204
+shapes/hollowCylinder, 0.0001379, 0.3006567, 0.3007946
+shapes/solidCylinder, 0.00012, 0.3079673, 0.3080873
+shapes/insideSphere, 1.68E-05, 0.3306837, 0.3307005
+shapes/sierpinskiGasket1, 0.0005049, 15.6784317, 15.6789366
+shapes/sierpinskiGasket2, 0.0004338, 36.5909379, 36.5913717
+affineTransformationsSimple/originBase, 0.6229885, 0.4209958, 1.0439843
+affineTransformationsSimple/positiveBase, 0.0001935, 0.343723, 0.3439165
+affineTransformationsSimple/rotateX_90, 0.0004477, 0.375847, 0.3762947
+affineTransformationsSimple/rotateX_180, 0.0002024, 0.3846876, 0.38489
+affineTransformationsSimple/rotateX_270, 0.0002525, 0.3691268, 0.3693793
+affineTransformationsSimple/rotateY_90, 0.0010957, 0.3794112, 0.3805069
+affineTransformationsSimple/rotateY_180, 0.0001666, 0.3726902, 0.3728568
+affineTransformationsSimple/rotateY_270, 0.0001272, 0.3668998, 0.367027
+affineTransformationsSimple/rotateZ_90, 0.0002859, 0.3734132, 0.3736991
+affineTransformationsSimple/rotateZ_180, 0.0002238, 0.3770297, 0.3772535
+affineTransformationsSimple/rotateZ_270, 0.0002583, 0.3720083, 0.3722666
+affineTransformationsSimple/mirrorX, 0.0012806, 0.3838551, 0.3851357
+affineTransformationsSimple/mirrorY, 0.0003019, 0.3775221, 0.377824
+affineTransformationsSimple/mirrorZ, 0.0004178, 0.3685309, 0.3689487
+affineTransformationsSimple/scaleX, 0.0004029, 0.4018192, 0.4022221
+affineTransformationsSimple/scaleY, 0.000333, 0.3750252, 0.3753582
+affineTransformationsSimple/scaleZ, 0.0002916, 0.3717157, 0.3720073
+affineTransformationsSimple/sheareXY, 0.0012064, 0.3638369, 0.3650433
+affineTransformationsSimple/sheareXZ, 0.0003259, 0.346545, 0.3468709
+affineTransformationsSimple/sheareYX, 0.0003948, 0.3528283, 0.3532231
+affineTransformationsSimple/sheareYZ, 0.0002849, 0.3645897, 0.3648746
+affineTransformationsSimple/sheareZX, 0.0003376, 0.3621147, 0.3624523
+affineTransformationsSimple/sheareZY, 0.0003494, 0.3430901, 0.3434395
+affineTransformationsSimple/translateX, 0.0004403, 0.3698438, 0.3702841
+affineTransformationsSimple/translateY, 0.0003085, 0.3526629, 0.3529714
+affineTransformationsSimple/translateZ, 0.0003377, 0.368069, 0.3684067
+affineTransformationsCSG/originBase, 0.0035322, 0.6787524, 0.6822846
+affineTransformationsCSG/positiveBase, 0.0001904, 0.6881582, 0.6883486
+affineTransformationsCSG/rotateX_90, 0.0001656, 0.7541124, 0.754278
+affineTransformationsCSG/rotateX_180, 0.0002287, 0.7371885, 0.7374172
+affineTransformationsCSG/rotateX_270, 0.0001821, 0.7235205, 0.7237026
+affineTransformationsCSG/rotateY_90, 0.0001358, 0.7182133, 0.7183491
+affineTransformationsCSG/rotateY_180, 0.0001687, 0.7266384, 0.7268071
+affineTransformationsCSG/rotateY_270, 0.0001729, 0.7314157, 0.7315886
+affineTransformationsCSG/rotateZ_90, 0.0001627, 0.7439072, 0.7440699
+affineTransformationsCSG/rotateZ_180, 0.0002157, 0.7511592, 0.7513749
+affineTransformationsCSG/rotateZ_270, 0.0001744, 0.7723666, 0.772541
+affineTransformationsCSG/mirrorX, 0.0001711, 0.7315004, 0.7316715
+affineTransformationsCSG/mirrorY, 0.0001655, 0.7751081, 0.7752736
+affineTransformationsCSG/mirrorZ, 0.0001997, 0.7584729, 0.7586726
+affineTransformationsCSG/scaleX, 0.0001623, 0.8942724, 0.8944347
+affineTransformationsCSG/scaleY, 0.0001905, 0.802534, 0.8027245
+affineTransformationsCSG/scaleZ, 0.0001416, 0.8899859, 0.8901275
+affineTransformationsCSG/sheareXY, 0.0001272, 0.736758, 0.7368852
+affineTransformationsCSG/sheareXZ, 0.0002587, 0.6890685, 0.6893272
+affineTransformationsCSG/sheareYX, 0.0002031, 0.7214091, 0.7216122
+affineTransformationsCSG/sheareYZ, 0.0001512, 0.7089906, 0.7091418
+affineTransformationsCSG/sheareZX, 0.0001631, 0.7027957, 0.7029588
+affineTransformationsCSG/sheareZY, 0.0001539, 0.7066006, 0.7067545
+affineTransformationsCSG/translateX, 0.0001652, 0.7752607, 0.7754259
+affineTransformationsCSG/translateY, 0.0002363, 0.8401848, 0.8404211
+affineTransformationsCSG/translateZ, 0.0001972, 0.7594396, 0.7596368
+implicitSurfaces/heart, 0.0963773, 3.8834335, 3.9798108
+implicitSurfaces/sphere1, 0.0043371, 7.6460762, 7.6504133
+implicitSurfaces/sphere2, 0.0032186, 0.2843566, 0.2875752
+implicitSurfaces/planeX, 0.0031507, 0.3366913, 0.339842
+implicitSurfaces/planeY, 0.0007142, 0.3626526, 0.3633668
+implicitSurfaces/planeZ, 0.0007114, 0.4115907, 0.4123021
+implicitSurfaces/torus, 0.0029642, 1.5379722, 1.5409364
+implicitSurfaces/torus2, 0.002467, 1.4511357, 1.4536027
+implicitSurfaces/linkTorus, 0.0035428, 119.9831319, 119.9866747
+implicitSurfaces/testShape, 0.0026871, 1.4911506, 1.4938377
+implicitSurfaces/chmutov2, 0.0014678, 0.3071573, 0.3086251
+implicitSurfaces/chmutov3, 0.0005188, 2.7141162, 2.714635
+implicitSurfaces/chmutov4, 0.0009395, 1.1060453, 1.1069848
+implicitSurfaces/chmutov5, 0.0012581, 5.2310635, 5.2323216
+implicitSurfaces/chmutov6, 0.0025703, 1.8136885, 1.8162588
+meshes/icosahedron, 0.0054794, 1.6369292, 1.6424086
+meshes/urn, 0.0044636, 3.1195232, 3.1239868
+meshes/bunny, 0.503897, 4.1589669, 4.6628639
+meshes/bunny texture, 1.1727479, 3.038947, 4.2116949
+meshes/bunnyAO, 0.4666451, 63.0800231, 63.5466682
+meshes/inside bunny, 0.4689892, 6.6753171, 7.1443063
+meshes/bunnies small, 0.6352289, 7.8885849, 8.5238138
+meshes/bunnies big, 1.3431622, 12.6735443, 14.0167065
+meshes/spheres small, 0.0044547, 4.6085253, 4.61298
+meshes/spheres big, 0.0087512, 6.1286525, 6.1374037
+meshes/dragon, 6.654639, 3.6050631, 10.2597021
+meshes/gold dragon, 6.4402966, 159.6632687, 166.1035653
+meshes/happy, 8.6311082, 3.9069108, 12.538019
+meshes/porsche, 0.0611023, 5.5448423, 5.6059446
+meshes/horse, 0.6096952, 3.5052398, 4.114935
+meshes/head, 23.5377775, 4.4863941, 28.0241716
+meshes/vase, 3.0718114, 3.9634497, 7.0352611
+meshes/armadillo, 8.7092017, 3.5569293, 12.266131
+texture/discs, 0.0001091, 1.1767222, 1.1768313
+texture/box, 1.2527236, 1.4083159, 2.6610395
+texture/boxes, 0.0001601, 3.2062135, 3.2063736
+texture/cylinder, 5.67E-05, 1.1548777, 1.1549344
+texture/earth, 1.2220292, 1.2239788, 2.446008
+texture/plane, 0.0003549, 21.0993962, 21.0997511
+texture/sphere, 8.7E-05, 1.3158964, 1.3159834
+texture/rectangles, 1.2218586, 2.6754294, 3.897288
+texture/marble, 1.3429306, 18.5831315, 19.9260621
+light/sphere front, 0.0008259, 0.2946087, 0.2954346
+light/sphere top, 0.0001751, 0.2868274, 0.2870025
+light/sphere front far, 0.000195, 0.3415065, 0.3417015
+light/sphere top far, 0.0002266, 0.3566862, 0.3569128
+light/sphere colour, 0.0010974, 0.3636725, 0.3647699
+light/shadow, 0.0014029, 0.508807, 0.5102099
+csg/union, 0.0023771, 0.3462907, 0.3486678
+csg/union2, 0.0010898, 0.5779874, 0.5790772
+csg/union3, 0.0006734, 0.3584376, 0.359111
+csg/intersection, 0.0013996, 0.2660444, 0.267444
+csg/subtraction, 0.0007032, 0.2904367, 0.2911399
+csg/cross, 0.0019093, 0.518605, 0.5205143
+csg/2dCross, 0.0004813, 0.4370272, 0.4375085
+csg/cylinderX, 0.0006146, 0.3251278, 0.3257424
+csg/cylinderY, 0.0006198, 0.3202286, 0.3208484
+csg/cylinderZ, 0.0005384, 0.3471629, 0.3477013
+csg/box, 0.0006616, 0.2785496, 0.2792112
+csg/sphere, 0.0007771, 0.2824005, 0.2831776
+csg/intersection2, 0.0004827, 0.2983631, 0.2988458
+csg/lantern, 0.0005602, 0.4281344, 0.4286946
+csg/lantern2, 0.0010193, 0.4925725, 0.4935918
+csg/unionTorus, 0.0490632, 3.5979909, 3.6470541
+csg/intersectTorus, 0.0059782, 1.6343148, 1.640293
+csg/subtractTorus, 0.0046952, 2.1294421, 2.1341373
+csg/unionTorus2, 0.0054038, 3.6056318, 3.6110356
+csg/intersectTorus2, 0.0046513, 1.8519862, 1.8566375
+ambientOcclusion/ao_sphere_regular_1, 0.0008136, 0.7970108, 0.7978244
+ambientOcclusion/ao_sphere_regular_4, 6.83E-05, 3.1634014, 3.1634697
+ambientOcclusion/ao_sphere_regular_16, 3.96E-05, 16.0267766, 16.0268162
+ambientOcclusion/ao_sphere_regular_64, 5.43E-05, 63.6133037, 63.613358
+ambientOcclusion/ao_sphere_regular_256, 0.0002618, 259.5671223, 259.5673841
+ambientOcclusion/ao_sphere_random_1, 0.0002378, 0.7605043, 0.7607421
+ambientOcclusion/ao_sphere_random_4, 0.0003413, 3.3354484, 3.3357897
+ambientOcclusion/ao_sphere_random_16, 0.0006253, 15.5029662, 15.5035915
+ambientOcclusion/ao_sphere_random_64, 0.0023111, 65.9543178, 65.9566289
+ambientOcclusion/ao_sphere_random_256, 0.0091055, 256.5022606, 256.5113661
+ambientOcclusion/ao_sphere_jittered_1, 0.0002065, 0.7924441, 0.7926506
+ambientOcclusion/ao_sphere_jittered_4, 0.0001803, 3.1295367, 3.129717
+ambientOcclusion/ao_sphere_jittered_16, 0.000657, 14.7693731, 14.7700301
+ambientOcclusion/ao_sphere_jittered_64, 0.0021209, 62.9078775, 62.9099984
+ambientOcclusion/ao_sphere_jittered_256, 0.0087379, 256.8413326, 256.8500705
+ambientOcclusion/ao_sphere_nrooks_1, 0.0002208, 0.7213359, 0.7215567
+ambientOcclusion/ao_sphere_nrooks_4, 0.0002826, 3.3421979, 3.3424805
+ambientOcclusion/ao_sphere_nrooks_16, 0.0006974, 14.8419538, 14.8426512
+ambientOcclusion/ao_sphere_nrooks_64, 0.0021847, 63.2875394, 63.2897241
+ambientOcclusion/ao_sphere_nrooks_256, 0.0094462, 249.7837481, 249.7931943
+ambientOcclusion/ao_sphere_multi_jittered_1, 0.0002071, 0.7848468, 0.7850539
+ambientOcclusion/ao_sphere_multi_jittered_4, 0.0008646, 3.5475014, 3.548366
+ambientOcclusion/ao_sphere_multi_jittered_16, 0.00066, 15.3259864, 15.3266464
+ambientOcclusion/ao_sphere_multi_jittered_64, 0.0022012, 61.8946194, 61.8968206
+ambientOcclusion/ao_sphere_multi_jittered_256, 0.0086032, 252.8845317, 252.8931349
+meshes grid/icosahedron, 0.0085861, 1.6023387, 1.6109248
+meshes grid/urn, 0.0067043, 2.4141438, 2.4208481
+meshes grid/bunny, 0.3313417, 3.8441457, 4.1754874
+meshes grid/bunny texture, 0.3647116, 2.4217949, 2.7865065
+meshes grid/bunnyAO, 0.3259662, 63.0767924, 63.4027586
+meshes grid/inside bunny, 0.3008168, 6.0689727, 6.3697895
+meshes grid/bunnies small, 0.4724259, 10.108839, 10.5812649
+meshes grid/bunnies big, 1.1151071, 12.0385935, 13.1537006
+meshes grid/spheres small, 0.0012943, 4.269656, 4.2709503
+meshes grid/spheres big, 0.0085447, 4.9293243, 4.937869
+meshes grid/dragon, 3.5120271, 3.6100362, 7.1220633
+meshes grid/gold dragon, 3.4773029, 191.1231873, 194.6004902
+meshes grid/happy, 4.4054798, 3.6595674, 8.0650472
+meshes grid/porsche, 0.0544208, 4.2413656, 4.2957864
+meshes grid/horse, 0.3699614, 4.3970248, 4.7669862
+meshes grid/head, 19.5952181, 5.0371471, 24.6323652
+meshes grid/vase, 1.6379118, 3.9404835, 5.5783953
+meshes grid/armadillo, 7.6567388, 4.1624632, 11.819202
+meshes BVH/icosahedron, 0.0071415, 1.8119601, 1.8191016
+meshes BVH/urn, 0.0061655, 4.9518364, 4.9580019
+meshes BVH/bunny, 0.3491143, 5.5624264, 5.9115407
+meshes BVH/bunny texture, 0.3528926, 2.9566057, 3.3094983
+meshes BVH/bunnyAO, 0.327947, 73.1650918, 73.4930388
+meshes BVH/inside bunny, 0.3478994, 12.4029972, 12.7508966
+meshes BVH/bunnies small, 0.4795307, 12.1679574, 12.6474881
+meshes BVH/bunnies big, 1.1453033, 15.5962223, 16.7415256
+meshes BVH/spheres small, 0.001674, 6.9457321, 6.9474061
+meshes BVH/spheres big, 0.0067332, 9.1050758, 9.111809
+meshes BVH/dragon, 4.5047304, 5.4224824, 9.9272128
+meshes BVH/gold dragon, 4.5130417, 228.9253246, 233.4383663
+meshes BVH/happy, 5.9151714, 5.4770952, 11.3922666
+meshes BVH/porsche, 0.0450533, 10.6276308, 10.6726841
+meshes BVH/horse, 0.4671636, 4.7593404, 5.226504
+meshes BVH/head, 20.9422876, 7.3664409, 28.3087285
+meshes BVH/vase, 2.0968579, 6.0285255, 8.1253834
+meshes BVH/armadillo, 7.8681008, 4.4318094, 12.2999102
