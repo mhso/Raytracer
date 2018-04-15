@@ -1,10 +1,11 @@
-namespace Tracer
+namespace Tracer.Shapes
 
+open System
+open Tracer.Basics
 
 type material = NotImplementedException
 
 type texture = NotImplementedException
-
 
 
 type baseShape = (Point*Vector) -> (Point option*Vector option)
@@ -12,7 +13,6 @@ type baseShape = (Point*Vector) -> (Point option*Vector option)
 [<AbstractClass>]
 type Shape()=
     abstract member hitFunction: Ray -> float option*Vector option*texture option
-
 
 
 
@@ -62,12 +62,12 @@ type Triangle(a:Point, b:Point, c:Point, mat:material)=
     member this.v = a-c // same here
 
     //this is to simplify the discriminant hit calc, so its actually somewhat readable... 
-    member this.pa = ((a.X)-(b.X))
-    member this.pb = ((a.X)-(c.X))
-    member this.e = ((a.Y)-(b.Y))
-    member this.f = ((a.Y)-(c.Y))
-    member this.i = ((a.Z)-(b.Z))
-    member this.j = ((a.Z)-(c.Z))
+    //member this.pa = ((a.X)-(b.X))
+    //member this.pb = ((a.X)-(c.X))
+    //member this.e = ((a.Y)-(b.Y))
+    //member this.f = ((a.Y)-(c.Y))
+    //member this.i = ((a.Z)-(b.Z))
+    //member this.j = ((a.Z)-(c.Z))
 
     //the man let statements are fo simplifying cramers rule
     override this.hitFunction (r:Ray) = let pa = ((a.X)-(b.X))
@@ -92,12 +92,47 @@ type Triangle(a:Point, b:Point, c:Point, mat:material)=
                                                 //x=beta, y=gamma, z=t
                                                 //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
                                                 if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
-                                                      then (Some(z), Some((this.u % this.v).Normalise), Some(mat)) else (None, None, None)
+                                                      then (Some(z), Some((this.u % this.v).Normalise), Some(mat)) else (None, None, None) //why mat instead of texture
+
+
+
+
+type Sphere(origin: Point, radius: float, material: Material) = 
+    inherit Shape()
+    //i dont think these are needed
+    //let origin = origin
+    //let radius = radius
+    //let material = material
+    member this.Origin = origin
+    member this.Radius = radius
+    member this.Material = material 
+    member this.NormalAtPoint (p:Point) = 
+        (p - origin).Normalise
+    member this.GetDiscriminant (ray:Ray) = 
+        let s = (ray.GetOrigin - origin)
+        let rayDir = ray.GetDirection.Normalise
+        let sv = s * rayDir
+        let ss = s * s
+        sv*sv - ss + radius * radius
+    member this.GetHitPoints (ray:Ray) = 
+        let D = this.GetDiscriminant ray
+        if D < 0. then
+            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
+        else
+            let s = (ray.GetOrigin - origin)
+            let rayDir = ray.GetDirection.Normalise
+            let sv = s * rayDir
+            let ss = s * s
+            let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
+            (ray.PointAtTime t1,ray.PointAtTime t2)
+    member this.hitFunction (r:Ray) = //lkjhgvckjhgfdslkjhgfdlkjhgfdlkjhgfd
+
+
 
 
 
 // these needs to be moved to API somehow, but i have weird problems with it...
-module Shapes
+
 
 let mkRectangle (bottomLeft:Point) (topLeft:Point) (bottomRight:Point) (tex:texture) = new Rectangle(bottomLeft, topLeft, bottomRight, tex)
 
