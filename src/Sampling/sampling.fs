@@ -32,13 +32,7 @@ let drawSamples (sl:(float * float) list) sampleMethod fileName =
                 if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
     img.Save(fileName)  
 
-let drawDiscSamples  (sl:(float * float) list) fileName =
-    let size = 400
-    let dotSize = 4
-    let img = new Bitmap(size, size)
-    for i in 0..size-1 do
-            for j in [0..size-1] do
-                img.SetPixel(i, j, Color.White)
+let drawCircle (img:Bitmap) size = 
     let SIZE_HALVED = float size/2.0
     for i in 1..int 360 do
         let theta = float i
@@ -47,6 +41,15 @@ let drawDiscSamples  (sl:(float * float) list) fileName =
         for i in [x-1..x+1] do
             for j in [y-1..y+1] do
                 img.SetPixel(i, j, Color.Black)
+
+let drawDiscSamples  (sl:(float * float) list) fileName =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in 0..size-1 do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    drawCircle img size
     for (sx, sy) in sl do
         let x = int (float (size)*((sx+1.0)/2.0))
         let y = int (float (size)*((sy+1.0)/2.0))
@@ -54,6 +57,23 @@ let drawDiscSamples  (sl:(float * float) list) fileName =
             for j in [y-(dotSize/2)..y+(dotSize/2)] do
                 if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
     img.Save(fileName)  
+
+let drawSphereSamples (sl:(float * float * float) list) fileName above =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in 0..size-1 do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    drawCircle img size
+    for (sx, sy, sz) in sl do
+        let x = int (float (size)*((sx+1.0)/2.0))
+        let sv = if above then sy else sz
+        let y = int (float (size)*((sv+1.0)/2.0))
+        for i in [x-(dotSize/2)..x+(dotSize/2)] do
+            for j in [y-(dotSize/2)..y+(dotSize/2)] do
+                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
+    img.Save(fileName)
 
 let regular (ni:int) =
     let n = float ni
@@ -203,6 +223,17 @@ let mapToDisc (sl:(float * float) list) =
         (r * Math.Cos(theta), r*Math.Sin(theta))
     List.map mapPoints samples
 
+let mapToHemisphere (sl:(float * float) list) e =
+    let samples = [for (x, y) in sl do yield (2.0*x-1.0, 2.0*y-1.0)]
+    let E_VAL = 1.0/(e+1.0)
+    let mapPoint (x,y) =
+        let phi = 2.0*Math.PI*x
+        let theta = Math.Acos((1.0-y)**E_VAL)
+        (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
+    List.map mapPoint samples
+
+let sampleSets 
+
 (*let stressTest = 
     for i in [0..1920] do
         for j in[0..1080] do
@@ -225,7 +256,10 @@ let main argsv =
             | "nrooks"  -> nRooks amount
             | "multi"   -> multiJittered amount
             | _ -> regular 4
-    if argsv.Length > 2 && argsv.[2] = "disc" 
-    then drawDiscSamples (mapToDisc samples) fileName
+    if argsv.Length > 2 then
+        if argsv.[2] = "disc" then drawDiscSamples (mapToDisc samples) fileName
+        else if argsv.[2] = "sphere" then
+            let e = if argsv.Length = 4 then float (Int32.Parse argsv.[3]) else 0.0
+            drawSphereSamples (mapToHemisphere samples e) fileName true
     else drawSamples samples method fileName
     0
