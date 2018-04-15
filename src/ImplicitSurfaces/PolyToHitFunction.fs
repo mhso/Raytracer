@@ -1,6 +1,6 @@
 namespace Tracer.ImplicitSurfaces
 
-module PolyToHitFuntion =
+module PolyToHitFunction =
 
   open Tracer.ImplicitSurfaces.ExprToPoly
 

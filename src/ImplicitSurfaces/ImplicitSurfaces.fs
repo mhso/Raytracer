@@ -4,10 +4,10 @@ module ImplicitSurfaces =
 
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
-  open Tracer.ImplicitSurfaces.PolyToHitFuntion
+  open Tracer.ImplicitSurfaces.PolyToHitFunction
 
-  type Vector = Tracer.Vector
-  type Point = Tracer.Point
+  type Vector = Tracer.Basics.Vector
+  type Point = Tracer.Basics.Point
 
   let substWithGeneticRay (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
