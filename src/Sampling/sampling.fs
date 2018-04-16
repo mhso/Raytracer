@@ -3,7 +3,7 @@
 open System
 open System.Drawing
 
-let rand = new Random()
+let mutable rand = new Random()
 
 let drawSamples (sl:(float * float) []) sampleMethod fileName =
     let size = 400
