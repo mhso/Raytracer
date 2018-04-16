@@ -37,36 +37,42 @@ module ExprToPoly =
   let ppAtomGroup ag = String.concat "*" (List.map ppAtom ag)
   let ppSimpleExpr (SE ags) = String.concat "+" (List.map ppAtomGroup ags)
 
+  // xss is multiplied on all the ys's that are found. At least that's what *I think is happening.
   let rec combine (xss:atomGroup list) = function
     | [] -> []
     | ys::yss -> List.map ((@) ys) xss @ combine xss yss
 
+  // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
   let rec simplify = function
     | FNum c          -> [[ANum c]]
     | FVar s          -> [[AExponent(s,1)]]
     | FAdd(e1,e2)     -> simplify e1 @ simplify e2
     | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
+    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
     | FExponent(_,0)  -> simplify (FNum 1.0)
     | FExponent(e1,1) -> simplify e1
     | FExponent(e1,n) -> if n < 0 then 
                             match e1 with
-                            | FNum c  -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
-                            | FVar s1 -> combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
-                            | _   -> failwith "unmatched exp in simplify"
+                            | FNum c            -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
+                            | FVar s1           -> combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
+                            | FExponent(_, 0)   -> [[ANum 1.0]]
+                            | FExponent(e, n)   -> simplify (FExponent(e, -n))
+                            | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
                          else combine (simplify e1) (simplify (FExponent(e1, n-1)))
-    (*| FExponent(e1,n) ->
-      match e1 with
-      | FVar s1   ->  printfn "simplify FVar s1"
-                      [[AExponent(s1, n)]]
-      | _         ->  printfn "simplify FExponent not FVar, n = %i" n
-                      combine (simplify e1) (simplify (FExponent(e1, n-1))) // is this ever reached?*)
-    | FDiv(e1,e2)     -> 
-                              printfn "we got to FDiv in simplify"
-                              combine (simplify e1) (simplify (FExponent(e2, -1)))
-      // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
     | FRoot _         -> failwith "simplify: FRoot not implemented"
-
     (*
+
+      let x = parseStr "x^2 / x^2"
+      let x = parseStr "x^2 - x^2"
+      let x = parseStr "x^3 / x^2"
+      let x = parseStr "x / x^10"
+      let x = parseStr "x / (10 + x)"
+      let x1 = simplify x
+      List.map simplifyAtomGroup x1
+      let (SE z) = exprToSimpleExpr x
+      List.map simplifyAtomGroup z
+      ppPoly "" (exprToPoly x "")   
+
       ppPoly "" (exprToPoly (parseStr "x^2") "")
       
       ppPoly "" (exprToPoly (parseStr "x + x +y") "")
@@ -81,8 +87,6 @@ module ExprToPoly =
 
     *)
 
-
-  // TODO: Somehow I need to add all ANum nums together for the same variable!!!
   let simplifyAtomGroup ag : atomGroup = 
       let mutable nums = 1.0
       let mutable exps = Map.empty
@@ -97,18 +101,7 @@ module ExprToPoly =
                           if v = 0 then ANum 1.0
                           else AExponent(k,v)]
       if nums = 0.0 then []
-      else if nums = 1.0 && not (List.isEmpty expslist) then expslist
       else [ANum nums] @ expslist
-
-  (*
-
-  let x = parseStr "2x + x + x/2 + x * x +x^2 + y / 1 * 1 / y"
-  let x = parseStr "2x + x + x"
-  let x1 = simplify x
-  List.map simplifyAtomGroup x1
-  exprToSimpleExpr x
-  ppPoly "" (exprToPoly x "") 
-  *)
 
   let simplifySimpleExpr (SE ags) =
     let ags' = List.map simplifyAtomGroup ags
@@ -116,26 +109,19 @@ module ExprToPoly =
     let mutable vars = Map.empty
     List.iter (fun x ->
       match x with
-      | [ANum n]  -> nums <- n + nums // Add atom groups with only constants together.
-      | _         -> match Map.tryFind x vars with
-                      | Some v  -> vars <- Map.add x (v + 1.0) vars
-                      | None    -> vars <- Map.add x 1.0 vars
+      | [ANum n]      -> nums <- n + nums // Add atom groups with only constants together.
+      | (ANum n)::cr  -> match Map.tryFind cr vars with
+                          | Some v  -> vars <- Map.add cr (v + n) vars
+                          | None    -> vars <- Map.add cr n vars
+      | []            -> nums <- 0.0 
+      | _             -> failwith "simplifySimpleExpr: unmatched clause" // should never get here                   
     ) ags'
     // Last task is to group similar atomGroups into one group.
-    let varslist = [for KeyValue(k,v) in vars -> if v = 1.0 then k else (ANum v)::k]
-    
+    let varslist = [for KeyValue(k,v) in vars -> if v = 1.0 then k
+                                                 //else if v = 0.0 then [ANum 0.0]
+                                                 else (ANum v)::k]
     if nums <> 0.0 then SE ([[ANum nums]] @ varslist)
     else SE varslist
-
-  (*
-
-  (exprToSimpleExpr) (parseStr "x + x + x/2")
-
-  (exprToSimpleExpr >> simplifySimpleExpr) (parseStr "x + x + x/2")
-
-  ppPoly "" (exprToPoly (parseStr "x + x + x / 2") "") 
-      
-  *)  
 
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (simplify e))
 
@@ -188,9 +174,16 @@ module ExprToPoly =
 
  (* Simple tests
 
-  ppPoly "" (exprToPoly (parseStr "1 / 2") "")
+  let x = parseStr "x^2 - x^2"
+  let x1 = simplify x
+  List.map simplifyAtomGroup x1
+  let (SE z) = exprToSimpleExpr x
+  List.map simplifyAtomGroup z
+  ppPoly "" (exprToPoly x "") 
 
-  ppPoly "" (exprToPoly (parseStr "x^2 / 2") "")
+  ppPoly "" (exprToPoly (parseStr "-x * (y - z)") "")
+
+  ppPoly "" (exprToPoly (parseStr "(x + y) / z") "")
   
   ppPoly "" (exprToPoly (parseStr "10.0 / 5.5") "")
 
@@ -198,8 +191,8 @@ module ExprToPoly =
 
   ppPoly "" (exprToPoly (parseStr "x^3 / x^2") "")
 
-  ppPoly "" (exprToPoly (parseStr "1x^2 - x^2") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + 1") "y")
+  ppPoly "" (exprToPoly (parseStr "x^2 - x^2") "")
+  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + 1") "")
   ppPoly "" (exprToPoly (parseStr "x^2 + x^2 + 1x^2") "")
   ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + y^2") "")
   ppPoly "" (exprToPoly (parseStr "x*x*y*x*y") "y")
@@ -213,4 +206,6 @@ module ExprToPoly =
   ppPoly "" (exprToPoly (parseStr "(3 * 3)_2") "")
   ppPoly "" (exprToPoly (parseStr "- (r * r)_2") "")
   ppPoly "" (exprToPoly (parseStr "- r * r _ 2") "")
+
+   ppPoly "" (exprToPoly (parseStr  "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") "")
   *)
