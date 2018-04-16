@@ -148,6 +148,9 @@ module ExprParse =
 
   let parseStr s = (scan >> insertMult >> parse) s
 
+(* Need to figure out fractional simplication
+  parseStr "1 + x / 5"
+*)
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")
     let genDot s n e = "digraph G {\nlabel=\"" + (fixStr s) + "\"\n" + n + e + "\n}"
