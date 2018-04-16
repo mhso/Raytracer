@@ -96,8 +96,8 @@ type Triangle(a:Point, b:Point, c:Point, mat:material)=
 
 
 
-
-type Sphere(origin: Point, radius: float, material: Material) = 
+//most of code taken from Basics.Sphere module, need to refactor it a bit, but this should work for now
+type Sphere(origin: Point, radius: float, tex: texture) = 
     inherit Shape()
     //i dont think these are needed
     //let origin = origin
@@ -125,8 +125,19 @@ type Sphere(origin: Point, radius: float, material: Material) =
             let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             (ray.PointAtTime t1,ray.PointAtTime t2)
-    member this.hitFunction (r:Ray) = //lkjhgvckjhgfdslkjhgfdlkjhgfdlkjhgfd
 
+    member this.hitFunction (r:Ray) = 
+        let D = this.GetDiscriminant r
+        if D < 0. then
+            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
+        else
+            let s = (r.GetOrigin - origin)
+            let rayDir = r.GetDirection.Normalise
+            let sv = s * rayDir
+            let ss = s * s
+            let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
+            if t1 < t2 then (Some(t1), Some(this.NormalAtPoint (r.PointAtTime t1)), Some(tex)) 
+            else (Some(t2), Some(this.NormalAtPoint (r.PointAtTime t2)), Some(tex))
 
 
 
