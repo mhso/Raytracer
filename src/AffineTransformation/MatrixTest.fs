@@ -1,27 +1,28 @@
-open Matrix
+open Tracer
+open Transformation
 open System
 let testGetRowLengthWith3x5Returns3 = 
-    let testMatrix = Matrix.mkMatrix [[0;1;0;2;1];[10;5;4;2;6];[13;-4;6;1;2]]
+    let testMatrix = Transformation.mkTransformation [[0;1;0;2;1];[10;5;4;2;6];[13;-4;6;1;2]]
 
-    let result = Matrix.getRowLength testMatrix
+    let result = Transformation.getRowLength testMatrix
     match result with
     | 3 -> printfn "TEST PASSED!"
     | _ -> failwith "TEST FAILED"
 
 let testGetColLengthWith3x5Returns5= 
-    let testMatrix = Matrix.mkMatrix [[0;1;0;2;1];[10;5;4;2;6];[13;-4;6;1;2]]
+    let testMatrix = Transformation.mkTransformation [[0;1;0;2;1];[10;5;4;2;6];[13;-4;6;1;2]]
 
-    let result = Matrix.getColLength testMatrix
+    let result = Transformation.getColLength testMatrix
     match result with
     | 5 -> printfn "TEST PASSED!"
     | _ -> failwith "TEST FAILED"
 
 let testMatrixMultiplicationEqualsCorrectMatrix = 
-    let firstMatrix = Matrix.mkMatrix [[1;2];[3;4]]
-    let secondMatrix = Matrix.mkMatrix [[4;3];[2;1]]
+    let firstMatrix = Transformation.mkTransformation [[1;2];[3;4]]
+    let secondMatrix = Transformation.mkTransformation [[4;3];[2;1]]
 
-    let result = ( * ) firstMatrix secondMatrix
-    let expected = Matrix.mkMatrix [[8;5];[20;13]]
+    let result = Transformation.multi (firstMatrix,secondMatrix)
+    let expected = Transformation.mkTransformation [[8;5];[20;13]]
     let expString = expected.ToString
     match result.ToString with
     | expString -> printfn "TEST PASSED!"

@@ -72,6 +72,7 @@
     <Compile Include="ImplicitSurfaces.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="GeneralTest.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

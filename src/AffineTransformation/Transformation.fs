@@ -1,7 +1,7 @@
 module Transformation
 open System.Windows
 open System
-open Tracer
+open Tracer.Basics
 open Vector
 open Point
 open System
