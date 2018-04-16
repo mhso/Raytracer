@@ -103,7 +103,7 @@ type Sphere(origin: Point, radius: float, tex: texture) =
     //let origin = origin
     //let radius = radius
     //let material = material
-    member this.Origin = origin
+    member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.Material = material 
     member this.NormalAtPoint (p:Point) = 
@@ -138,6 +138,59 @@ type Sphere(origin: Point, radius: float, tex: texture) =
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             if t1 < t2 then (Some(t1), Some(this.NormalAtPoint (r.PointAtTime t1)), Some(tex)) 
             else (Some(t2), Some(this.NormalAtPoint (r.PointAtTime t2)), Some(tex))
+
+
+
+type HollowCylinder(center:Point, radius:float, height:float, tex:texture) =
+    inherit Shape()
+    member this.center = center
+    member this.radius = radius
+    member this.height = height
+    member this.tex = tex
+
+    member this.determineHitPoint (r:Ray) (t:float) = 
+        let p = r.PointAtTime t
+        if p.Y > -(height/2.0) && p.Y < (height/2.0) then (Some(t), Some(new Vector(p.X/radius, 0.0, p.Z/radius)), Some(tex)) else (None, None, None)
+
+    member this.hitFunction (r:Ray) = 
+        let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
+        let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
+        let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
+        let D = (b**2.0) - 4.0*a*c
+        let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
+        let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+        match D with
+        |(0.0) -> match (t1,t2) with
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> (None, None, None)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
+        |(D) when D < 0.0 -> (None, None, None)
+        |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> (None, None, None)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
+                                                                                            else this.determineHitPoint r t1
+
+
+type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, top:texture, bottom:texture) =
+    inherit Shape()
+    member this.center = center
+    member this.radius = radius
+    member this.height = height
+    member this.cylinder = cylinder
+    member this.top = top
+    member this.bottom = bottom
+    //affine transformation is needed for moving the disks
+
+type Box() = //Not implemented yet....
+    inherit Shape()
+
+type InfinitePlane(tex:texture) = 
+    inherit Shape()
+    member this.tex = tex
+    member this.hitFunction (r:Ray) = 
+        let t = -(r.GetOrigin.Z / r.GetDirection.Z)
+        if r.GetDirection.Z <> 0.0 && t > 0.0 then (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None)
+
+
 
 
 
