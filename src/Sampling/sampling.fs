@@ -285,7 +285,7 @@ let mapToHemisphere (samples:(float * float) []) e =
 
 (*for i in 0..1920/127 do
     for j in 0..1080/127 do
-        ignore (multiJittered 32 127)*)
+        ignore (nRooks 256 127)*)
 
 [<EntryPoint>]
 let main argsv =
