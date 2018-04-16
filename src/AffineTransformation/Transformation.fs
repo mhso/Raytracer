@@ -79,3 +79,7 @@ open System
         sum (emptyTrans,l)
 
     let transform = failwith("NOT IMPLEMENTED")
+
+    let equal (T(a)) (T(b)) = 
+        if(a = b) then 1
+        else 0

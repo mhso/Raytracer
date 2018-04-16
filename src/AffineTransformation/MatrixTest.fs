@@ -23,10 +23,10 @@ let testMatrixMultiplicationEqualsCorrectMatrix =
 
     let result = Transformation.multi (firstMatrix,secondMatrix)
     let expected = Transformation.mkTransformation [[8;5];[20;13]]
-    let expString = expected.ToString
-    match result.ToString with
-    | expString -> printfn "TEST PASSED!"
-    | _ -> failwith "TEST FAILED"
+    let value = Transformation.equal expected result
+    match value with
+    | 1 -> printfn "TEST PASSED!"
+    | 0 -> failwith "TEST FAILED"
 
 //let listOfTrans = 
 //    let rnd = new Random()
