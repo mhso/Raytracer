@@ -1,1 +1,1 @@
-﻿module kdTree
+﻿module KD_tree
