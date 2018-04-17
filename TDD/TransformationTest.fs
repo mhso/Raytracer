@@ -3,7 +3,6 @@
 open Transformation
 open Assert
 let allTest = 
-    printfn("Transformation Test")
     let testGetRowLengthWith3x5Returns3 = 
         let testMatrix = Transformation.mkTransformation [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
         let result = Transformation.getRowLength testMatrix
