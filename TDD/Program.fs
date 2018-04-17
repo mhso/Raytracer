@@ -5,6 +5,8 @@
 
 [<EntryPoint>]
 let main argv =
+    printfn("-=-=-=-=-=-=- BVH Test -=-=-=-=-=-=-")
+    BVHTest.allTest
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
     printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
