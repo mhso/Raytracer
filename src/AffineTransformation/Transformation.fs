@@ -46,10 +46,7 @@ open System
     let translateInv x y z = translate -x -y -z
 
     let scale width height depth = mkTransformation ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]])
-    let scaleInv width height depth = scale -width -height -depth
-    let mirrorX = scale -1. 1. 1.
-    let mirrorY = scale 1. -1. 1.
-    let mirrorZ = scale 1. 1. -1.
+    let scaleInv width height depth = scale (-width) (-height) (-depth)
     
     let sheareXY dist = mkTransformation ([[1.;0.;0.;0.];[dist;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
     let sheareXZ dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[dist;0.;1.;0.];[0.;0.;0.;1.]])
@@ -58,8 +55,16 @@ open System
     let sheareZX dist = mkTransformation ([[1.;0.;dist;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
     let sheareZY dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
 
-    let rotateX angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
-    let rotateXInv angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
+    //let sheareXYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.-dist;0.];[0.;0.;0.;1.]])
+    //let sheareXZInv dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[-dist;dist;1.;0.];[0.;0.;0.;1.]])
+    //let sheareYXInv dist = mkTransformation ([[1.-dist;-dist;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    //let sheareYZInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    //let sheareZXInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    //let sheareZYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    
+
+    let rotateX angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);(Math.Cos(angle));0.];[0.;0.;0.;1.]])
+    let rotateXInv angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));(Math.Cos(angle));0.];[0.;0.;0.;1.]])
     let rotateY angle = mkTransformation ([[Math.Cos(angle);0.;Math.Sin(angle);0.];[0.;1.;0.;0.];[-(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
     let rotateYInv angle = mkTransformation ([[Math.Cos(angle);0.;-(Math.Sin(angle));0.];[0.;1.;0.;0.];[(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
     let rotateZ angle = mkTransformation ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])

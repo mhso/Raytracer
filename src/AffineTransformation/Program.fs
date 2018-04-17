@@ -22,7 +22,7 @@ let main _ =
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
 
     //- LIGHT SETTINGS
-    let lightPosition = new Point(0.,-10.,0.)
+    let lightPosition = new Point(100.,100.,100.)
     let lightIntensity = 1.
     let lightColour = new Colour(1.,1.,1.)
 
@@ -33,8 +33,8 @@ let main _ =
     let light4 = new PointLight(lightColour, lightIntensity, lightPosition)
     let light2 = new PointLight(lightColour, lightIntensity, new Point(20.,0.,0.))
     let ambientLight = new AmbientLight(lightColour, 0.1)
-    let scene = new Scene(sphere, camera, [light])
-    
+    let scene = new Scene(sphere, camera, [light4])
+
     printfn "Rendering ..."
     ignore scene.Render
     printfn "Finished!"
