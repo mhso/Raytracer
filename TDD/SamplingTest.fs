@@ -6,7 +6,7 @@ open Assert
 
 let allTest =
     let jittered_JitteredPropertyIsMaintained =
-        setRandomSeed(42)
+        setRandomSeed 42
         let sets = multiJittered 4 1
         let samples = sets.[0]
         let n = int(Math.Sqrt (float samples.Length))

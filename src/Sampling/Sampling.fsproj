@@ -60,8 +60,6 @@
     <Content Include="packages.config" />
     <Compile Include="Sampling.fsi" />
     <Compile Include="Sampling.fs" />
-    <Compile Include="SampleTests.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

@@ -60,8 +60,8 @@
     <Content Include="packages.config" />
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="SamplingTest.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
