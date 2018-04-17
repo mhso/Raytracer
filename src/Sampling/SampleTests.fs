@@ -1,10 +1,12 @@
 module Tracer.Sampling.Tests
-open Tracer.Sampling
+
 open System
+open Tracer.Sampling.Sampling
 
 let jittered_JitteredPropertyIsMaintained =
-    rand <- new Random(42)
-    let samples = (multiJittered 4 1).[0]
+    setRandomSeed(42)
+    let sets = multiJittered 4 1
+    let samples = sets.[0]
     let n = int(Math.Sqrt (float samples.Length))
     let gridExpected = [|for x in 0..n-1 do for y in 0..n-1 do yield (x, y)|]
     let gridValues = [|for (x, y) in samples do yield (getGrid x n, getGrid y n)|]

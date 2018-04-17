@@ -1,9 +1,11 @@
-﻿module Tracer.Sampling
+﻿module Tracer.Sampling.Sampling
 
 open System
 open System.Drawing
 
 let mutable rand = new Random()
+
+let setRandomSeed seed = rand <- new Random(seed)
 
 let drawSamples (sl:(float * float) []) sampleMethod fileName =
     let size = 400
@@ -172,10 +174,9 @@ let shuffleDiagonals (samples:(float * float) []) =
     let n = samples.Length
     
     for i in n-1..-1..0 do
-        let k = n-1-i
         let shufX = rand.Next(i)
         let _, replY = samples.[shufX]
-        let _, currentY = samples.[i]
+        let  _, currentY = samples.[i]
         samples.[shufX] <- (getJitteredValue shufX n, currentY)
         samples.[i] <- (getJitteredValue i n, replY)
     for i in n-1..-1..0 do
@@ -286,29 +287,3 @@ let mapToHemisphere (samples:(float * float) []) e =
 (*for i in 0..1920/127 do
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
-
-[<EntryPoint>]
-let main argsv =
-    if Array.isEmpty argsv then 
-        printfn "Error: No arguments given! Expected: [sampleMethod] [sampleAmount]."
-        0
-    else
-    let method = argsv.[0]
-    let amount = Int32.Parse(argsv.[1])
-    let sets = if argsv.Length > 2 then Int32.Parse(argsv.[2]) else 1
-    let fileName = "sampletest.png"
-    let samples = 
-        match method with
-            | "regular" -> regular amount
-            | "random"  -> (random amount sets).[0]
-            | "jittered" -> (jittered amount sets).[0]
-            | "nrooks"  -> (nRooks amount sets).[0]
-            | "multi"   -> (multiJittered amount sets).[0]
-            | _ -> regular 4
-    if argsv.Length > 3 then
-        if argsv.[3] = "disc" then drawDiscSamples (mapToDisc samples) fileName
-        else if argsv.[3] = "sphere" then
-            let e = if argsv.Length = 5 then float (Int32.Parse argsv.[4]) else 0.0
-            drawSphereSamples (mapToHemisphere samples e) fileName true
-    else drawSamples samples method fileName
-    0
