@@ -60,7 +60,6 @@
     <Content Include="packages.config" />
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
-<<<<<<< HEAD
     <Compile Include="BVH\BVHTest.fs" />
     <Compile Include="SamplingTest.fs" />
     <Compile Include="Program.fs" />
