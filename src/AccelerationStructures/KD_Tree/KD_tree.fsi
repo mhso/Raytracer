@@ -6,20 +6,22 @@ module KD_tree =
     // TYPES AND EXCEPTIONS //
     //////////////////////////
 
-    type coordinate = {x:float; y:float; z:float}
+    [<Sealed>]
+    type coordinate
 
     exception KDException
 
-    type Shape = S of float
+    [<Sealed>]
+    type Shape
 
-    type BBox = { maxXYZ:coordinate; 
-                  minXYZ:coordinate;
-                  shape:Shape }
+    [<Sealed>]
+    type BBox
     
-    type KDTree = Leaf of BBox list
-                | Node of string * float * KDTree * KDTree
+    [<Sealed>]
+    type KDTree
     
-    type Ray = R of float * float * float
+    [<Sealed>]
+    type Ray
 
 
     ///////////////
