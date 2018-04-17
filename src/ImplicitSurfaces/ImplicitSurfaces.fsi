@@ -1,6 +1,6 @@
-namespace Tracer
+namespace Tracer.ImplicitSurfaces
 
-module ImplicitSurfaces =
+module Main =
 
   type Vector = Tracer.Basics.Vector
   type Point = Tracer.Basics.Point

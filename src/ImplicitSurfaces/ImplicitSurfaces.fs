@@ -1,6 +1,6 @@
-namespace Tracer
+namespace Tracer.ImplicitSurfaces
 
-module ImplicitSurfaces =
+module Main =
 
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
@@ -25,12 +25,12 @@ module ImplicitSurfaces =
   let test s = 
     let po = (parseStr >> substWithGeneticRay >> exprToPoly) s "t"
     printfn "%s" (ppPoly "t" po)
-
+(*
   [<EntryPoint>]
   let main argv =
     printfn "we are running this shit!"
     0 // return a beautiful integer exit code
-
+*)
   (* Test string
 
   test "x^2 + y^2 + z^2 - 1"

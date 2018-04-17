@@ -1,3 +1,0 @@
-module ExprToPolyTests
-
-open Assert
