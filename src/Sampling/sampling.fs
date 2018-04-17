@@ -165,6 +165,7 @@ let rec getLegalSpots i (samples:(float * float) array) =
                 let xGrid2 = getGrid x2 n
                 let yGrid2 = getGrid y2 n
                 not (Array.exists (fun (xi, yi) ->
+                    if (xGrid2 = (xGrid+xi) && yGrid2 = (i+yi)) then printfn "Threatened"
                     xGrid2 = (xGrid+xi) && yGrid2 = (i+yi)) illegalSpots)
             else true
         result <- if checkValidity (i-1) && checkValidity (i-2) && checkValidity (i+1) && checkValidity (i+2) then Array.append result [|j|] else result

@@ -5,7 +5,10 @@
 
 [<EntryPoint>]
 let main argv =
+    printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
+    printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
+    SamplingTest.allTest
     printfn("PRESS A KEY TO EXIT")
     System.Console.ReadKey() |> ignore
     0
