@@ -48,8 +48,9 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
     let testFindBoundingBoxSideLengths = 
-        let expected = None
-        let result = findBoundingBoxSideLengths findOuterBoundingBoLowHighPoints
+        let outer = findOuterBoundingBoLowHighPoints testBBoxDataInput
+        let expected = 0.0
+        let result = findBoundingBoxSideLengths outer
         Assert.Equal (expected,result,"testOuterBoundingBox")
     testFindBoundingBoxSideLengths
 

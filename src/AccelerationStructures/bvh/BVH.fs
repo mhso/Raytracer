@@ -74,12 +74,12 @@ module BVH =
         else if value < z then value <- z
         value
 
-    let buildBVHTree (xs:list<BBox>) = 
-        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+    //let buildBVHTree (xs:list<BBox>) = 
+    //    if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
         
-        let firstAxisSplit = 0 // x=0, y=1, z=2
-        let sortList = sortListByAxis xs firstAxisSplit
-        let lowPoint, highPoint = findOuterBoundingBoLowHighPoints(xs)
+    //    let firstAxisSplit = 0 // x=0, y=1, z=2
+    //    let sortList = sortListByAxis xs firstAxisSplit
+    //    let lowPoint, highPoint = findOuterBoundingBoLowHighPoints(xs)
 
         
          
