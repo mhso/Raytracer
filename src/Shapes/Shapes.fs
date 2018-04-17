@@ -180,8 +180,18 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, t
     member this.bottom = bottom
     //affine transformation is needed for moving the disks
 
-type Box() = //Not implemented yet....
+type Box(low:Point, high:Point, front:texture, back:texture, top:texture, bottom:texture, left:texture, right:texture) = //Not implemented yet....
     inherit Shape()
+    member this.low = low
+    member this.high = high
+    member this.front = front
+    member this.back = back
+    member this.top = top
+    member this.bottom = bottom
+    member this.left = left
+    member this.rght = right
+    member this.hitFunction (r:Ray) =
+
 
 type InfinitePlane(tex:texture) = 
     inherit Shape()
