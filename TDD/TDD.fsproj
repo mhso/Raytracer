@@ -62,6 +62,7 @@
     <Compile Include="TransformationTest.fs" />
     <Compile Include="ImplicitSurfaces.Tests/ExprParseTest.fs" />
     <Compile Include="ImplicitSurfaces.Tests/ExprToPolyTest.fs" />            
+    <Compile Include="SamplingTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +94,9 @@
     <ProjectReference Include="..\src\ImplicitSurfaces\ImplicitSurfaces.fsproj">
       <Name>ImplicitSurfaces</Name>
       <Project>{940a3706-dae3-4f52-87b8-d71f44641b0d}</Project>
+    <ProjectReference Include="..\src\Sampling\Sampling.fsproj">
+      <Name>Sampling</Name>
+      <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
