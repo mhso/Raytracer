@@ -1,6 +1,8 @@
 ﻿namespace Tracer
 
 module BVH = 
+    open Tracer.Basics
+
     //#load Vector.fs
     //#load Point.fs
 
@@ -16,7 +18,7 @@ module BVH =
                   highXYZ:coordinate;
                   shape:Shape }
 
-    let rec qsort (xs:list<BBox>) (axis:int) =
+    let rec sortListByAxis (xs:list<BBox>) (axis:int) =
       match xs with
       | [] -> []
       | x :: xs ->
@@ -35,19 +37,19 @@ module BVH =
                 let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
                 filterSmall, filterLarger
 
-          let smaller = qsort (xs |> List.filter(small)) axis
-          let larger  = qsort (xs |> List.filter(large)) axis
+          let smaller = sortListByAxis (xs |> List.filter(small)) axis
+          let larger  = sortListByAxis (xs |> List.filter(large)) axis
           smaller @ [x] @ larger
     
     // ----------------------------- qsort TEST BEGIN -----------------------------
-    let box1Test = {  lowXYZ = {x=1.; y=0.6; z=1.};
-                      highXYZ = {x=6.5; y=9.; z=8.9};
+    let box1Test = {  lowXYZ = {x=1.; y=0.6; z=(-1.)};
+                      highXYZ = {x=6.5; y=9.; z=(-8.9)};
                       shape = S(5.0) }
-    let box2Test = {  lowXYZ = {x=7.; y=3.; z=8.4};
-                      highXYZ = {x=12.; y=7.; z=16.6};
+    let box2Test = {  lowXYZ = {x=7.; y=3.; z=(-8.4)};
+                      highXYZ = {x=12.; y=7.; z=(-16.6)};
                       shape = S(4.0) }
-    let box3Test = {  lowXYZ = {x=8.; y=10.; z=8.9};
-                      highXYZ = {x=11.4; y=13.5; z=15.7};
+    let box3Test = {  lowXYZ = {x=8.; y=10.; z=(-8.9)};
+                      highXYZ = {x=11.4; y=13.5; z=(-15.7)};
                       shape = S(3.0) }
 
     let qsortTestDataInput = [box1Test; box2Test; box3Test]
@@ -71,18 +73,19 @@ module BVH =
     type  BoundingboxCoords = Point * Point
 
     let getOuterBoundinBox (xs:list<BBox>) = 
-        let sortX  = qsort xs 0
-        let sortY  = qsort xs 1
-        let sortZ  = qsort xs 2
+        let sortX  = sortListByAxis xs 0
+        let sortY  = sortListByAxis xs 1
+        let sortZ  = sortListByAxis xs 2
+        let notZero = 0.000000
 
         let lowPoint = Point(
-                                sortX.Head.lowXYZ.x,
-                                sortY.Head.lowXYZ.y,
-                                sortZ.Head.lowXYZ.z)
+                                sortX.Head.lowXYZ.x - notZero,
+                                sortY.Head.lowXYZ.y - notZero,
+                                sortZ.Head.lowXYZ.z - notZero )
         let highPoint = Point(
-                                sortX.Item(sortX.Length-1).highXYZ.x,
-                                sortY.Item(sortY.Length-1).highXYZ.y,
-                                sortZ.Item(sortZ.Length-1).highXYZ.z)
+                                sortX.Item(sortX.Length-1).highXYZ.x + notZero,
+                                sortY.Item(sortY.Length-1).highXYZ.y + notZero,
+                                sortZ.Item(sortZ.Length-1).highXYZ.z + notZero)
         lowPoint, highPoint
 
     // ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
@@ -91,8 +94,32 @@ module BVH =
 
     // ----------------------------- getOuterBoundinBox TEST END -----------------------------
 
-    // let buildBVHTree (xs:list<BBox>) = 
+    let buildBVHTree (xs:list<BBox>) = 
+        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
         
+        let firstAxisSplit = 0 // x=0, y=1, z=2
+        let sortList = sortListByAxis xs firstAxisSplit
+        let lowPoint, highPoint = getOuterBoundinBox(xs)
+
+        let find =
+            let mutable value = highPoint.X - lowPoint.X
+            let y = highPoint.Y - lowPoint.Y
+            let z = highPoint.Z - lowPoint.Z
+
+            if value < y then value <- y
+            else if value < z then value <- z
+            value
+        find
+         
+
+        //let rec innerBuild sortList axis = 
+            
+// ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
+
+    let testBuildBVHTree = buildBVHTree qsortTestDataInput
+
+// ----------------------------- getOuterBoundinBox TEST END -----------------------------
+
         
 
     // swaps the order if d is not positive
