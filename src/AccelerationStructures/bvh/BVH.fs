@@ -22,20 +22,21 @@ module BVH =
       match xs with
       | [] -> []
       | x :: xs ->
-          let small, large = match axis with
-          | 0 ->
-                let filterSmall = fun e -> e.lowXYZ.x <= x.lowXYZ.x
-                let filterLarger = fun e -> e.lowXYZ.x >  x.lowXYZ.x
-                filterSmall, filterLarger
-          | 1 -> 
-                let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
-                let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
-                filterSmall, filterLarger
+          let small, large = 
+              match axis with
+              | 0 ->
+                    let filterSmall = fun e -> e.lowXYZ.x <= x.lowXYZ.x
+                    let filterLarger = fun e -> e.lowXYZ.x >  x.lowXYZ.x
+                    filterSmall, filterLarger
+              | 1 -> 
+                    let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
+                    let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
+                    filterSmall, filterLarger
 
-          | _ ->
-                let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
-                let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
-                filterSmall, filterLarger
+              | _ ->
+                    let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
+                    let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
+                    filterSmall, filterLarger
 
           let smaller = sortListByAxis (xs |> List.filter(small)) axis
           let larger  = sortListByAxis (xs |> List.filter(large)) axis
@@ -54,7 +55,7 @@ module BVH =
     // let testBVHTree = Node(Leaf "left", Leaf "right")
     type  BoundingboxCoords = Point * Point
 
-    let getOuterBoundinBox (xs:list<BBox>) = 
+    let getOuterBoundingBox (xs:list<BBox>) = 
         let sortX  = sortListByAxis xs 0
         let sortY  = sortListByAxis xs 1
         let sortZ  = sortListByAxis xs 2
@@ -70,18 +71,12 @@ module BVH =
                                 sortZ.Item(sortZ.Length-1).highXYZ.z + notZero)
         lowPoint, highPoint
 
-    // ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
-
-    let testgetOuterBoundinBox = getOuterBoundinBox qsortTestDataInput
-
-    // ----------------------------- getOuterBoundinBox TEST END -----------------------------
-
     let buildBVHTree (xs:list<BBox>) = 
         if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
         
         let firstAxisSplit = 0 // x=0, y=1, z=2
         let sortList = sortListByAxis xs firstAxisSplit
-        let lowPoint, highPoint = getOuterBoundinBox(xs)
+        let lowPoint, highPoint = getOuterBoundingBox(xs)
 
         let find =
             let mutable value = highPoint.X - lowPoint.X
@@ -96,11 +91,7 @@ module BVH =
 
         //let rec innerBuild sortList axis = 
             
-// ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
 
-    let testBuildBVHTree = buildBVHTree qsortTestDataInput
-
-// ----------------------------- getOuterBoundinBox TEST END -----------------------------
 
         
 

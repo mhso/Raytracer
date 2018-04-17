@@ -5,7 +5,8 @@
 
 [<EntryPoint>]
 let main argv =
-    TransformationTest.allTest
+    // TransformationTest.allTest
+    BVHTest.allTest
     printfn("PRESS A KEY TO EXIT")
     System.Console.ReadKey() |> ignore
     0

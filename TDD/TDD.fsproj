@@ -60,6 +60,7 @@
     <Content Include="packages.config" />
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
+    <Compile Include="BVH\BVHTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +79,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\src\AccelerationStructures\AccelerationStructures.fsproj">
+      <Name>AccelerationStructures</Name>
+      <Project>{b75213c8-4330-4978-be05-b56e118f5122}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\src\AffineTransformation\AffineTransformation.fsproj">
       <Name>AffineTransformation</Name>
       <Project>{b6ed2594-86e0-4ec4-93d9-c87cd305c2dc}</Project>
