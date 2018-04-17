@@ -32,7 +32,6 @@ module BVH =
                     let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
                     let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
                     filterSmall, filterLarger
-
               | _ ->
                     let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
                     let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
@@ -64,12 +63,22 @@ module BVH =
         let lowPoint = Point(
                                 sortX.Head.lowXYZ.x - notZero,
                                 sortY.Head.lowXYZ.y - notZero,
-                                sortZ.Head.lowXYZ.z - notZero )
+                                sortZ.Head.highXYZ.z - notZero )
         let highPoint = Point(
                                 sortX.Item(sortX.Length-1).highXYZ.x + notZero,
                                 sortY.Item(sortY.Length-1).highXYZ.y + notZero,
-                                sortZ.Item(sortZ.Length-1).highXYZ.z + notZero)
+                                sortZ.Item(sortZ.Length-1).lowXYZ.z + notZero)
         lowPoint, highPoint
+    
+    let outerBoundingBox (xs:list<BBox>) = 
+        let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) 9999999.0 xs
+        let lowY = List.fold (fun acc box -> if box.lowXYZ.y < acc then box.lowXYZ.y else acc) 9999999.0 xs
+        let lowZ = List.fold (fun acc box -> if box.lowXYZ.z > acc then box.lowXYZ.z else acc) -9999999.0 xs
+        let highX = List.fold (fun acc box -> if box.highXYZ.x > acc then box.highXYZ.x else acc) -9999999.0 xs
+        let highY = List.fold (fun acc box -> if box.highXYZ.y > acc then box.highXYZ.y else acc) -9999999.0 xs
+        let highZ = List.fold (fun acc box -> if box.highXYZ.z < acc then box.highXYZ.z else acc) 9999999.0 xs
+        
+        Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
 
     let buildBVHTree (xs:list<BBox>) = 
         if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."

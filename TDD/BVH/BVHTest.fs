@@ -39,17 +39,12 @@ let allTest =
         Assert.Equal (expected,result,"testSortListByAxisZ")
     testSortListByAxisZ
 
-    // ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
-
-    let testgetOuterBoundingBox = 
+// ----------------------------- TEST BEGIN -----------------------------
+    let testOuterBoundingBox = 
         let expected = (Point(0., 0., 0.), Point(0., 0., 0.))
-        let result = getOuterBoundingBox testBBoxDataInput
-        Assert.Equal (expected,result,"testgetOuterBoundingBox")
-    testgetOuterBoundingBox
-
-    // ----------------------------- getOuterBoundinBox TEST END -----------------------------
-
-    // ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
+        let result = outerBoundingBox testBBoxDataInput
+        Assert.Equal (expected,result,"testOuterBoundingBox")
+    testOuterBoundingBox
 
     //let testBuildBVHTree = 
     //    let expected = List.empty
