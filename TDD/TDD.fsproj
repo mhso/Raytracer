@@ -60,6 +60,7 @@
     <Content Include="packages.config" />
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
+    <Compile Include="SamplingTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +87,11 @@
     <ProjectReference Include="..\src\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\src\Sampling\Sampling.fsproj">
+      <Name>Sampling</Name>
+      <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

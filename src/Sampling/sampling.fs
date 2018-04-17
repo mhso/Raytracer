@@ -1,9 +1,11 @@
-﻿module Sampling
+﻿module Tracer.Sampling.Sampling
 
 open System
 open System.Drawing
 
-let rand = new Random()
+let mutable rand = new Random()
+
+let setRandomSeed seed = rand <- new Random(seed)
 
 let drawSamples (sl:(float * float) []) sampleMethod fileName =
     let size = 400
@@ -92,34 +94,59 @@ let regular (ni:int) =
     innerX (ni-1)
     samples
 
-let random n =
+let createSampleSets (set:(float * float)[][]) =
+    let rand = new Random()
+    for i in 0..set.Length-1 do
+        let samples = set.[i]
+        for j in 0..samples.Length-1 do
+            let r = rand.Next(j)
+            let temp = samples.[r]
+            samples.[r] <- samples.[j]
+            samples.[j] <- temp
+    for i in 0..set.Length-1 do
+            let r = rand.Next(i)
+            let temp = set.[r]
+            set.[r] <- set.[i]
+            set.[i] <- temp
+    set
+let random n sn =
     let ns = n*n
+    let sets = Array.create sn [|(0.0, 0.0)|]
     let samples = Array.create ns (0.0, 0.0)
-    let rec inner = function
-        | 0 -> samples.[0] <- (rand.NextDouble(), rand.NextDouble())
-        | c -> 
-            samples.[c] <- (rand.NextDouble(), rand.NextDouble())
-            inner (c-1)
-    inner (ns-1)
-    samples
+    let rec loop k =
+        let rec inner = function
+            | 0 -> samples.[0] <- (rand.NextDouble(), rand.NextDouble())
+            | c -> 
+                samples.[c] <- (rand.NextDouble(), rand.NextDouble())
+                inner (c-1)
+        inner (ns-1)
+        sets.[k] <- samples
+        if k > 0 then loop (k-1)
+    loop (sn-1)
+    createSampleSets sets    
 
 let getJitteredValue (grid:int) (max:int) = (rand.NextDouble()/float max) + ((1.0/float max) * float grid)
 
-let jittered n =
+let jittered n sn =
+    let sets = Array.create sn [|(0.0, 0.0)|]
     let samples = Array.create (int (float n**2.0)) (0.0 ,0.0)
-    let rec innerX x = 
-        let rec innerY = function
-            | 0 -> samples.[0] <- (getJitteredValue x n, getJitteredValue 0 n)
-            | y -> 
-                samples.[y] <- (getJitteredValue x n, getJitteredValue y n)
-                (innerY (y-1))
-        match x with
-        | 0 -> innerY n
-        | c ->  
-            (innerX (c-1))
-            (innerY n)
-    innerX (n-1)
-    samples
+    let rec loop k =
+        let rec innerX x = 
+            let rec innerY = function
+                | 0 -> samples.[0] <- (getJitteredValue x n, getJitteredValue 0 n)
+                | y -> 
+                    samples.[y] <- (getJitteredValue x n, getJitteredValue y n)
+                    (innerY (y-1))
+            match x with
+            | 0 -> innerY n
+            | c ->  
+                (innerX (c-1))
+                (innerY n)
+        innerX (n-1)
+        sets.[k] <- samples
+        if k > 0 then loop (k-1)
+    loop (sn-1)
+    createSampleSets sets
 
 let getGrid (v:float) max = int(v*(float max))
 
@@ -147,10 +174,9 @@ let shuffleDiagonals (samples:(float * float) []) =
     let n = samples.Length
     
     for i in n-1..-1..0 do
-        let k = n-1-i
         let shufX = rand.Next(i)
         let _, replY = samples.[shufX]
-        let _, currentY = samples.[i]
+        let  _, currentY = samples.[i]
         samples.[shufX] <- (getJitteredValue shufX n, currentY)
         samples.[i] <- (getJitteredValue i n, replY)
     for i in n-1..-1..0 do
@@ -163,19 +189,22 @@ let shuffleDiagonals (samples:(float * float) []) =
             samples.[i] <- (replX, getJitteredValue i n)
     samples
 
-let nRooks n =
+let nRooks n sn =
+    let sets = Array.create sn [|(0.0, 0.0)|]
     let samples = Array.create n (0.0,0.0)
-    let rec placeDiagonals = function
-        | 0 -> samples.[0] <- (getJitteredValue 0 n, getJitteredValue 0 n)
-        | c -> 
-            samples.[c] <- (getJitteredValue c n, getJitteredValue c n)
-            (placeDiagonals (c-1))
-    placeDiagonals (n-1)
-    shuffleDiagonals samples
+    let rec loop k =
+        let rec placeDiagonals = function
+            | 0 -> samples.[0] <- (getJitteredValue 0 n, getJitteredValue 0 n)
+            | c -> 
+                samples.[c] <- (getJitteredValue c n, getJitteredValue c n)
+                (placeDiagonals (c-1))
+        placeDiagonals (n-1)
+        sets.[k] <- shuffleDiagonals samples
+        if k > 0 then loop (k-1)
+    loop (sn-1)
+    createSampleSets sets
 
 let shuffleMultiPDF (samples:(float * float) []) n =
-    let ns = samples.Length
-    
     for j in 0..n-1 do
         for i in 0..n-1 do
             let shuf = (j + rand.Next(n-j)) * n + i
@@ -197,8 +226,6 @@ let shuffleMultiPDF (samples:(float * float) []) n =
     samples
 
 let shuffleMulti (samples:(float * float) []) n =
-    let ns = samples.Length
-    
     for j in 0..n-1 do
         let k = (j + rand.Next(n-j))
         for i in 0..n-1 do
@@ -220,16 +247,21 @@ let shuffleMulti (samples:(float * float) []) n =
             samples.[current] <- (currentX, replY)
     samples
 
-let rec multiJittered n =
-    let ns = int (float (n)**2.0)
-    let samples = Array.create ns (0.0, 0.0)
-    let rec placeDiag = function
-        | 0 -> samples.[0] <- (getJitteredValue 0 ns, getJitteredValue 0 ns)
-        | c -> 
-            samples.[c] <- (getJitteredValue (((c%n)*n)+(c/n)) ns, getJitteredValue c ns)
-            placeDiag (c-1)
-    placeDiag (ns-1)
-    shuffleMulti samples n
+let multiJittered n sn =
+    let sets = Array.create sn [|(0.0, 0.0)|]
+    let rec loop k = 
+        let ns = int (float (n)**2.0)
+        let samples = Array.create ns (0.0, 0.0)
+        let rec placeDiag = function
+            | 0 -> samples.[0] <- (getJitteredValue 0 ns, getJitteredValue 0 ns)
+            | c -> 
+                samples.[c] <- (getJitteredValue (((c%n)*n)+(c/n)) ns, getJitteredValue c ns)
+                placeDiag (c-1)
+        placeDiag (ns-1)
+        sets.[k] <- shuffleMulti samples n
+        if k > 0 then loop (k-1)
+    loop (sn-1)
+    createSampleSets sets
 
 let mapToDisc (sl:(float * float) []) =
     let samples = [|for (x, y) in sl do yield (2.0*x-1.0, 2.0*y-1.0)|]
@@ -252,10 +284,9 @@ let mapToHemisphere (samples:(float * float) []) e =
         (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
     Array.map mapPoint samples
 
-(*let stressTest = 
-    for i in [0..1920] do
-        for j in[0..1080] do
-            multiJittered 8*)
+(*for i in 0..1920/127 do
+    for j in 0..1080/127 do
+        ignore (nRooks 256 127)*)
 
 [<EntryPoint>]
 let main argsv =
@@ -265,19 +296,20 @@ let main argsv =
     else
     let method = argsv.[0]
     let amount = Int32.Parse(argsv.[1])
+    let sets = if argsv.Length > 2 then Int32.Parse(argsv.[2]) else 1
     let fileName = "sampletest.png"
     let samples = 
         match method with
             | "regular" -> regular amount
-            | "random"  -> random amount
-            | "jittered" -> jittered amount
-            | "nrooks"  -> nRooks amount
-            | "multi"   -> multiJittered amount
+            | "random"  -> (random amount sets).[0]
+            | "jittered" -> (jittered amount sets).[0]
+            | "nrooks"  -> (nRooks amount sets).[0]
+            | "multi"   -> (multiJittered amount sets).[0]
             | _ -> regular 4
-    if argsv.Length > 2 then
-        if argsv.[2] = "disc" then drawDiscSamples (mapToDisc samples) fileName
-        else if argsv.[2] = "sphere" then
-            let e = if argsv.Length = 4 then float (Int32.Parse argsv.[3]) else 0.0
+    if argsv.Length > 3 then
+        if argsv.[3] = "disc" then drawDiscSamples (mapToDisc samples) fileName
+        else if argsv.[3] = "sphere" then
+            let e = if argsv.Length = 5 then float (Int32.Parse argsv.[4]) else 0.0
             drawSphereSamples (mapToHemisphere samples e) fileName true
     else drawSamples samples method fileName
     0
