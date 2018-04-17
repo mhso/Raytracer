@@ -1,15 +1,11 @@
 module Transformation
 open System.Windows
 open System
-open Tracer
-open Vector
-open Point
+open Tracer.Basics
 open System
 
     type Transformation = 
         | T of float list list
-    type Point = Point.Point
-    type Vector = Vector.Vector
     let mkTransformation (a: float list list) = T(a)
     let getRowLength (T(a)) = a.Length //Gets the number of rows
     let getColLength (T(a)) = a.Head.Length //Get the number of columns in a matrix
@@ -42,13 +38,13 @@ open System
     end
 
     let identityMatrixWithPos x y z = mkTransformation ([[1.0;0.0;0.;x];[0.;1.;0.;y];[0.;0.;1.;z];[0.;0.;0.;1.]]) //CREATES AN IDENTITY MATRIX
-
-    let vectorToMatrix (v:Vector) = identityMatrixWithPos (Vector.getX v) (Vector.getY v) (Vector.getZ v)
+    let getList (T(a)) = a
+    let vectorToMatrix (v:Vector) = identityMatrixWithPos (v.X) (v.X) (v.Z)
 
     let translate x y z = identityMatrixWithPos x y z
     let translateInv x y z = translate -x -y -z
 
-    let scale width height depth = mkTransformation ([[width;0.0;0.;0.];[height;1.;0.;0.];[depth;0.;1.;0.];[0.;0.;0.;1.]])
+    let scale width height depth = mkTransformation ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]])
     let scaleInv width height depth = scale -width -height -depth
     let mirrorX = scale -1. 1. 1.
     let mirrorY = scale 1. -1. 1.
@@ -61,8 +57,8 @@ open System
     let sheareZX dist = mkTransformation ([[1.;0.;dist;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
     let sheareZY dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
 
-    let rorateX angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
-    let rorateXInv angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
+    let rotateX angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
+    let rotateXInv angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));-(Math.Cos(angle));0.];[0.;0.;0.;1.]])
     let rotateY angle = mkTransformation ([[Math.Cos(angle);0.;Math.Sin(angle);0.];[0.;1.;0.;0.];[-(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
     let rotateYInv angle = mkTransformation ([[Math.Cos(angle);0.;-(Math.Sin(angle));0.];[0.;1.;0.;0.];[(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
     let rotateZ angle = mkTransformation ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
@@ -79,3 +75,7 @@ open System
         sum (emptyTrans,l)
 
     let transform = failwith("NOT IMPLEMENTED")
+
+    let equal (T(a)) (T(b)) = 
+        if(a = b) then 1
+        else 0
