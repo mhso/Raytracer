@@ -12,15 +12,9 @@ module KD_tree =
 
     type Shape = S of float
 
-    (*type BBox1 = { maxY_lowX_maxZ:coordinate; maxY_maxX_maxZ:coordinate; 
-              lowY_lowX_maxZ:coordinate; lowY_maxX_maxZ:coordinate; 
-              maxY_lowX_lowZ:coordinate; maxY_maxX_lowZ:coordinate; 
-              lowY_lowX_lowZ:coordinate; lowY_maxX_lowZ:coordinate; 
-              shape:Shape }*)
-
     type BBox = { maxXYZ:coordinate; 
-              minXYZ:coordinate;
-              shape:Shape }
+                  minXYZ:coordinate;
+                  shape:Shape }
 
     type KDTree = Leaf of BBox list
                 | Node of string * float * KDTree * KDTree
@@ -44,21 +38,6 @@ module KD_tree =
                          smaller @ [x] @ larger
 
 
-(*let rec qsortY (xs:list<BBox>) =
-  match xs with
-  | [] -> []
-  | x :: xs ->
-      let smaller = qsortY (xs |> List.filter(fun e -> e.maxXYZ.y <= x.maxXYZ.y))
-      let larger  = qsortY (xs |> List.filter(fun e -> e.maxXYZ.y >  x.maxXYZ.y))
-      smaller @ [x] @ larger
-let rec qsortZ (xs:list<BBox>) =
-  match xs with
-  | [] -> []
-  | x :: xs ->
-      let smaller = qsortY (xs |> List.filter(fun e -> e.maxXYZ.z <= x.maxXYZ.z))
-      let larger  = qsortY (xs |> List.filter(fun e -> e.maxXYZ.z >  x.maxXYZ.z))
-      smaller @ [x] @ larger*)
-
     let findMaxMin (xs:list<BBox>) axis = 
         match xs with
             | []    -> (infinity, infinity)
@@ -80,37 +59,35 @@ let rec qsortZ (xs:list<BBox>) =
                                                        else find xs max min axis
                        find xs x.maxXYZ.x x.minXYZ.x axis
 
-(*let findMaxMinY (xs:list<BBox>) = 
-    match xs with
-    | []    -> (infinity, infinity)
-    | x::xs -> let rec find (xs:list<BBox>) (max:float) (min:float) =
-                   match xs with
-                   | []    -> (max, min)
-                   | x::xs -> if x.maxXYZ.y > max && x.minXYZ.y < min then find xs x.maxXYZ.y x.minXYZ.y
-                              else if x.maxXYZ.y > max then find xs x.maxXYZ.y min
-                              else if x.minXYZ.y < min then find xs max x.minXYZ.y
-                              else find xs max min
-               find xs x.maxXYZ.y x.minXYZ.y
-            
-let findMaxMinZ (xs:list<BBox>) = 
-    match xs with
-    | []    -> (infinity, infinity)
-    | x::xs -> let rec find (xs:list<BBox>) (max:float) (min:float) =
-                   match xs with
-                   | []    -> (max, min)
-                   | x::xs -> if x.maxXYZ.z > max && x.minXYZ.z < min then find xs x.maxXYZ.z x.minXYZ.z
-                              else if x.maxXYZ.z > max then find xs x.maxXYZ.z min
-                              else if x.minXYZ.z < min then find xs max x.minXYZ.z
-                              else find xs max min
-               find xs x.maxXYZ.z x.minXYZ.z*)
+
+    // Long ugly function with lots of if-statements to check which axis to split on.
+    let findNextAxis (xDistance, yDistance, zDistance, xVisited, yVisited, zVisited) = 
+        match (xVisited, yVisited, zVisited) with
+            | (false, false, false) -> if      xDistance >= yDistance && xDistance >= zDistance then (true, yVisited, zVisited, 0)
+                                       else if yDistance > xDistance && yDistance >= zDistance then (xVisited, true, zVisited, 1)
+                                       else 
+                                       (xVisited, yVisited, true, 2)
+            | (true, false, false)  -> if      yDistance >= zDistance then (xVisited, true, zVisited, 1)
+                                       else 
+                                       (xVisited, yVisited, true, 2)
+            | (false, true, false)  -> if      xDistance >= zDistance then (true, yVisited, zVisited, 0)
+                                       else 
+                                       (xVisited, yVisited, true, 2)
+            | (false, false, true)  -> if      xDistance > yDistance then (true, yVisited, zVisited, 0)
+                                       else 
+                                       (xVisited, true, zVisited, 1)
+            | (true, true, false)   -> (xVisited, yVisited, true, 2)
+            | (false, true, true)   -> (true, yVisited, zVisited, 0)
+            | (true, false, true)   -> (xVisited, true, zVisited, 1)
+            | (true, true, true)    -> (xVisited, yVisited, zVisited, 3)
 
 
     let rec buildKDTree (boxes:list<BBox>) = 
-        if (List.length boxes) < 10 then Leaf(boxes)
+        if (List.length boxes) < 10 then Leaf(boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
         else
         match boxes with
             | []    -> raise KDException
-            | boxes -> let newBoxesX = boxes
+            | boxes -> let newBoxesX = boxes        //All the 8 lines below is all set up for the longest-axis check
                        let (MaxX, MinX) = findMaxMin newBoxesX 0
                        let newBoxesY = boxes 
                        let (MaxY, MinY) = findMaxMin newBoxesY 1
@@ -119,7 +96,7 @@ let findMaxMinZ (xs:list<BBox>) =
                        let XDistance = MaxX - MinX
                        let YDistance = MaxY - MinY
                        let ZDistance = MaxZ - MinZ
-                       let rec buildNode boxes visitX visitY visitZ tries = 
+                       let rec buildNode boxes (xVisited, yVisited, zVisited, axis) = 
                             let buildNodeX boxes = 
                                     if List.length boxes = 1 then Leaf(boxes)
                                     else
@@ -132,7 +109,7 @@ let findMaxMinZ (xs:list<BBox>) =
                                     let firstlength = List.length first
                                     let secondLength = List.length second
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.x < splitValue) second)
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes true false false (tries+1)
+                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
                                     else Node("x", splitValue, buildKDTree(newFirst), buildKDTree(newSecond))
                             let buildNodeY boxes = 
                                     if List.length boxes = 1 then Leaf(boxes)
@@ -146,7 +123,7 @@ let findMaxMinZ (xs:list<BBox>) =
                                     let firstlength = List.length first
                                     let secondLength = List.length second
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.y < splitValue) second)
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes false true false (tries+1)
+                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
                                     else Node("y", splitValue, buildKDTree(newFirst), buildKDTree(newSecond))
                             let buildNodeZ boxes = 
                                     if List.length boxes = 1 then Leaf(boxes)
@@ -160,15 +137,13 @@ let findMaxMinZ (xs:list<BBox>) =
                                     let firstlength = List.length first
                                     let secondLength = List.length second
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.z < splitValue) second)
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes false false true (tries+1)
+                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
                                     else Node("z", splitValue, buildKDTree(newFirst), buildKDTree(newSecond))
-                            if visitX = false && tries < 3 then buildNodeX boxes
-                            else if visitY = false && tries < 3 then buildNodeY boxes
-                            else if visitZ = false && tries < 3 then buildNodeZ boxes
+                            if axis = 0 then buildNodeX boxes
+                            else if axis = 1 then buildNodeY boxes
+                            else if axis = 2 then buildNodeZ boxes
                             else Leaf(boxes)
-                       if XDistance >= YDistance && XDistance >= ZDistance then buildNode boxes false true true 0
-                       else if YDistance > XDistance && YDistance >= ZDistance then buildNode boxes true false true 0
-                       else buildNode boxes true true false 0
+                       buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
 
     let rec traverseKDTree (tree:KDTree) (ray:Ray):BBox = failwith "Not Implemented"
