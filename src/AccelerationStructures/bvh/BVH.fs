@@ -53,24 +53,8 @@ module BVH =
 
     // let testBVHTree = Node(Leaf "left", Leaf "right")
     type  BoundingboxCoords = Point * Point
-
-    let getOuterBoundingBox (xs:list<BBox>) = 
-        let sortX  = sortListByAxis xs 0
-        let sortY  = sortListByAxis xs 1
-        let sortZ  = sortListByAxis xs 2
-        let notZero = 0.000000
-
-        let lowPoint = Point(
-                                sortX.Head.lowXYZ.x - notZero,
-                                sortY.Head.lowXYZ.y - notZero,
-                                sortZ.Head.highXYZ.z - notZero )
-        let highPoint = Point(
-                                sortX.Item(sortX.Length-1).highXYZ.x + notZero,
-                                sortY.Item(sortY.Length-1).highXYZ.y + notZero,
-                                sortZ.Item(sortZ.Length-1).lowXYZ.z + notZero)
-        lowPoint, highPoint
     
-    let outerBoundingBox (xs:list<BBox>) = 
+    let findOuterBoundingBox (xs:list<BBox>) = 
         let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) 9999999.0 xs
         let lowY = List.fold (fun acc box -> if box.lowXYZ.y < acc then box.lowXYZ.y else acc) 9999999.0 xs
         let lowZ = List.fold (fun acc box -> if box.lowXYZ.z > acc then box.lowXYZ.z else acc) -9999999.0 xs
@@ -85,7 +69,7 @@ module BVH =
         
         let firstAxisSplit = 0 // x=0, y=1, z=2
         let sortList = sortListByAxis xs firstAxisSplit
-        let lowPoint, highPoint = getOuterBoundingBox(xs)
+        let lowPoint, highPoint = findOuterBoundingBox(xs)
 
         let find =
             let mutable value = highPoint.X - lowPoint.X
