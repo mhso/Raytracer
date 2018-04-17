@@ -41,7 +41,7 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
     let testFindOuterBoundingBox = 
-        let expected = (Point(0., 0., 0.), Point(0., 0., 0.))
+        let expected = (Point(1.,0.6,-1.), Point(12.,13.5,-16.6))
         let result = findOuterBoundingBox testBBoxDataInput
         Assert.Equal (expected,result,"testOuterBoundingBox")
     testFindOuterBoundingBox
