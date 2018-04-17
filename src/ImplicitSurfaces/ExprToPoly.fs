@@ -176,14 +176,14 @@ module ExprToPoly =
     | FMult(e1,e2)    -> FMult(simplifyDiv e1, simplifyDiv e2)
     | FNum c          -> FNum c
     | FVar x          -> FVar x
-    | FExponent(e1,n) -> FExponent(e1,n)
-    | FRoot(e1,n)     -> FRoot (e1,n)
+    | FExponent(e1,n) -> FExponent(simplifyDiv e1,n)
+    | FRoot(e1,n)     -> FRoot(simplifyDiv e1,n)
     | FDiv(e1,e2)     -> match e2 with
-                         | FVar x         -> FMult(e1, FExponent(e2, -1))
-                         | FNum c         -> FMult(e1, FExponent(e2, -1))
-                         | FExponent(_,0) -> FDiv(e1, FNum 1.0)
-                         | FExponent(e,n) -> FMult(e1, (FExponent(e, -n)))
-                         | _              -> FDiv(e1, e2)
+                         | FVar _         -> FMult(simplifyDiv e1, FExponent(simplifyDiv e2, -1))
+                         | FNum _         -> FMult(simplifyDiv e1, FExponent(simplifyDiv e2, -1))
+                         | FExponent(_,0) -> simplifyDiv e1 // Something divided by 1 is just something
+                         | FExponent(e,n) -> FMult(simplifyDiv e1, (FExponent(simplifyDiv e, -n)))
+                         | _              -> FDiv(simplifyDiv e1, simplifyDiv e2)
    
 
   let simplifyAtomGroup ag : atomGroup =
