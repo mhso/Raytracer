@@ -60,6 +60,8 @@
     <Content Include="packages.config" />
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
+    <Compile Include="ImplicitSurfaces.Tests/ExprParseTest.fs" />
+    <Compile Include="ImplicitSurfaces.Tests/ExprToPolyTest.fs" />            
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +88,11 @@
     <ProjectReference Include="..\src\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\src\ImplicitSurfaces\ImplicitSurfaces.fsproj">
+      <Name>ImplicitSurfaces</Name>
+      <Project>{940a3706-dae3-4f52-87b8-d71f44641b0d}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
