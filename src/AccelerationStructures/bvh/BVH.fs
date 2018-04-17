@@ -1,4 +1,5 @@
 ﻿namespace Tracer
+open Tracer.Basics
 
 module BVH = 
     //#load Vector.fs

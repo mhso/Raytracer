@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Assert.fs" />
+    <Compile Include="TransformationTest.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\AffineTransformation\AffineTransformation.fsproj" />
+    <ProjectReference Include="..\src\Basics\Basics.fsproj" />
+  </ItemGroup>
+
+</Project>
