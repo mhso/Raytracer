@@ -40,11 +40,18 @@ let allTest =
     testSortListByAxisZ
 
 // ----------------------------- TEST BEGIN -----------------------------
-    let testFindOuterBoundingBox = 
+    let testFindOuterBoundingBoLowHighPoints = 
         let expected = (Point(1.,0.6,-1.), Point(12.,13.5,-16.6))
-        let result = findOuterBoundingBox testBBoxDataInput
+        let result = findOuterBoundingBoLowHighPoints testBBoxDataInput
         Assert.Equal (expected,result,"testOuterBoundingBox")
-    testFindOuterBoundingBox
+    testFindOuterBoundingBoLowHighPoints
+
+// ----------------------------- TEST BEGIN -----------------------------
+    let testFindBoundingBoxSideLengths = 
+        let expected = None
+        let result = findBoundingBoxSideLengths findOuterBoundingBoLowHighPoints
+        Assert.Equal (expected,result,"testOuterBoundingBox")
+    testFindBoundingBoxSideLengths
 
     //let testBuildBVHTree = 
     //    let expected = List.empty
