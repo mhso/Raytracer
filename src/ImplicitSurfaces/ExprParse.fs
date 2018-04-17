@@ -70,7 +70,7 @@ module ExprParse =
       | ')' :: cr                       -> Rpar :: sc cr
       | '_' :: cr                       -> Root :: sc cr
       | '-' :: c :: cr when isdigit c   -> let (cs1, t) = scnum(cr, intval c)
-                                           Add :: negateNumber t :: sc cs1
+                                           negateNumber t :: sc cs1
       | '-' :: c1 :: c2 :: cr when isblank c1 && isdigit c2 ->
                                            let (cs1, t) = scnum(cr, intval c2)
                                            Add :: negateNumber t :: sc cs1 
@@ -148,9 +148,6 @@ module ExprParse =
 
   let parseStr s = (scan >> insertMult >> parse) s
 
-(* Need to figure out fractional simplication
-  parseStr "1 + x / 5"
-*)
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")
     let genDot s n e = "digraph G {\nlabel=\"" + (fixStr s) + "\"\n" + n + e + "\n}"

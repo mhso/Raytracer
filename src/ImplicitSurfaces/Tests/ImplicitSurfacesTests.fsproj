@@ -12,17 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-   <!-- <Compile Include="..\Basics\Vector.fs" />
-    <Compile Include="..\Basics\Point.fs" />
-    <Compile Include="ExprParse.fs" />
-    <Compile Include="ExprToPoly.fsi" />
-    <Compile Include="ExprToPoly.fs" />
-    <Compile Include="PolyToHitFunction.fsi" />
-    <Compile Include="PolyToHitFunction.fs" />
-    <Compile Include="ImplicitSurfaces.fsi" />
-    <Compile Include="ImplicitSurfaces.fs" />-->
     <Compile Include="Assert.fs" />
     <Compile Include="ExprParseTests.fs" />
+    <Compile Include="ExprToPolyTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
