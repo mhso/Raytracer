@@ -39,7 +39,8 @@ open System
 
     let identityMatrixWithPos x y z = mkTransformation ([[1.0;0.0;0.;x];[0.;1.;0.;y];[0.;0.;1.;z];[0.;0.;0.;1.]]) //CREATES AN IDENTITY MATRIX
     let getList (T(a)) = a
-    let vectorToMatrix (v:Vector) = identityMatrixWithPos (v.X) (v.X) (v.Z)
+    let vectorToMatrix (v:Vector) = mkTransformation ([[1.0;0.0;0.;v.X];[0.;1.;0.;v.Y];[0.;0.;1.;v.Z];[0.;0.;0.;0.]])
+    let pointToMatrix (p:Point) = identityMatrixWithPos p.X p.Y p.Z
 
     let translate x y z = identityMatrixWithPos x y z
     let translateInv x y z = translate -x -y -z
@@ -76,6 +77,37 @@ open System
 
     let transform = failwith("NOT IMPLEMENTED")
 
-    let equal (T(a)) (T(b)) = 
-        if(a = b) then 1
-        else 0
+    let matrixToVector (T(a)) = 
+        let x = a.Head.Head
+        let y = a.Item(1).Item(1)
+        let z = a.Item(2).Item(2)
+        new Vector(x, y, z)
+
+    let matrixToPoint (T(a)) = 
+        let x = a.Head.Head
+        let y = a.Item(1).Item(1)
+        let z = a.Item(2).Item(2)
+        new Point(x, y, z)
+
+    let transformDirectionalLight ((light:DirectionalLight),t) = 
+        let matrix = vectorToMatrix (light.GetDirectionFromPoint (new Point(0.,0.,0.)))
+        let transMatrix = Transformation.multi (t,matrix)
+        matrixToVector transMatrix
+
+    let transformPointLight ((light:PointLight),t) = 
+        let matrix = pointToMatrix (light.Position)
+        let transMatrix = Transformation.multi (t,matrix)
+        matrixToPoint transMatrix
+
+    let transformLight (light:Light) t : Light =
+        match light with
+        | :? DirectionalLight as d -> new DirectionalLight(d.BaseColour, d.Intensity, transformDirectionalLight (d,t))
+        | :? PointLight as p -> new PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t))
+        | _ -> light
+        //let trans = getVectorFromLight light
+        //let transMatrix = Transformation.multi (t,trans)
+        //let a : Light = 
+        //    match light with 
+        //    | :? DirectionalLight as d -> new DirectionalLight(light.BaseColour, light.Intensity, matrixToVector(transMatrix))
+        //    | :? PointLight as p -> new PointLight(light.BaseColour, light.Intensity, matrixToPoint(transMatrix))
+        //a

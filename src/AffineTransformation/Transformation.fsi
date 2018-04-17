@@ -23,6 +23,7 @@ val sheareZX : distance : float -> Transformation
 val sheareZY : distance : float -> Transformation
 val mergeTransformations : Transformation list -> Transformation
 //val transform : Shape -> Transformation -> Shape
+val transformLight : Light -> Transformation -> Light
 val mirrorX : Transformation
 val mirrorY : Transformation
 val mirrorZ : Transformation
