@@ -7,6 +7,7 @@
 let main argv =
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
+    printfn ""
     printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
     SamplingTest.allTest
     printfn("PRESS A KEY TO EXIT")
