@@ -78,15 +78,15 @@ open System
     let transform = failwith("NOT IMPLEMENTED")
 
     let matrixToVector (T(a)) = 
-        let x = a.Head.Head
-        let y = a.Item(1).Item(1)
-        let z = a.Item(2).Item(2)
+        let x = a.Head.Item(a.Head.Length-1)
+        let y = a.Item(1).Item(a.Item(1).Length-1)
+        let z = a.Item(2).Item(a.Item(2).Length-1)
         new Vector(x, y, z)
 
     let matrixToPoint (T(a)) = 
-        let x = a.Head.Head
-        let y = a.Item(1).Item(1)
-        let z = a.Item(2).Item(2)
+        let x = a.Head.Item(a.Head.Length-1)
+        let y = a.Item(1).Item(a.Item(1).Length-1)
+        let z = a.Item(2).Item(a.Item(2).Length-1)
         new Point(x, y, z)
 
     let transformDirectionalLight ((light:DirectionalLight),t) = 
@@ -99,15 +99,8 @@ open System
         let transMatrix = Transformation.multi (t,matrix)
         matrixToPoint transMatrix
 
-    let transformLight (light:Light) t : Light =
+    let transformLight (light:Light) t =
         match light with
-        | :? DirectionalLight as d -> new DirectionalLight(d.BaseColour, d.Intensity, transformDirectionalLight (d,t))
-        | :? PointLight as p -> new PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t))
+        | :? DirectionalLight as d -> DirectionalLight(d.BaseColour, d.Intensity, transformDirectionalLight (d,t)) :> Light
+        | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
         | _ -> light
-        //let trans = getVectorFromLight light
-        //let transMatrix = Transformation.multi (t,trans)
-        //let a : Light = 
-        //    match light with 
-        //    | :? DirectionalLight as d -> new DirectionalLight(light.BaseColour, light.Intensity, matrixToVector(transMatrix))
-        //    | :? PointLight as p -> new PointLight(light.BaseColour, light.Intensity, matrixToPoint(transMatrix))
-        //a
