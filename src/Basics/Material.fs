@@ -3,13 +3,24 @@ open System
 
 [<AbstractClass>]
 type Material() = 
-    abstract member Bounce: Sphere list -> Point*Vector -> Ray -> Light -> Colour
+    abstract member Bounce: Sphere -> Sphere list -> Point*Vector -> Ray -> Light -> Colour
     abstract member AmbientColour: Colour
-    member this.PreBounce (spheres: Sphere list) (hitPoint: Point, normal: Vector) (ray: Ray) (light: Light) = 
+    member this.PreBounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normal: Vector) (ray: Ray) (light: Light) = 
+        
         if light :? AmbientLight then
+            // If the light is ambient, simply add the colour
             light.GetColour * this.AmbientColour
         else
-            this.Bounce (spheres: Sphere list) (hitPoint, normal) ray light
+            // Check if the shape is in the shadow
+            let shadowRay: Ray = light.GetShadowRay hitPoint
+            let (_, shadowHitPoint: HitPoint) = shadowRay.GetFirstHitPointExcept spheres sphere
+            if shadowHitPoint.DidHit then
+                // It is a shadow
+                (this.Bounce sphere spheres (hitPoint, normal) ray light) / 2.5
+                
+            else
+                // It is not a shadow
+                this.Bounce sphere spheres (hitPoint, normal) ray light
 
 //- MATTE MATERIAL
 and MatteMaterial(colour:Colour) = 
@@ -22,7 +33,7 @@ and MatteMaterial(colour:Colour) =
     member this.Coefficient = coefficient
     default this.AmbientColour = colour
     
-    default this.Bounce (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
         
         // Initialize parameters 
         let kd  = coefficient                           // Matte coefficient
@@ -57,7 +68,7 @@ and SpecularMaterial
     member this.SpecularColour = specularColour
     member this.MatteColour = matteColour
     member this.MatteMaterial = matteMaterial
-    default this.Bounce (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
         
         // Initialize parameters
         let kd = matteMaterial.Coefficient             // Matte coefficient
@@ -75,7 +86,7 @@ and SpecularMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matteFriction = matteMaterial.Bounce spheres (hitPoint, normalHitPoint) ray light
+            let matteFriction = matteMaterial.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
             
             // The specular colour
             let specularFriction = 
@@ -98,10 +109,10 @@ and SpecularMaterial
 and BlinnPhongMaterial (specularCoefficient: float, specularColour: Colour, specularExponent: float, matteColour: Colour) = 
     
     inherit SpecularMaterial(specularCoefficient, specularColour, specularExponent, matteColour)
-    default this.Bounce (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
         
         // The standard diffuse colour
-        let diffuse = this.MatteMaterial.Bounce spheres (hitPoint, normalHitPoint) ray light
+        let diffuse = this.MatteMaterial.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
         
         // The specular colour
         let L = light.GetDirectionFromPoint hitPoint
@@ -124,7 +135,7 @@ and PerfectReflectionMaterial(bounces: int, baseMaterial: Material, reflectionCo
     member this.ReflectionColour = reflectionColour             // Reflection colour
 
     // Will cast a ray recursively
-    member this.CastRecursiveRay (spheres: Sphere list) (material: Material) (originalRay:Ray) (hitPoint: Point) (hitNormal: Vector) (bounces: int) (light: Light) =
+    member this.CastRecursiveRay (sphere: Sphere) (spheres: Sphere list) (material: Material) (originalRay:Ray) (hitPoint: Point) (hitNormal: Vector) (bounces: int) (light: Light) =
         if bounces = 0 then
 
             // Get material of final shape
@@ -134,34 +145,34 @@ and PerfectReflectionMaterial(bounces: int, baseMaterial: Material, reflectionCo
                 | _ -> material
 
             // Get the colour of it
-            material.PreBounce spheres (hitPoint, hitNormal) originalRay light
+            material.PreBounce sphere spheres (hitPoint, hitNormal) originalRay light
 
         else
             
             // Make a new, reflected ray
-            let newDirection = -originalRay.GetDirection + (-2. * (hitNormal * -originalRay.GetDirection)) * hitNormal
+            let newDirection = originalRay.GetDirection + (-2. * (hitNormal * originalRay.GetDirection)) * hitNormal
             let newOrigin = hitPoint
             let newRay = new Ray(newOrigin, newDirection)
 
             // Check if it hit anything
-            let (newSphere:Sphere, newHitPoint:HitPoint) = newRay.GetFirstHitPoint spheres
+            let (newSphere:Sphere, newHitPoint:HitPoint) = newRay.GetFirstHitPointExcept spheres sphere
             if newHitPoint.DidHit then
 
                 // Cast rays recursively from the new hit point
                 let newNormal = newSphere.NormalAtPoint newHitPoint.Point
-                this.CastRecursiveRay spheres newSphere.Material newRay newHitPoint.Point newNormal (bounces - 1) light
+                this.CastRecursiveRay sphere spheres newSphere.Material newRay newHitPoint.Point newNormal (bounces - 1) light
 
             else
                 // The ray did not hit anything
                 Colour.Black
 
-    default this.Bounce (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
 
         // Colour of the base material
-        let baseColour = baseMaterial.Bounce spheres (hitPoint,normalHitPoint) ray light
+        let baseColour = baseMaterial.Bounce sphere spheres (hitPoint,normalHitPoint) ray light
 
         // Colour of the perfect reflection
-        let reflectedColour = this.CastRecursiveRay spheres this ray hitPoint normalHitPoint bounces light
+        let reflectedColour = this.CastRecursiveRay sphere spheres this ray hitPoint normalHitPoint bounces light
 
         // Final colour
         baseColour + this.ReflectionCoefficient * this.ReflectionColour * reflectedColour
@@ -173,13 +184,13 @@ and MixedMaterial(a: Material, b: Material, factor: float) =
     member this.MaterialA = a
     member this.MaterialB = b
     member this.Factor = factor
-    default this.Bounce (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
 
         // Get the colour from first material
-        let colorA = a.Bounce spheres (hitPoint, normalHitPoint) ray light
+        let colorA = a.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
 
         // Get the colour from the second material
-        let colorB = b.Bounce spheres (hitPoint, normalHitPoint) ray light
+        let colorB = b.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
 
         // Combine the two in the balance of the factor
         colorA.Scale(1.-factor) + colorB.Scale(factor)
@@ -213,9 +224,12 @@ and Sphere(origin: Point, radius: float, material: Material) =
             let rayDir = ray.GetDirection
             let sv = s * rayDir
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            let p = ray.PointAtTime (if t1 <= t2 then t1 else t2)
-            let a = new HitPoint(ray, if t1 <= t2 then t1 else t2)
-            a
+            if t1 < 0. && t2 < 0. then
+                new HitPoint(ray)
+            else
+                let p = ray.PointAtTime (if t1 <= t2 then t1 else t2)
+                let a = new HitPoint(ray, if t1 <= t2 then t1 else t2)
+                a
 
     // A default sphere. Avoid using where possible. 
     static member None = 
@@ -251,6 +265,23 @@ and Ray(origin: Point, direction: Vector) =
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
 
+     member this.GetFirstHitPointExcept (spheres: Sphere list) (except: Sphere) = 
+        // Get all hit points
+        let pointsThatHit = 
+            [for s in spheres do yield (s, s.GetHitPoint this)]
+                |> List.filter (fun (_,hp) -> hp.DidHit)
+                |> List.filter (fun (sphere,_) -> 
+                    let eq = Object.ReferenceEquals(sphere, except)
+                    not eq)
+
+        // Check if the ray hit
+        if pointsThatHit.IsEmpty then
+            // If not, return an empty hit point
+            (Sphere.None, new HitPoint(this))
+        else
+            // If the ray hit, then return the first hit point
+            pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
+
      // Returns the colour in the first hit point of the ray
      member this.Cast (backgroundColour: Colour) (lights: Light list) (spheres:Sphere list) = 
 
@@ -264,7 +295,7 @@ and Ray(origin: Point, direction: Vector) =
             let normal = sphere.NormalAtPoint hitPoint.Point
             lights 
                 |> List.fold (fun accColour light -> 
-                    let colour = sphere.Material.PreBounce spheres (hitPoint.Point, normal) this light
+                    let colour = sphere.Material.PreBounce sphere spheres (hitPoint.Point, normal) this light
                     accColour + colour) (new Colour(0.,0.,0.))
          else
             // If we did not hit, return the background colour
@@ -341,7 +372,7 @@ and PointLight(colour: Colour, intensity: float, position: Point) =
     member this.GetDirectionFromPoint (hitPoint:Point) = 
         (- (hitPoint - position)).Normalise
     member this.GetShadowRay (hitPoint:Point) = 
-        new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint).Invert)
+        new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint))
 
 
 //- DIRECTIONAL LIGHT  
@@ -353,4 +384,4 @@ and DirectionalLight(colour: Colour, intensity: float, direction: Vector) =
     member this.GetDirectionFromPoint (hitPoint:Point) = 
         direction.Normalise
     member this.GetShadowRay (hitPoint:Point) = 
-        new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint).Invert)
+        new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint))
