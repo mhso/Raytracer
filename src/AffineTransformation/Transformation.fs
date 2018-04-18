@@ -39,8 +39,8 @@ open System
 
     let identityMatrixWithPos x y z = mkTransformation ([[1.0;0.0;0.;x];[0.;1.;0.;y];[0.;0.;1.;z];[0.;0.;0.;1.]]) //CREATES AN IDENTITY MATRIX
     let getList (T(a)) = a
-    let vectorToMatrix (v:Vector) = mkTransformation ([[1.0;0.0;0.;v.X];[0.;1.;0.;v.Y];[0.;0.;1.;v.Z];[0.;0.;0.;0.]])
-    let pointToMatrix (p:Point) = identityMatrixWithPos p.X p.Y p.Z
+    let vectorToMatrix (v:Vector) = mkTransformation ([[v.X];[v.Y];[v.Z];[0.]])
+    let pointToMatrix (p:Point) = mkTransformation ([[p.X];[p.Y];[p.Z];[1.]])
 
     let translate x y z = identityMatrixWithPos x y z
     let translateInv x y z = translate -x -y -z
@@ -77,21 +77,20 @@ open System
                 let v = Transformation.multi(value,first)
                 sum(v,rest)
             | _ -> value
-        let emptyTrans = mkTransformation ([[1.];[1.];[1.];[1.]])
-        sum (emptyTrans,l)
+        sum (l.Head,l.Tail)
 
     let transform = failwith("NOT IMPLEMENTED")
 
     let matrixToVector (T(a)) = 
-        let x = a.Head.Item(a.Head.Length-1)
-        let y = a.Item(1).Item(a.Item(1).Length-1)
-        let z = a.Item(2).Item(a.Item(2).Length-1)
+        let x = a.Head.Head
+        let y = a.Item(1).Head
+        let z = a.Item(2).Head
         new Vector(x, y, z)
 
     let matrixToPoint (T(a)) = 
-        let x = a.Head.Item(a.Head.Length-1)
-        let y = a.Item(1).Item(a.Item(1).Length-1)
-        let z = a.Item(2).Item(a.Item(2).Length-1)
+        let x = a.Head.Head
+        let y = a.Item(1).Head
+        let z = a.Item(2).Head
         new Point(x, y, z)
 
     let transformDirectionalLight ((light:DirectionalLight),t) = 

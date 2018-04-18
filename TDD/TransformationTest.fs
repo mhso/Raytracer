@@ -1,7 +1,10 @@
 ﻿module TransformationTest
 
 open Transformation
+open System
 open Assert
+open Tracer.Basics
+
 let allTest = 
     let testGetRowLengthWith3x5Returns3 = 
         let testMatrix = mkTransformation [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
@@ -104,6 +107,32 @@ let allTest =
         let result = mergeTransformations listMatrix
         let expected = Transformation.multi (matrix1,matrix2)
         Assert.Equal(expected,result,"MergeTransformationWithTwoTransformations")
+
+        
+    let testMergeTransformationWithFiveTransformations = 
+        let matrix1 = (scale 10. 10. 10.)
+        let matrix2 = translate 2. 2. 2.
+        let matrix3 = rotateX 10.
+        let matrix4 = sheareXY 30.
+        let matrix5 = scale -1. 1. 1.
+        let listMatrix = [matrix1; matrix2; matrix3; matrix4; matrix5]
+        let result = mergeTransformations listMatrix
+        let expected = Transformation.multi ((Transformation.multi ((Transformation.multi ((Transformation.multi (matrix1,matrix2)),matrix3)),matrix4),matrix5))
+        Assert.Equal(expected,result,"MergeTransformationWithFiveTransformations")
+
+    let testTransformDirectionalLight = 
+        let light = new DirectionalLight(new Colour(1.,1.,1.), 1., new Vector(0.,10.,0.))
+        let move = rotateZ (Math.PI / 2.0)
+        let result = ((transformLight light move) :?> DirectionalLight).Direction.GetCoord
+        let expected = (new DirectionalLight(new Colour(1.,1.,1.), 1., new Vector(10.,0.,0.))).Direction.GetCoord
+        Assert.Equal(expected,result, "TrasformingDirectionalLight")
+
+    let testTransformPointLight = 
+        let light = new PointLight(new Colour(1.,1.,1.), 1., new Point(0.,10.,0.))
+        let move = translate 5. -20. 0.
+        let result = ((transformLight light move) :?> PointLight).Position.GetCoord
+        let expected = (new PointLight(new Colour(1.,1.,1.), 1., new Point(5.,-10.,0.))).Position.GetCoord
+        Assert.Equal(expected,result, "TrasformingPointLight")
 
     0
     
