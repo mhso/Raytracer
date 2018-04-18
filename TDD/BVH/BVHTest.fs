@@ -4,7 +4,6 @@ open Tracer.Basics
 open Tracer.BVH
 open Assert
 let allTest = 
-    printfn("BVH Test")
 
     let bBox01 = {  lowXYZ = {x=1.; y=0.6; z=(-1.)};
                       highXYZ = {x=6.5; y=9.; z=(-8.9)};
@@ -40,19 +39,19 @@ let allTest =
     testSortListByAxisZ
 
 // ----------------------------- TEST BEGIN -----------------------------
-    let testFindOuterBoundingBoLowHighPoints = 
+    let testFindOuterBoundingBoxLowHighPoints = 
         let expected = (Point(1.,0.6,-1.), Point(12.,13.5,-16.6))
-        let result = findOuterBoundingBoLowHighPoints testBBoxDataInput
-        Assert.Equal (expected,result,"testOuterBoundingBox")
-    testFindOuterBoundingBoLowHighPoints
+        let result = findOuterBoundingBoxLowHighPoints testBBoxDataInput
+        Assert.Equal (expected,result,"testFindOuterBoundingBoxLowHighPoints")
+    testFindOuterBoundingBoxLowHighPoints
 
 // ----------------------------- TEST BEGIN -----------------------------
-    let testFindBoundingBoxSideLengths = 
-        let outer = findOuterBoundingBoLowHighPoints testBBoxDataInput
-        let expected = 0.0
-        let result = findBoundingBoxSideLengths outer
-        Assert.Equal (expected,result,"testOuterBoundingBox")
-    testFindBoundingBoxSideLengths
+    let testFindLargestBoundingBoxSideLengths = 
+        let outer = findOuterBoundingBoxLowHighPoints testBBoxDataInput
+        let expected = (1, 12.9)
+        let axis, lenght = findLargestBoundingBoxSideLengths outer
+        Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
+    testFindLargestBoundingBoxSideLengths
 
     //let testBuildBVHTree = 
     //    let expected = List.empty

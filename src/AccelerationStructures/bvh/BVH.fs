@@ -54,7 +54,7 @@ module BVH =
     // let testBVHTree = Node(Leaf "left", Leaf "right")
     type  BoundingboxCoords = Point * Point
     
-    let findOuterBoundingBoLowHighPoints (xs:list<BBox>) = 
+    let findOuterBoundingBoxLowHighPoints (xs:list<BBox>) = 
         let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) 9999999.0 xs
         let lowY = List.fold (fun acc box -> if box.lowXYZ.y < acc then box.lowXYZ.y else acc) 9999999.0 xs
         let lowZ = List.fold (fun acc box -> if box.lowXYZ.z > acc then box.lowXYZ.z else acc) -9999999.0 xs
@@ -64,22 +64,29 @@ module BVH =
         
         Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
 
-    let findBoundingBoxSideLengths (box:(Point*Point)) =
+    let findLargestBoundingBoxSideLengths (box:(Point*Point)) =
         let lowPoint, highPoint = box
-        let mutable value = highPoint.X - lowPoint.X
+        
+        let x = highPoint.X - lowPoint.X
         let y = highPoint.Y - lowPoint.Y
         let z = highPoint.Z - lowPoint.Z
+        let mutable t = 0.
+        let mutable value = (0, 0.)
 
-        if value < y then value <- y
-        else if value < z then value <- z
+        if x > t then
+            value <- (0, x)
+        if y > t then
+            value <- (1, y)
+        if y < z then
+            value <- (2, z)
         value
 
-    //let buildBVHTree (xs:list<BBox>) = 
-    //    if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
-        
-    //    let firstAxisSplit = 0 // x=0, y=1, z=2
-    //    let sortList = sortListByAxis xs firstAxisSplit
-    //    let lowPoint, highPoint = findOuterBoundingBoLowHighPoints(xs)
+    let buildBVHTree (xs:list<BBox>) = 
+        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints xs
+        let firstAxisSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+        let sortList = sortListByAxis xs firstAxisSplit
+
 
         
          
