@@ -23,7 +23,7 @@ type PointLight(colour: Colour, intensity: float, position: Point) =
     let position = position
     member this.Position = position
     override this.GetDirectionFromPoint (hitPoint:Point) = 
-        hitPoint - position
+        - (hitPoint - position)
     override this.GetShadowRay (hitPoint:Point) = 
         new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint).Invert)
     
@@ -35,3 +35,6 @@ type DirectionalLight(colour: Colour, intensity: float, direction: Vector) =
         direction
     override this.GetShadowRay (hitPoint:Point) = 
         new Ray((hitPoint),(this.GetDirectionFromPoint hitPoint).Invert)
+
+
+        
