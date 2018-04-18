@@ -4,8 +4,6 @@ open Tracer.Basics
 open Tracer.BVH
 open Assert
 let allTest = 
-    printfn("BVH Test")
-
     let bBox01 = {  lowXYZ = {x=1.; y=0.6; z=(-1.)};
                       highXYZ = {x=6.5; y=9.; z=(-8.9)};
                       shape = S(5.0) }
