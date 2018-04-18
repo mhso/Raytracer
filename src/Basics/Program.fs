@@ -20,7 +20,7 @@ let main _ =
     let sphereMaterialSpecular = new BlinnPhongMaterial(1., new Colour(1., 1., 1.), 10., Colour.Red)
     let sphereMaterialBlinnPhong = new SpecularMaterial(0.1, new Colour(1., 1., 1.), 50., Colour.Blue)
     let blinnPhongSharpGreen = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 2., Colour.Green)
-    let perfectReflection = new PerfectReflectionMaterial(3, sphereMaterial, 0.5)
+    let perfectReflection = new PerfectReflectionMaterial(1, sphereMaterial, new Colour(1., 1., 1.), 0.5)
 
     //- LIGHT SETTINGS
     let lightPosition = new Point(0.,-1000000.,0.)
