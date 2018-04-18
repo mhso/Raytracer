@@ -1,7 +1,6 @@
 namespace Tracer.Basics
 
 type Point(x:float, y:float, z:float) = 
-    
     //- PRIVATE FIELDS
     let x = x
     let y = y
@@ -15,6 +14,11 @@ type Point(x:float, y:float, z:float) =
     //- PUBLIC METHODS
     override this.ToString() = 
         "("+x.ToString()+","+y.ToString()+","+z.ToString()+")"
+    override this.GetHashCode() = hash (this.X, this.Y, this.Z)
+    override this.Equals (point) =
+        match point with
+        | :? Point as p -> this.X.Equals(p.X) && this.Y.Equals(p.Y) && this.Z.Equals(p.Z)
+        | _ -> false
     member this.GetCoord = (x,y,z)
     member this.Move (v: Vector) = new Point(x+v.X, y+v.Y, z+v.Z)
     member this.Distance (q: Point) = new Vector(abs(q.X-x),abs(q.Y-y),abs(q.Z-z))
