@@ -62,6 +62,7 @@
     <Compile Include="TransformationTest.fs" />
     <Compile Include="BVH\BVHTest.fs" />
     <Compile Include="SamplingTest.fs" />
+    <Compile Include="KDTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
