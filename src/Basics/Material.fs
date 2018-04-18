@@ -4,6 +4,12 @@ open System
 [<AbstractClass>]
 type Material() = 
     abstract member Bounce: Point*Vector -> Ray -> Light -> Colour
+    abstract member AmbientColour: Colour
+    member this.PreBounce (hitPoint: Point, normal: Vector) (ray: Ray) (light: Light) = 
+        if light :? AmbientLight then
+            light.GetColour * this.AmbientColour
+        else
+            this.Bounce (hitPoint, normal) ray light
 
 //- MATTE MATERIAL
 type MatteMaterial(colour:Colour) = 
@@ -11,18 +17,19 @@ type MatteMaterial(colour:Colour) =
 
     let colour = colour
     let coefficient = 1.
+    
     member this.Colour = colour
     member this.Coefficient = coefficient
+    default this.AmbientColour = colour
     
     default this.Bounce (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
-        
         // Initialize parameters 
         let kd  = coefficient                           // Matte coefficient
         let cd  = colour                                // Matte colour
         let lc  = light.GetColour                       // Light colour
         let n   = normalHitPoint                        // Normal at hit point
         let ld  = (light.GetDirectionFromPoint hitPoint).Normalise  // Light direction
-        
+
         // Determine the colour
         if n * ld > 0. then
             let friction    = (kd * cd) / Math.PI           
@@ -46,6 +53,7 @@ type SpecularMaterial
     let specularColour = specularColour
     let matteColour = matteColour
     let matteMaterial = new MatteMaterial(matteColour)
+    default this.AmbientColour = matteColour
     member this.SpecularCoefficient = specularCoefficient
     member this.SpecularColour = specularColour
     member this.MatteColour = matteColour
@@ -100,3 +108,24 @@ type BlinnPhongMaterial
         diffuse + specular
 
 //- PERFECT REFLECTION MATERIALS
+type PerfectReflectionMaterial(bounces: int, baseMaterial: Material, specularCoefficient: float) =
+    inherit Material()
+    member this.BaseMaterial = baseMaterial
+    member this.SpecularCoefficient = specularCoefficient
+    default this.AmbientColour = Colour.White
+    default this.Bounce (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+        baseMaterial.Bounce (hitPoint,normalHitPoint) ray light
+    member this.Bounces = bounces
+
+type MixedMaterial(a: Material, b: Material, factor: float) =
+    inherit Material()
+    member this.MaterialA = a
+    member this.MaterialB = b
+    member this.Factor = factor
+    default this.AmbientColour = Colour.White
+    default this.Bounce (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+        let colorA = a.Bounce (hitPoint, normalHitPoint) ray light
+        let colorB = b.Bounce (hitPoint, normalHitPoint) ray light
+        colorA.Scale(1.-factor) + colorB.Scale(factor)
+        
+     

@@ -48,4 +48,10 @@ type Colour (r:float, g:float, b:float)=
     static member (*) (s:float, a:Colour) = a.Scale s
     static member (/) (s:float, a:Colour) = a.Scale(1./s)
     static member (/) (a:Colour, s:float) = a.Scale(1./s)
+    
+    // Predefined colours
     static member Black = new Colour(0., 0., 0.)
+    static member Red = new Colour(1., 0., 0.)
+    static member Blue = new Colour(0., 0., 1.)
+    static member Green = new Colour(0., 1., 0.)
+    static member White = new Colour(1.,1.,1.)
