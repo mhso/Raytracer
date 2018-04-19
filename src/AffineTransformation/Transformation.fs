@@ -4,13 +4,16 @@ open System
 open Tracer.Basics
 open System
 
+    type Matrix = 
+        | M of float list list
     type Transformation = 
-        | T of float list list
-    let mkTransformation (a: float list list) = T(a)
-    let getRowLength (T(a)) = a.Length //Gets the number of rows
-    let getColLength (T(a)) = a.Head.Length //Get the number of columns in a matrix
+        | T of Matrix * Matrix
+    let mkMatrix (a: float list list) = M(a)
+    let mkTransformation (a,b) = T(a,b)
+    let getRowLength (M(a)) = a.Length //Gets the number of rows
+    let getColLength (M(a)) = a.Head.Length //Get the number of columns in a matrix
 
-    let transpose (T(a)) = //Transpose a given matrix
+    let transpose (M(a)) = //Transpose a given matrix
         let rec trans l = 
             match l with
             | row::rows ->
@@ -21,40 +24,42 @@ open System
                     firstElement::additional
                 | _ -> []
             | _ -> []  
-        mkTransformation(trans a)   
+        mkMatrix(trans a)   
 
-    type Transformation with
-        static member multi ((T(a)),(T(b))) = 
+    type Matrix with
+        static member multi ((M(a)),(M(b))) = 
             let rec multiplyList ((a:float list),(b:float list)) = 
                 match a,b with 
                 | [x],[y] -> x*y
                 | currentU::restU, currentV::restV -> currentU*currentV + multiplyList (restU,restV)
                 | _ -> 1.
 
-            let multiply ((T(c)),(T(d))) = c |> List.map 
+            let multiply ((M(c)),(M(d))) = c |> List.map 
                                                 (fun row -> d |> List.map 
                                                                                 (fun col -> multiplyList (row,col)))
-            mkTransformation(multiply ((T(a)),(transpose(T(b)))))
+
+            mkMatrix(multiply ((M(a)),(transpose(M(b)))))
     end
 
-    let identityMatrixWithPos x y z = mkTransformation ([[1.0;0.0;0.;x];[0.;1.;0.;y];[0.;0.;1.;z];[0.;0.;0.;1.]]) //CREATES AN IDENTITY MATRIX
-    let getList (T(a)) = a
-    let vectorToMatrix (v:Vector) = mkTransformation ([[v.X];[v.Y];[v.Z];[0.]])
-    let pointToMatrix (p:Point) = mkTransformation ([[p.X];[p.Y];[p.Z];[1.]])
-    let inverse (t:Transformation) = failwith("NOT IMPLEMENTED")
+    let identityMatrixWithPos x y z = mkMatrix ([[1.0;0.0;0.;x];[0.;1.;0.;y];[0.;0.;1.;z];[0.;0.;0.;1.]]) //CREATES AN IDENTITY MATRIX
+    let getList (M(a)) = a
+    let getMatrix (T(a,_)) = a
+    let getInvMatrix (T(_,b)) = b
+    let vectorToMatrix (v:Vector) = mkMatrix ([[v.X];[v.Y];[v.Z];[0.]])
+    let pointToMatrix (p:Point) = mkMatrix ([[p.X];[p.Y];[p.Z];[1.]])
 
-    let translate x y z = identityMatrixWithPos x y z
-    let translateInv x y z = translate -x -y -z
+    let translate x y z = mkTransformation (identityMatrixWithPos x y z, identityMatrixWithPos -x -y -z)
 
-    let scale width height depth = mkTransformation ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]])
-    let scaleInv width height depth = scale (-width) (-height) (-depth)
+    let scale width height depth = mkTransformation (
+        mkMatrix ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]]),
+        mkMatrix ([[-width;0.0;0.;0.];[0.;-height;0.;0.];[0.;0.;-depth;0.];[0.;0.;0.;1.]]))
     
-    let sheareXY dist = mkTransformation ([[1.;0.;0.;0.];[dist;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareXZ dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[dist;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareYX dist = mkTransformation ([[1.;dist;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareYZ dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[0.;dist;1.;0.];[0.;0.;0.;1.]])
-    let sheareZX dist = mkTransformation ([[1.;0.;dist;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareZY dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    let sheareXY dist = mkMatrix ([[1.;0.;0.;0.];[dist;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    let sheareXZ dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;0.;0.];[dist;0.;1.;0.];[0.;0.;0.;1.]])
+    let sheareYX dist = mkMatrix ([[1.;dist;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    let sheareYZ dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;0.;0.];[0.;dist;1.;0.];[0.;0.;0.;1.]])
+    let sheareZX dist = mkMatrix ([[1.;0.;dist;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    let sheareZY dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
 
     //let sheareXYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.-dist;0.];[0.;0.;0.;1.]])
     //let sheareXZInv dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[-dist;dist;1.;0.];[0.;0.;0.;1.]])
@@ -64,30 +69,30 @@ open System
     //let sheareZYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
     
 
-    let rotateX angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);(Math.Cos(angle));0.];[0.;0.;0.;1.]])
-    let rotateXInv angle = mkTransformation ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));(Math.Cos(angle));0.];[0.;0.;0.;1.]])
-    let rotateY angle = mkTransformation ([[Math.Cos(angle);0.;Math.Sin(angle);0.];[0.;1.;0.;0.];[-(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
-    let rotateYInv angle = mkTransformation ([[Math.Cos(angle);0.;-(Math.Sin(angle));0.];[0.;1.;0.;0.];[(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]])
-    let rotateZ angle = mkTransformation ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let rotateZInv angle = mkTransformation ([[Math.Cos(angle);(Math.Sin(angle));0.;0.];[-(Math.Sin(angle));Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+    let rotateX angle = mkTransformation(mkMatrix ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);(Math.Cos(angle));0.];[0.;0.;0.;1.]]),
+                                         mkMatrix ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));(Math.Cos(angle));0.];[0.;0.;0.;1.]]))
+    let rotateY angle = mkTransformation(mkMatrix ([[Math.Cos(angle);0.;Math.Sin(angle);0.];[0.;1.;0.;0.];[-(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]]),
+                                         mkMatrix ([[Math.Cos(angle);0.;-(Math.Sin(angle));0.];[0.;1.;0.;0.];[(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]]))
+    let rotateZ angle = mkTransformation(mkMatrix ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]),
+                                          mkMatrix ([[Math.Cos(angle);(Math.Sin(angle));0.;0.];[-(Math.Sin(angle));Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]))
 
-    let mergeTransformations (l: Transformation List) = 
+    let mergeTransformations (l: Matrix List) = 
         let rec sum (value,l2)= 
             match l2 with
             | first::rest ->
-                let v = Transformation.multi(value,first)
+                let v = Matrix.multi(value,first)
                 sum(v,rest)
             | _ -> value
         sum (l.Head,l.Tail)
 
 
-    let matrixToVector (T(a)) = 
+    let matrixToVector (M(a)) = 
         let x = a.Head.Head
         let y = a.Item(1).Head
         let z = a.Item(2).Head
         new Vector(x, y, z)
 
-    let matrixToPoint (T(a)) = 
+    let matrixToPoint (M(a)) = 
         let x = a.Head.Head
         let y = a.Item(1).Head
         let z = a.Item(2).Head
@@ -95,12 +100,12 @@ open System
 
     let transformDirectionalLight ((light:DirectionalLight),t) = 
         let matrix = vectorToMatrix (light.GetDirectionFromPoint (new Point(0.,0.,0.)))
-        let transMatrix = Transformation.multi (t,matrix)
+        let transMatrix = Matrix.multi (getMatrix(t),matrix)
         matrixToVector transMatrix
 
     let transformPointLight ((light:PointLight),t) = 
         let matrix = pointToMatrix (light.Position)
-        let transMatrix = Transformation.multi (t,matrix)
+        let transMatrix = Matrix.multi (getMatrix(t),matrix)
         matrixToPoint transMatrix
 
     let transformLight (light:Light) t =
@@ -115,8 +120,8 @@ open System
        failwith("NOT IMPLEMENTED")
 
     let transformRay (r : Ray) t = 
-        let originMatrix = Transformation.multi (pointToMatrix (r.GetOrigin), t)
-        let directionMatrix = Transformation.multi (vectorToMatrix (r.GetDirection), t)
+        let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getMatrix(t))
+        let directionMatrix = Matrix.multi (vectorToMatrix (r.GetDirection), getMatrix(t))
         let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
@@ -126,5 +131,5 @@ open System
 
     let transformNormal (s:Sphere) (p:Point) (t: Transformation)= 
         let vector = s.NormalAtPoint p 
-        let tVector = matrixToVector ( Transformation.multi (t,(vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi (getMatrix(t),(vectorToMatrix vector)))
         tVector

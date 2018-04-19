@@ -7,30 +7,30 @@ open Tracer.Basics
 
 let allTest = 
     let testGetRowLengthWith3x5Returns3 = 
-        let testMatrix = mkTransformation [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
+        let testMatrix = mkMatrix [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
         let result = getRowLength testMatrix
         Assert.Equal (3,result,"getRowLengthWith3x5")
 
     let testGetColLengthWith3x5Returns5= 
-        let testMatrix = mkTransformation [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
+        let testMatrix = mkMatrix [[0.;1.;0.;2.;1.];[10.;5.;4.;2.;6.];[13.;-4.;6.;1.;2.]]
         let result = getColLength testMatrix
         Assert.Equal (5,result, "GetColLengthWith3x5")
 
     let testMatrixMultiplicationEqualsCorrectMatrix = 
-        let firstMatrix = mkTransformation [[1.;2.];[3.;4.]]
-        let secondMatrix = mkTransformation [[4.;3.];[2.;1.]]
+        let firstMatrix = mkMatrix [[1.;2.];[3.;4.]]
+        let secondMatrix = mkMatrix [[4.;3.];[2.;1.]]
         let result = getList (Transformation.multi (firstMatrix,secondMatrix))
         let expected = [[8.;5.];[20.;13.]]
         Assert.Equal (expected, result, "MatrixMultiplicationEqualsCorrectMatrix")
     
     let testTranspose = 
-        let matrix = mkTransformation [[1.;2.];[3.;4.]]
+        let matrix = mkMatrix [[1.;2.];[3.;4.]]
         let result = getList (transpose matrix)
         let expected = [[1.;3.];[2.;4.]]
         Assert.Equal (expected,result, "Transpose")
     
     let testGetListReturnsListAttachedToMatrix = 
-        let matrix = getList (mkTransformation([[1.;2.];[3.;4.]]))
+        let matrix = getList (mkMatrix([[1.;2.];[3.;4.]]))
         let expected = [[1.;2.];[3.;4.]]
         Assert.Equal(expected, matrix, "GetListReturnsCorrectList")
 
