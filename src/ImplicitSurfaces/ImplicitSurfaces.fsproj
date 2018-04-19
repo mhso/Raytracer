@@ -8,7 +8,7 @@
     <Compile Include="..\Basics\Vector.fs" />
     <Compile Include="..\Basics\Point.fs" />
     <Compile Include="ExprParse.fs" />
-    <Compile Include="ExprToPoly.fsi" />
+    <!--<Compile Include="ExprToPoly.fsi" />-->
     <Compile Include="ExprToPoly.fs" />
     <Compile Include="PolyToHitFunction.fsi" />
     <Compile Include="PolyToHitFunction.fs" />

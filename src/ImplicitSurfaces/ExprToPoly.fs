@@ -18,7 +18,7 @@ module ExprToPoly =
   let rec subst e (x,ex) =
     match e with    
     | FNum c          -> FNum c
-    | FVar s          -> if s = x then ex else FVar s
+    | FVar s          -> if s = x then ex else e
     | FAdd(a,b)       -> FAdd(subst a (x,ex), subst b (x, ex))
     | FMult(a,b)      -> FMult(subst a (x,ex), subst b (x,ex))
     | FExponent(a,i)  -> FExponent(subst a (x,ex), i)
@@ -26,8 +26,9 @@ module ExprToPoly =
     | FRoot(a,i)      -> FRoot(subst a (x,ex), i)
 
   type atom = ANum of float | AExponent of string * int
-  type atomGroup = atom list  
-  type simpleExpr = SE of atomGroup list
+  and atomGroup = atom list  
+  and simpleExpr = SE of atomGroup list
+
   let isSimpleExprEmpty (SE ags) = List.isEmpty ags || ags = [[]]
 
   let ppAtom = function
@@ -42,23 +43,26 @@ module ExprToPoly =
     | [] -> []
     | ys::yss -> List.map ((@) ys) xss @ combine xss yss
 
-
   // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
-  let rec simplify = function
-    | FNum c          -> [[ANum c]]
-    | FVar s          -> [[AExponent(s,1)]]
-    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
-    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
-    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
-    | FExponent(_,0)  -> simplify (FNum 1.0)
-    | FExponent(e1,1) -> simplify e1
-    | FExponent(e1,n) -> if n < 0 then 
-                            match e1 with
-                            | FNum c            -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
-                            | FVar s1           -> combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
-                            | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
-                         else combine (simplify e1) (simplify (FExponent(e1, n-1)))
-    | FRoot _         -> failwith "simplify: FRoot not implemented"
+  let simplify e =
+    let rec inner = function
+      | FNum c          -> [[ANum c]]
+      | FVar s          -> [[AExponent(s,1)]]
+      | FRoot(e1,n)     -> failwith "shoot me now"
+      | FAdd(e1,e2)     -> inner e1 @ inner e2
+      | FMult(e1,e2)    -> combine (inner e1) (inner e2)
+      | FDiv(e1,e2)     -> combine (inner e1) (inner (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
+      | FExponent(_,0)  -> inner (FNum 1.0)
+      | FExponent(e1,1) -> inner e1
+      | FExponent(e1,n) -> if n < 0 then 
+                              match e1 with
+                              | FNum c  -> combine [[ANum (1./c)]] (inner (FExponent(e1, n + 1)))
+                              | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
+                                           else combine [[AExponent(s1, -1)]] (inner (FExponent(e1, n + 1)))
+                              | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
+                           else combine (inner e1) (inner (FExponent(e1, n-1)))
+    let ex = inner e
+    ex
 
   let rec containsDiv = function
     | FVar _          -> false
@@ -69,127 +73,47 @@ module ExprToPoly =
     | FExponent(e,_)  -> containsDiv e
     | FRoot(e,_)      -> containsDiv e
 
-  let rec rewriteExpr e =
+  let rec simplifyToOneDiv e = 
     let rec inner ex =
       match ex with
-      | FExponent(_,0)  -> FNum 1.0       // case 1: e^0 = 1
-      | FExponent(e,1)  -> inner e        // case 2: e^1 = e
-      | FExponent(e,-1) -> FExponent (inner e, -1) // case 3: e^n+1 = e * e^n 
-      | FExponent(e,n)  -> if n > 1 then
-                              FMult (inner e, inner (FExponent(e, n - 1))) // not completely sure about these two
-                           else FMult(FExponent(inner e, -1), inner(FExponent(inner e, n + 1)))
-      // case 4: e1 * (e2 + e3) = e1 * e2 + e1 * e3 
-      // actually I think case 4 is covered in simplify...
-      // case 5: the negative variant is already covered by e1 - e2 = e1 + (-1 * e2) <- from ExprParse.fs
-      | FMult(e1, FAdd(e2,e3)) -> FAdd(FMult(inner e1, inner e2), FMult(inner e1, inner e3))
-      // case 6: e1 * (e2 / e3) = (e1 * e2) / e3
+      // case 6:
       | FMult(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e2), inner e3)
       | FMult(FDiv(e2, e3), e1) -> FDiv(FMult(inner e1, inner e2), inner e3)
-      // case 10: (e1 / e2) / (e3 / e4)
+      // case 10
       | FDiv(FDiv(e1, e2), FDiv(e3, e4)) -> FDiv(FMult(inner e1, inner e4), FMult(inner e2, inner e3))
-      // case 7: (e1 / e2) / e3 = e1 / (e2 * e3)
+      // case 7:
       | FDiv(FDiv(e1, e2), e3) -> FDiv(inner e1, FMult (inner e2, inner e3))
-      // case 8: e1 / (e2 / e3) = (e1 * e3) / e2
+      // case 8:
       | FDiv(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e3), inner e2)
-      // case 9: e1 + (e2 / e3) = (e1 * e3 + e2) / e3
+      // case 9:
       | FAdd(e1, FDiv(e2, e3)) -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
-      // case 11: e_n * ... * e_n (n times) = e
-      // not implemented yet! I think I need a class by its own for that...
-      // rest of the patterns should either delve further down the tree, or in the case of FNum and FVar, return ex
+      | FAdd(FDiv(e2, e3), e1) -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
+      // all others, just go down recursively, with no changes at this level
       | FAdd(e1,e2)   -> FAdd(inner e1, inner e2)
       | FMult(e1, e2) -> FMult(inner e1, inner e2)
       | FRoot(e1, n)  -> FRoot(inner e1, n)
       | FDiv(e1, e2)  -> FDiv(inner e1, inner e2)
-      | _             -> ex
+      | _             -> ex // FVar and FNum
     let rewritten = inner e
     if containsDiv rewritten then
       match rewritten with
-      | FDiv(keep, _)   -> keep
-      | _               -> rewriteExpr rewritten
-    else rewritten
-  
-
-
-
-
-  (*
-    case 1:
-    let x = rewriteExpr (simplifyDiv (parseStr "e^0"))
-    = 1
-    working
-
-    case 2:
-    let x = rewriteExpr (simplifyDiv (parseStr "e^1"))
-    = e
-    working
-
-    case 3:
-    let x = rewriteExpr (simplifyDiv (parseStr "e^4"))
-    = e * e * e * e
-    working
-
-    case 4:
-    let x = rewriteExpr (simplifyDiv (parseStr "e1*(e2 + e3)"))
-    = e1 * e2 + e1 * e3
-    working
-
-    case 5:
-    let x = rewriteExpr (simplifyDiv (parseStr "e1 * (e2 - e3)"))
-    = e1 * e2 - e1 * e3
-    working
-
-    case 6:
-    let x = rewriteExpr (simplifyDiv (parseStr "e1 * (e2 / e3)"))
-    = (e1 * e2) / e3
-    WORKING (not really working in simplify)
+      | FDiv(dividend,divisor)  -> if containsDiv dividend || containsDiv divisor then simplifyToOneDiv rewritten
+                                   else rewritten
+      | _                       -> simplifyToOneDiv rewritten
+    else FDiv(rewritten, FNum 1.0)
     
-    case 7:
-    let x = rewriteExpr (simplifyDiv (parseStr "(e1 / e2) / e3"))
-    =  e1 / (e2 * e3)
-    SEMI working (not ideally working in simplify, or what?)
-
-    case 8:
-    let x = rewriteExpr (simplifyDiv (parseStr "e1 / (e2 / e3)"))
-    = (e1 * e3) / e2
-    NOT WORKING!
-
-    case 9
-    let x = rewriteExpr (simplifyDiv (parseStr "e1 + (e2 / e3)"))
-    = (e1 * e3 + e2) / e3
-    SEMI WORKING
-
-    case 10:
-    let x = rewriteExpr (simplifyDiv (parseStr "(e1 / e2) / (e3 / e4)"))
-    = (e1 * e4) / (e2 * e3)
-    NOT WORKING
-
-    case 11:
-    let x = rewriteExpr (simplifyDiv (parseStr "e_3 * e_3 * e_3"))
-    = e
-    BIG CRASH!!!!! BOOOOOM
-
-    let x1 = simplify x
-    *)
-
-  let rec simplifyDiv = function
-    | FAdd(e1,e2)     -> FAdd(simplifyDiv e1, simplifyDiv e2)
-    | FMult(e1,e2)    -> FMult(simplifyDiv e1, simplifyDiv e2)
-    | FNum c          -> FNum c
-    | FVar x          -> FVar x
-    | FExponent(e1,n) -> FExponent(simplifyDiv e1,n)
-    | FRoot(e1,n)     -> FRoot(simplifyDiv e1,n)
-    | FDiv(e1,e2)     -> match e2 with
-                         | FVar _         -> FMult(simplifyDiv e1, FExponent(simplifyDiv e2, -1))
-                         | FNum _         -> FMult(simplifyDiv e1, FExponent(simplifyDiv e2, -1))
-                         | FExponent(_,0) -> simplifyDiv e1 // Something divided by 1 is just something
-                         | FExponent(e,n) -> FMult(simplifyDiv e1, (FExponent(simplifyDiv e, -n)))
-                         | _              -> FDiv(simplifyDiv e1, simplifyDiv e2)
-   
-
+  let rewriteExpr e =
+    // simplififying the expression into one big division of A/B, by rewriting according to some rules
+    let ex = simplifyToOneDiv e
+    match ex with
+    | FDiv(e,_) -> e
+    | _         -> failwith "shouldn't be able to get here"
+    // and now I only need to simply Radicals, and remove them...
+  
   let simplifyAtomGroup ag : atomGroup =
       let mutable nums = 1.0
       let mutable exps = Map.empty
-      for a in ag do
+      for  a in ag do
         match a with
           | ANum n          -> nums <- n * nums
           | AExponent(x,n)  -> 
