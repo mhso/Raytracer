@@ -55,7 +55,7 @@ open System
     let sheare (xy,xz,yx,yz,zx,zy) = 
         let matrix = mkMatrix([[1.;yx;zx;0.];[xy;1.;zy;0.];[xz;yz;1.;0.];[0.;0.;0.;1.]])
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
-        let mult = 1./det
+        let mult = Math.Pow(det,-1.)
         let inv = 
             mkMatrix (
                 [[mult*(1.-(yx*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zx);0.];
