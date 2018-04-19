@@ -172,12 +172,12 @@ module KD_tree =
 
     let rec searchKDTree node ray t t' = failwith "Not Implemented"
 
-    let traverseKDTree (tree:KDTree) (ray:Ray) = 
+    (*let traverseKDTree (tree:KDTree) (ray:Ray) = 
         match tree with
         | Node(s, split, bbox, left, right) as n -> if intersect bbox ray = Some (t, t') then searchKDTree n ray t t'
                                                     else None
         | Leaf(bbox, boxes) as L                 -> if intersect bbox ray = Some (t, t') then searchKDTree L ray t t'
-                                                    else None
+                                                    else None*)
 
     let rec searchKDLeaf node = failwith "Not Implemented"
 
