@@ -13,6 +13,7 @@ type Vector(x:float, y:float, z:float) =
     member this.Z = z
 
     // Public methods
+    override this.ToString() = "[" + x.ToString() + "," + y.ToString() + "," + z.ToString() + "]"
     member this.MkVector x y z = new Vector(x, y, z)
     member this.GetCoord = x,y,z
     member this.MultScalar s = new Vector(x*s,y*s,z*s) 
@@ -39,3 +40,4 @@ type Vector(x:float, y:float, z:float) =
     static member ( ** ) (v:Vector, e:int) = new Vector(v.X ** float(e), v.Y ** float(e), v.Z ** float(e))
     static member ( % ) (u:Vector, v:Vector) = u.CrossProduct v
     static member ( / ) (v:Vector, f:float) = v.MultScalar (1.0/f)
+    static member ( / ) (u:Vector, v:Vector) = new Vector(u.X/v.X,u.Y/v.Y,u.Z/v.Z)
