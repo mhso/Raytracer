@@ -78,7 +78,7 @@ let allTest =
     //let bBList1 = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
 
     let testBuildBVHTree = 
-        let tree = buildBVHTree testBBoxDataInput
+        let tree = buildBVHTree (List.toArray(testBBoxDataInput))
         tree
         //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
     testBuildBVHTree
