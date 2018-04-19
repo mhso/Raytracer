@@ -48,7 +48,7 @@ module BVH =
     (* BVH TREE *)
     type BVHtree = 
         | Leaf of BBox
-        | Node of option<BVHtree> * option<BVHtree> * AxisMinMaxBounding * int
+        | Node of option<BVHtree> * option<BVHtree> * BoundingboxCoords * int
     
     let findOuterBoundingBoxLowHighPoints (xs:list<BBox>) = 
         let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) infinity xs
@@ -90,26 +90,32 @@ module BVH =
         if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
         let rec innerBVHTree (xs:list<BBox>) (lastAxis:int) : option<BVHtree> = 
+            let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints xs
+            let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+            let sortedList = sortListByAxis xs axisToSplit
+            printfn "List: %A" xs
+            printfn  "LastAxis: %i" lastAxis
+            
             match xs with
             | [] ->  None
-            | _ ->
-                let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints xs
-                let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
-                let sortedList = sortListByAxis xs axisToSplit
-                let rootNode = Node
-                if xs.Length > 1 then
-                    let middle = sortedList.Length/2
-                    let leftList = sortedList.[0..middle]
-                    let rigthList = sortedList.[middle+1..]
-                    let axisMinMaxBounding = findAxisMinMaxValues (lowPoint, highPoint) axisToSplit
+            | x when xs.Length > 1 ->
+                let middle = sortedList.Length/2
+                let leftList = sortedList.[0..middle]
+                let rigthList = sortedList.[middle+1..]
 
-                    Some (Node (
-                                innerBVHTree leftList (axisToSplit), 
-                                innerBVHTree rigthList (axisToSplit), 
-                                axisMinMaxBounding, 
-                                axisToSplit))
-                else
-                    Some (Leaf xs.[0])
+                printfn "middle: %i" middle
+                printfn "leftList: %A" leftList
+                printfn "rigthList: %A" rigthList
+                    
+                let axisMinMaxBounding = findAxisMinMaxValues (lowPoint, highPoint) axisToSplit
+
+                Some (Node (
+                            innerBVHTree leftList (axisToSplit), 
+                            innerBVHTree rigthList (axisToSplit), 
+                            axisMinMaxBounding, 
+                            axisToSplit))
+            | _ -> Some (Leaf xs.[0])
+
         innerBVHTree xs 0
             
 

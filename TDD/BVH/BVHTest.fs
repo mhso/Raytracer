@@ -34,7 +34,8 @@ let allTest =
                     highXYZ = {x = -4.0; y = -5.0; z = -5.0};
                     shape = S(9.0)}
 
-    let testBBoxDataInput = [bBox01; bBox02; bBox03]
+    //let testBBoxDataInput = [bBox01; bBox02; bBox03]
+    let testBBoxDataInput = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
 
     // ----------------------------- TEST BEGIN -----------------------------
     let testSortListByAxisX = 
@@ -74,13 +75,10 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
 
-    let bBList1 = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
+    //let bBList1 = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
 
     let testBuildBVHTree = 
         let tree = buildBVHTree testBBoxDataInput
         tree
         //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
     testBuildBVHTree
-
-
-// ----------------------------- getOuterBoundinBox TEST END -----------------------------
