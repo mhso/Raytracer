@@ -5,34 +5,34 @@ open Tracer.BVH
 open Assert
 let allTest = 
 
-    let bBox01 = {  lowXYZ = {x=1.; y=0.6; z=(-1.)};
-                    highXYZ = {x=6.5; y=9.; z=(-8.9)};
-                    shape = S(1.0) }
-    let bBox02 = {  lowXYZ = {x=7.; y=3.; z=(-8.4)};
-                    highXYZ = {x=12.; y=7.; z=(-16.6)};
-                    shape = S(2.0) }
-    let bBox03 = {  lowXYZ = {x=8.; y=10.; z=(-8.9)};
-                    highXYZ = {x=11.4; y=13.5; z=(-15.7)};
-                    shape = S(3.0) }
-    let bBox04 = {  lowXYZ = {x = 3.0; y = 3.0; z = 3.0};
-                    highXYZ = {x = 4.0; y = 4.0; z = 4.0};
-                    shape = S(4.0)}
-    let bBox05 = {  lowXYZ = {x = 2.0; y = 2.0; z = 2.0};
-                    highXYZ = {x = 3.0; y = 3.0; z = 3.0};
-                    shape = S(5.0)}
+    let bBox01 = {  lowXYZ = Point(1., 0.6, -1.);
+                    highXYZ = Point(6., 9., -8.9);
+                    }
+    let bBox02 = {  lowXYZ = Point(7., 3., -8.4);
+                    highXYZ = Point(12., 7., -16.6);
+                    }
+    let bBox03 = {  lowXYZ = Point(8., 10., -8.9);
+                    highXYZ = Point(11.4, 13.5, -15.7);
+                    }
+    let bBox04 = {  lowXYZ = Point(3.0, y = 3.0, z = 3.0);
+                    highXYZ = Point(4.0, y = 4.0, z = 4.0);
+                    }
+    let bBox05 = {  lowXYZ = Point(2.0, y = 2.0, z = 2.0);
+                    highXYZ = Point(3.0, y = 3.0, z = 3.0);
+                    }
     let bBox06 = {  
-                    lowXYZ = {x = -1.0; y = -1.0; z = -1.0};
-                    highXYZ = {x = 2.0; y = 2.0; z = 2.0};
-                    shape = S(6.0)}
-    let bBox07 = {  highXYZ = {x = 1.0; y = 1.0; z = 1.0};
-                    lowXYZ = {x = 0.0; y = 0.0; z = 0.0};
-                    shape = S(7.0)}
-    let bBox08 = {  lowXYZ = {x = -1.0; y = -1.0; z = -1.0};
-                    highXYZ = {x = 0.0; y = 0.0; z = 0.0};
-                    shape = S(8.0)}
-    let bBox09 = {  lowXYZ = {x = -7.0; y = -7.0; z = -7.0};
-                    highXYZ = {x = -4.0; y = -5.0; z = -5.0};
-                    shape = S(9.0)}
+                    lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
+                    highXYZ = Point(2.0, y = 2.0, z = 2.0);
+                    }
+    let bBox07 = {  highXYZ = Point(1.0, y = 1.0, z = 1.0);
+                    lowXYZ = Point(0.0, y = 0.0, z = 0.0);
+                    }
+    let bBox08 = {  lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
+                    highXYZ = Point(0.0, y = 0.0, z = 0.0);
+                    }
+    let bBox09 = {  lowXYZ = Point(-7.0, y = -7.0, z = -7.0);
+                    highXYZ = Point(-4.0, y = -5.0, z = -5.0);
+                    }
 
     //let testBBoxDataInput = [bBox01; bBox02; bBox03]
     let testBBoxDataInput = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]

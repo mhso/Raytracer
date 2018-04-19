@@ -6,17 +6,18 @@ module BVH =
     //#load Vector.fs
     //#load Point.fs
 
-    //(* Common types *)
-    //type Axis = A of int
-
-    (* SHAPE *)
+    (* TEMP SHAPE *)
     type Shape = S of float
 
-    type Coordinate = { x:float; y:float; z:float }
+    (* BVH TREE *)
+    type BBox = { lowXYZ:Point; 
+                  highXYZ:Point;
+                }
 
-    type BBox = { lowXYZ:Coordinate; 
-                  highXYZ:Coordinate;
-                  shape:Shape }
+    (* BVH TREE *)
+    type BVHtree = 
+        | Leaf of List<int>  
+        | Node of option<BVHtree> * option<BVHtree> * BBox * int
 
     let rec sortListByAxis (xs:list<BBox>) (axis:int) =
       match xs with
@@ -25,38 +26,29 @@ module BVH =
           let small, large = 
               match axis with
               | 0 ->
-                    let filterSmall = fun e -> e.lowXYZ.x <= x.lowXYZ.x
-                    let filterLarger = fun e -> e.lowXYZ.x >  x.lowXYZ.x
+                    let filterSmall = fun e -> e.lowXYZ.X <= x.lowXYZ.X
+                    let filterLarger = fun e -> e.lowXYZ.X >  x.lowXYZ.X
                     filterSmall, filterLarger
               | 1 -> 
-                    let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
-                    let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
+                    let filterSmall = fun e -> e.lowXYZ.Y <= x.lowXYZ.Y
+                    let filterLarger = fun e -> e.lowXYZ.Y >  x.lowXYZ.Y
                     filterSmall, filterLarger
               | _ ->
-                    let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
-                    let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
+                    let filterSmall = fun e -> e.lowXYZ.Z <= x.lowXYZ.Z
+                    let filterLarger = fun e -> e.lowXYZ.Z >  x.lowXYZ.Z
                     filterSmall, filterLarger
 
           let smaller = sortListByAxis (xs |> List.filter(small)) axis
           let larger  = sortListByAxis (xs |> List.filter(large)) axis
           smaller @ [x] @ larger
     
-    (* Boundingbox Coords *)
-    type BoundingboxCoords = Point * Point
-    type AxisMinMaxBounding = float * float 
-
-    (* BVH TREE *)
-    type BVHtree = 
-        | Leaf of BBox
-        | Node of option<BVHtree> * option<BVHtree> * BoundingboxCoords * int
-    
     let findOuterBoundingBoxLowHighPoints (xs:list<BBox>) = 
-        let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) infinity xs
-        let lowY = List.fold (fun acc box -> if box.lowXYZ.y < acc then box.lowXYZ.y else acc) infinity xs
-        let lowZ = List.fold (fun acc box -> if box.lowXYZ.z > acc then box.lowXYZ.z else acc) -infinity xs
-        let highX = List.fold (fun acc box -> if box.highXYZ.x > acc then box.highXYZ.x else acc) -infinity xs
-        let highY = List.fold (fun acc box -> if box.highXYZ.y > acc then box.highXYZ.y else acc) -infinity xs
-        let highZ = List.fold (fun acc box -> if box.highXYZ.z < acc then box.highXYZ.z else acc) infinity xs
+        let lowX = List.fold (fun acc box -> if box.lowXYZ.X < acc then box.lowXYZ.X else acc) infinity xs
+        let lowY = List.fold (fun acc box -> if box.lowXYZ.Y < acc then box.lowXYZ.Y else acc) infinity xs
+        let lowZ = List.fold (fun acc box -> if box.lowXYZ.Z > acc then box.lowXYZ.Z else acc) -infinity xs
+        let highX = List.fold (fun acc box -> if box.highXYZ.X > acc then box.highXYZ.X else acc) -infinity xs
+        let highY = List.fold (fun acc box -> if box.highXYZ.Y > acc then box.highXYZ.Y else acc) -infinity xs
+        let highZ = List.fold (fun acc box -> if box.highXYZ.Z < acc then box.highXYZ.Z else acc) infinity xs
         
         Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
 
@@ -77,12 +69,12 @@ module BVH =
             value <- (2, z)
         value
 
-    let findAxisMinMaxValues (boundingboxCoords : BoundingboxCoords) axis =
-        let pMin, pMax = boundingboxCoords;
+    let findAxisMinMaxValues (bBox : BBox) axis =
+        let (lowXYZ, highXYZ) = (bBox.lowXYZ, bBox.highXYZ);
         match axis with
-        | 0 -> (pMin.X, pMax.X)
-        | 1 -> (pMin.Y, pMax.Y)
-        | 2 -> (pMin.Z, pMax.Z)
+        | 0 -> (lowXYZ.X, highXYZ.X)
+        | 1 -> (lowXYZ.Y, highXYZ.Y)
+        | 2 -> (lowXYZ.Z, highXYZ.Z)
         | _ -> invalidArg "findAxisMinMaxValues invalid axis value" "Axis value needs to be between 0-2."
         
 
@@ -106,15 +98,15 @@ module BVH =
                 printfn "middle: %i" middle
                 printfn "leftList: %A" leftList
                 printfn "rigthList: %A" rigthList
-                    
-                let axisMinMaxBounding = findAxisMinMaxValues (lowPoint, highPoint) axisToSplit
+                let box = { lowXYZ=lowPoint; highXYZ=highPoint }
+                let axisMinMaxBounding = findAxisMinMaxValues (box) axisToSplit
 
                 Some (Node (
                             innerBVHTree leftList (axisToSplit), 
                             innerBVHTree rigthList (axisToSplit), 
-                            axisMinMaxBounding, 
+                            box, 
                             axisToSplit))
-            | _ -> Some (Leaf xs.[0])
+            | _ -> Some (Leaf [xs.[0]])
 
         innerBVHTree xs 0
             
