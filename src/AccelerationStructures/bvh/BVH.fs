@@ -7,15 +7,15 @@ module BVH =
     //#load Point.fs
 
     //(* Common types *)
-    type Axis = A of int
+    //type Axis = A of int
 
     (* SHAPE *)
     type Shape = S of float
 
-    type coordinate = { x:float; y:float; z:float }
+    type Coordinate = { x:float; y:float; z:float }
 
-    type BBox = { lowXYZ:coordinate; 
-                  highXYZ:coordinate;
+    type BBox = { lowXYZ:Coordinate; 
+                  highXYZ:Coordinate;
                   shape:Shape }
 
     let rec sortListByAxis (xs:list<BBox>) (axis:int) =
@@ -40,19 +40,15 @@ module BVH =
           let smaller = sortListByAxis (xs |> List.filter(small)) axis
           let larger  = sortListByAxis (xs |> List.filter(large)) axis
           smaller @ [x] @ larger
+    
+    (* Boundingbox Coords *)
+    type BoundingboxCoords = Point * Point
+    type AxisMinMaxBounding = float * float 
 
     (* BVH TREE *)
-    type 'shape BVHtree = 
-        | Leaf of 'shape * BBox * Axis
-        | Node of 'shape BVHtree * 'shape BVHtree * BBox * Axis
-
-    //(* LEAF *)
-    //let getShapes (Leaf(shapes, _, _))    = shapes
-    //let getBbox (Leaf(_, bbox, _))        = bbox
-    //let getAxis (Leaf(_, _, axis))        = axis
-
-    // let testBVHTree = Node(Leaf "left", Leaf "right")
-    type  BoundingboxCoords = Point * Point
+    type BVHtree = 
+        | Leaf of BBox
+        | Node of option<BVHtree> * option<BVHtree> * AxisMinMaxBounding * int
     
     let findOuterBoundingBoxLowHighPoints (xs:list<BBox>) = 
         let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) infinity xs
@@ -81,13 +77,19 @@ module BVH =
             value <- (2, z)
         value
 
-    let buildBVHTree (xs:list<BBox>) = 
-        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+    let findAxisMinMaxValues (boundingboxCoords : BoundingboxCoords) axis =
+        let pMin, pMax = boundingboxCoords;
+        match axis with
+        | 0 -> (pMin.X, pMax.X)
+        | 1 -> (pMin.Y, pMax.Y)
+        | 2 -> (pMin.Z, pMax.Z)
+        | _ -> invalidArg "findAxisMinMaxValues invalid axis value" "Axis value needs to be between 0-2."
         
 
-        let tree = new Node
+    let buildBVHTree (xs:list<BBox>) : option<BVHtree> = 
+        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
-        let rec innerBVHTree (xs:list<BBox>) (level:int) : option<BVHTree>= 
+        let rec innerBVHTree (xs:list<BBox>) (lastAxis:int) : option<BVHtree> = 
             match xs with
             | [] ->  None
             | _ ->
@@ -96,17 +98,19 @@ module BVH =
                 let sortedList = sortListByAxis xs axisToSplit
                 let rootNode = Node
                 if xs.Length > 1 then
-                    middel = sortedList.Length/2
-                    left = sortedList.[0..middel]
-                    rigth = sortedList.[middel+1..]
-                    rootNode = 
-                        innerBVHTree left (level+1)
-                        innerBVHTree rigth (level+1)
-                elif xs = 1 then
-                    
-         
+                    let middle = sortedList.Length/2
+                    let leftList = sortedList.[0..middle]
+                    let rigthList = sortedList.[middle+1..]
+                    let axisMinMaxBounding = findAxisMinMaxValues (lowPoint, highPoint) axisToSplit
 
-        //let rec innerBuild sortList axis = 
+                    Some (Node (
+                                innerBVHTree leftList (axisToSplit), 
+                                innerBVHTree rigthList (axisToSplit), 
+                                axisMinMaxBounding, 
+                                axisToSplit))
+                else
+                    Some (Leaf xs.[0])
+        innerBVHTree xs 0
             
 
 
