@@ -50,24 +50,19 @@ open System
 
     let translate x y z = mkTransformation (identityMatrixWithPos x y z, identityMatrixWithPos -x -y -z)
 
-    let scale width height depth = mkTransformation (
-        mkMatrix ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]]),
-        mkMatrix ([[-width;0.0;0.;0.];[0.;-height;0.;0.];[0.;0.;-depth;0.];[0.;0.;0.;1.]]))
-    
-    let sheareXY dist = mkMatrix ([[1.;0.;0.;0.];[dist;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareXZ dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;0.;0.];[dist;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareYX dist = mkMatrix ([[1.;dist;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareYZ dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;0.;0.];[0.;dist;1.;0.];[0.;0.;0.;1.]])
-    let sheareZX dist = mkMatrix ([[1.;0.;dist;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    let sheareZY dist = mkMatrix ([[1.;0.;0.;0.];[0.;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-
-    //let sheareXYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.-dist;0.];[0.;0.;0.;1.]])
-    //let sheareXZInv dist = mkTransformation ([[1.;0.;0.;0.];[0.;1.;0.;0.];[-dist;dist;1.;0.];[0.;0.;0.;1.]])
-    //let sheareYXInv dist = mkTransformation ([[1.-dist;-dist;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    //let sheareYZInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    //let sheareZXInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    //let sheareZYInv dist = mkTransformation ([[1.;0.;0.;0.];[-dist;1.;dist;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
-    
+    let scale width height depth = mkTransformation (mkMatrix ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]]),
+                                                     mkMatrix ([[-width;0.0;0.;0.];[0.;-height;0.;0.];[0.;0.;-depth;0.];[0.;0.;0.;1.]]))
+    let sheare (xy,xz,yx,yz,zx,zy) = 
+        let matrix = mkMatrix([[1.;yx;zx;0.];[xy;1.;zy;0.];[xz;yz;1.;0.];[0.;0.;0.;1.]])
+        let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
+        let mult = 1./det
+        let inv = 
+            mkMatrix (
+                [[mult*(1.-(yx*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zx);0.];
+                [mult*(-xy+xz*zy);mult*(1.-xz*zx);mult*(-zy+xy*zx);0.];
+                [mult*(-xz+xy*yz);mult*(-yz+xz*yx);mult*(1.-xy*yx);0.];
+                [0.;0.;0.;mult*det]])
+        mkTransformation(matrix,inv)
 
     let rotateX angle = mkTransformation(mkMatrix ([[1.;0.;0.;0.];[0.;Math.Cos(angle);-(Math.Sin(angle));0.];[0.;Math.Sin(angle);(Math.Cos(angle));0.];[0.;0.;0.;1.]]),
                                          mkMatrix ([[1.;0.;0.;0.];[0.;Math.Cos(angle);(Math.Sin(angle));0.];[0.;-(Math.Sin(angle));(Math.Cos(angle));0.];[0.;0.;0.;1.]]))
