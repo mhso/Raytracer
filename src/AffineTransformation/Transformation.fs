@@ -80,6 +80,10 @@ open System
         sum (l.Head,l.Tail)
 
     let transform = failwith("NOT IMPLEMENTED")
+    let transformRay (r : Ray) = 
+        let origin = pointToMatrix (r.GetOrigin)
+        let direction = vectorToMatrix (r.GetDirection)
+        r
 
     let matrixToVector (T(a)) = 
         let x = a.Head.Head
