@@ -55,7 +55,6 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="KD_Tree\KD_tree.fsi" />
     <Compile Include="KD_Tree\KD_tree.fs" />
     <Compile Include="BVH\BVH.fs" />
     <Compile Include="AssemblyInfo.fs" />

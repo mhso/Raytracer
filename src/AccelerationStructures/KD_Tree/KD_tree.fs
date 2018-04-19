@@ -17,8 +17,8 @@ module KD_tree =
                   minXYZ:coordinate;
                   shape:Shape }
 
-    type KDTree = Leaf of BBox list
-                | Node of string * float * float * KDTree * KDTree
+    type KDTree = Leaf of coordinate * coordinate * BBox list
+                | Node of string * float * coordinate * coordinate * KDTree * KDTree
 
     let rec qsort (xs:list<BBox>) axis =
         match xs with
@@ -96,6 +96,8 @@ module KD_tree =
                        let (MaxY, MinY) = findMaxMin newBoxesY 1
                        let newBoxesZ = boxes
                        let (MaxZ, MinZ) = findMaxMin newBoxesZ 2
+                       let KDMaxXYZ = {x = MaxX; y = MaxY; z = MaxZ}
+                       let KDMinXYZ = {x = MinX; y = MinY; z = MinZ}
                        let XDistance = MaxX - MinX
                        let YDistance = MaxY - MinY
                        let ZDistance = MaxZ - MinZ
@@ -104,7 +106,7 @@ module KD_tree =
                                     printfn "%A" xVisited
                                     printfn "%A" axis
                                     printfn "SplitX"
-                                    if List.length boxes <= 1 then Leaf(boxes)
+                                    if List.length boxes <= 1 then Leaf(KDMaxXYZ, KDMinXYZ, boxes)
                                     else
                                     printfn "OldBox = new"
                                     let oldBoxes = boxes
@@ -120,21 +122,22 @@ module KD_tree =
                                     printfn "Set new second list"
                                     let newSecond = second
                                     printfn "firstlength"
-                                    let firstlength = List.length first
+                                    let firstlength = float(List.length first)
                                     printfn "secondlength"
-                                    let secondLength = List.length second
+                                    let secondLength = float(List.length second)
                                     printfn "Set new first list"
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.x < splitValue) second)
                                     printfn "Check intersection and recurve"
                                     printfn "%A" newFirst
                                     printfn "%A" newSecond
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(oldBoxes)
-                                    else if List.length newFirst = List.length oldBoxes then Node("x", splitValue, splitLow, buildKDTree(newSecond), Leaf(newFirst))
-                                    else if List.length newSecond = List.length oldBoxes then Node("x", splitValue, splitLow, buildKDTree(newFirst), Leaf(newSecond))
-                                    else Node("x", splitValue, splitLow, buildKDTree(newSecond), buildKDTree(newFirst))
+                                    printfn "%A %A %A" (List.length newFirst) firstlength secondLength
+                                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(KDMaxXYZ,KDMinXYZ,oldBoxes)
+                                    else if List.length newFirst = List.length oldBoxes then Node("x", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), Leaf(KDMaxXYZ,KDMinXYZ,newFirst))
+                                    else if List.length newSecond = List.length oldBoxes then Node("x", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newFirst), Leaf(KDMaxXYZ,KDMinXYZ,newSecond))
+                                    else Node("x", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), buildKDTree(newFirst))
                             let buildNodeY boxes = 
-                                    if List.length boxes = 1 then Leaf(boxes)
+                                    if List.length boxes = 1 then Leaf(KDMaxXYZ,KDMinXYZ,boxes)
                                     else
                                     let oldBoxes = boxes
                                     let YsortedBoxes = qsort boxes 1
@@ -143,16 +146,16 @@ module KD_tree =
                                     let splitValue = first.[(List.length first)-1].maxXYZ.y
                                     let splitLow = first.[(List.length first)-1].minXYZ.y
                                     let newSecond = second
-                                    let firstlength = List.length first
-                                    let secondLength = List.length second
+                                    let firstlength = float(List.length first)
+                                    let secondLength = float(List.length second)
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.y < splitValue) second)
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(oldBoxes)
-                                    else if List.length newFirst = List.length oldBoxes then Node("y", splitValue, splitLow, buildKDTree(newSecond), Leaf(newFirst))
-                                    else if List.length newSecond = List.length oldBoxes then Node("y", splitValue, splitLow, buildKDTree(newFirst), Leaf(newSecond))
-                                    else Node("y", splitValue, splitLow, buildKDTree(newSecond), buildKDTree(newFirst))
+                                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(KDMaxXYZ,KDMinXYZ,oldBoxes)
+                                    else if List.length newFirst = List.length oldBoxes then Node("y", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), Leaf(KDMaxXYZ,KDMinXYZ,newFirst))
+                                    else if List.length newSecond = List.length oldBoxes then Node("y", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newFirst), Leaf(KDMaxXYZ,KDMinXYZ,newSecond))
+                                    else Node("y", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), buildKDTree(newFirst))
                             let buildNodeZ boxes = 
-                                    if List.length boxes = 1 then Leaf(boxes)
+                                    if List.length boxes = 1 then Leaf(KDMaxXYZ,KDMinXYZ,boxes)
                                     else
                                     let oldBoxes = boxes
                                     let ZsortedBoxes = qsort boxes 2
@@ -161,18 +164,18 @@ module KD_tree =
                                     let splitValue = first.[(List.length first)-1].maxXYZ.z
                                     let splitLow = first.[(List.length first)-1].minXYZ.z
                                     let newSecond = second
-                                    let firstlength = List.length first
-                                    let secondLength = List.length second
+                                    let firstlength = float(List.length first)
+                                    let secondLength = float(List.length second)
                                     let newFirst = first @ (List.filter(fun n -> n.minXYZ.z < splitValue) second)
-                                    if ((List.length newFirst)-firstlength) > (((secondLength/100)+1)*60) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(oldBoxes)
-                                    else if List.length newFirst = List.length oldBoxes then Node("z", splitValue, splitLow, buildKDTree(newSecond), Leaf(newFirst))
-                                    else if List.length newSecond = List.length oldBoxes then Node("z", splitValue, splitLow, buildKDTree(newFirst), Leaf(newSecond))
-                                    else Node("z", splitValue, splitLow, buildKDTree(newSecond), buildKDTree(newFirst))
+                                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then Leaf(KDMaxXYZ,KDMinXYZ,oldBoxes)
+                                    else if List.length newFirst = List.length oldBoxes then Node("z", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), Leaf(KDMaxXYZ,KDMinXYZ,newFirst))
+                                    else if List.length newSecond = List.length oldBoxes then Node("z", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newFirst), Leaf(KDMaxXYZ,KDMinXYZ,newSecond))
+                                    else Node("z", splitValue, KDMaxXYZ, KDMinXYZ, buildKDTree(newSecond), buildKDTree(newFirst))
                             if axis = 0 then buildNodeX boxes
                             else if axis = 1 then buildNodeY boxes
                             else if axis = 2 then buildNodeZ boxes
-                            else Leaf(boxes)
+                            else Leaf(KDMaxXYZ,KDMinXYZ,boxes)
                        buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
     
