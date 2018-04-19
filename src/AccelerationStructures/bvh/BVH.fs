@@ -19,27 +19,27 @@ module BVH =
         | Leaf of List<int>  
         | Node of BVHtree * BVHtree * BBox * int
 
-    let rec sortListByAxis (xs:array<BBox>) (axis:int) =
-      match xs with
-      | [||] -> []
+    let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
+      match indexList with
+      | [] -> []
       | x :: xs ->
           let small, large = 
               match axis with
               | 0 ->
-                    let filterSmall = fun e -> e.lowXYZ.X <= x.lowXYZ.X
-                    let filterLarger = fun e -> e.lowXYZ.X >  x.lowXYZ.X
+                    let filterSmall = fun e -> boxes.[e].lowXYZ.X <= boxes.[x].lowXYZ.X
+                    let filterLarger = fun e -> boxes.[e].lowXYZ.X >  boxes.[x].lowXYZ.X
                     filterSmall, filterLarger
               | 1 -> 
-                    let filterSmall = fun e -> e.lowXYZ.Y <= x.lowXYZ.Y
-                    let filterLarger = fun e -> e.lowXYZ.Y >  x.lowXYZ.Y
+                    let filterSmall = fun e -> boxes.[e].lowXYZ.Y <= boxes.[x].lowXYZ.Y
+                    let filterLarger = fun e -> boxes.[e].lowXYZ.Y >  boxes.[x].lowXYZ.Y
                     filterSmall, filterLarger
               | _ ->
-                    let filterSmall = fun e -> e.lowXYZ.Z <= x.lowXYZ.Z
-                    let filterLarger = fun e -> e.lowXYZ.Z >  x.lowXYZ.Z
+                    let filterSmall = fun e -> boxes.[e].lowXYZ.Z <= boxes.[x].lowXYZ.Z
+                    let filterLarger = fun e -> boxes.[e].lowXYZ.Z >  boxes.[x].lowXYZ.Z
                     filterSmall, filterLarger
 
-          let smaller = sortListByAxis (xs |> List.filter(small)) axis
-          let larger  = sortListByAxis (xs |> List.filter(large)) axis
+          let smaller = sortListByAxis (xs |> List.filter(small)) (boxes) axis
+          let larger  = sortListByAxis (xs |> List.filter(large)) (boxes) axis
           smaller @ [x] @ larger
     
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
@@ -81,58 +81,29 @@ module BVH =
         [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
         
 
-    let buildBVHTree (xs:array<BBox>) : BVHtree = 
-        if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
-        let boxIntArr = [|0..xs.Length-1|]
+    //let buildBVHTree (xs:array<BBox>) : BVHtree = 
+    //    if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+    //    let boxIntArr = [|0..xs.Length-1|]
 
-        let rec innerNodeTree boxIntArr : BVHtree = 
-            let boxArr = getBoxArrFromIndexes xs boxIntArr
-            let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
-            let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
-            let sortedList = sortListByAxis (Array.toList(boxArr)) axisToSplit
-            match boxArr with
-            | [||] -> failwith " innerNodeTree -> Empty array"
-            | v when boxArr.Length > 1 ->
-                let middle = sortedList.Length/2
-                let leftList = sortedList.[0..middle]
-                let rigthList = sortedList.[middle+1..]
+    //    let rec innerNodeTree boxIntArr : BVHtree = 
+    //        let boxArr = getBoxArrFromIndexes xs boxIntArr
+    //        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
+    //        let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+    //        let sortedList = sortListByAxis (Array.toList(boxArr)) axisToSplit
+    //        match boxArr with
+    //        | [||] -> failwith " innerNodeTree -> Empty array"
+    //        | v when boxArr.Length > 1 ->
+    //            let middle = sortedList.Length/2
+    //            let leftList = sortedList.[0..middle]
+    //            let rigthList = sortedList.[middle+1..]
 
-                Node (
-                            innerBVHTree leftList (axisToSplit), 
-                            innerBVHTree rigthList (axisToSplit), 
-                            box, 
-                            axisToSplit)
+    //            Node (
+    //                        innerBVHTree leftList (axisToSplit), 
+    //                        innerBVHTree rigthList (axisToSplit), 
+    //                        box, 
+    //                        axisToSplit)
 
-        innerNodeTree boxIntArr
-
-        //let rec innerBVHTree (xs:list<BBox>) (depth:int) : option<BVHtree> = 
-        //    let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints xs
-        //    let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
-        //    let sortedList = sortListByAxis xs axisToSplit
-        //    printfn "List: %A" xs
-        //    printfn  "LastAxis: %i" lastAxis
-            
-        //    match xs with
-        //    | [] ->  None
-        //    | x when xs.Length > 1 ->
-        //        let middle = sortedList.Length/2
-        //        let leftList = sortedList.[0..middle]
-        //        let rigthList = sortedList.[middle+1..]
-
-        //        printfn "middle: %i" middle
-        //        printfn "leftList: %A" leftList
-        //        printfn "rigthList: %A" rigthList
-        //        let box = { lowXYZ=lowPoint; highXYZ=highPoint }
-        //        let axisMinMaxBounding = findAxisMinMaxValues (box) axisToSplit
-
-        //        Some (Node (
-        //                    innerBVHTree leftList (axisToSplit), 
-        //                    innerBVHTree rigthList (axisToSplit), 
-        //                    box, 
-        //                    axisToSplit))
-        //    | _ -> Some (Leaf [xs.[0]])
-
-        //innerBVHTree xs -1
+    //    innerNodeTree boxIntArr
             
 
 

@@ -34,27 +34,30 @@ let allTest =
                     highXYZ = Point(-4.0, y = -5.0, z = -5.0);
                     }
 
-    //let testBBoxDataInput = [bBox01; bBox02; bBox03]
-    let testBBoxDataInput = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
+    let testBBoxDataInput = List.toArray [bBox01; bBox02; bBox03]
+    // let testBBoxDataInput = List.toArray [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
 
     // ----------------------------- TEST BEGIN -----------------------------
     let testSortListByAxisX = 
-        let expected = [bBox01; bBox02; bBox03]
-        let result = sortListByAxis testBBoxDataInput 0
+        let indexList = [0;1;2]
+        let expected = [0;1;2]
+        let result = sortListByAxis indexList testBBoxDataInput 0
         Assert.Equal (expected,result,"testSortListByAxisX")
     testSortListByAxisX
 
     // ----------------------------- TEST BEGIN -----------------------------
     let testSortListByAxisY = 
-        let expected = [bBox01; bBox02; bBox03]
-        let result = sortListByAxis testBBoxDataInput 1
+        let indexList = [0;1;2]
+        let expected = [0;1;2]
+        let result = sortListByAxis indexList testBBoxDataInput 1
         Assert.Equal (expected,result,"testSortListByAxisY")
     testSortListByAxisY
 
     // ----------------------------- TEST BEGIN -----------------------------
-    let testSortListByAxisZ = 
-        let expected = [bBox03; bBox02; bBox01]
-        let result = sortListByAxis testBBoxDataInput 2
+    let testSortListByAxisZ =
+        let indexList = [0;1;2]
+        let expected = [2;1;0]
+        let result = sortListByAxis indexList testBBoxDataInput 2
         Assert.Equal (expected,result,"testSortListByAxisZ")
     testSortListByAxisZ
 
@@ -77,8 +80,8 @@ let allTest =
 
     //let bBList1 = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
 
-    let testBuildBVHTree = 
-        let tree = buildBVHTree (List.toArray(testBBoxDataInput))
-        tree
-        //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
-    testBuildBVHTree
+    //let testBuildBVHTree = 
+    //    let tree = buildBVHTree (List.toArray(testBBoxDataInput))
+    //    tree
+    //    //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
+    //testBuildBVHTree
