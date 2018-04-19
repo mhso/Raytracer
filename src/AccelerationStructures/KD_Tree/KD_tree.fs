@@ -15,39 +15,39 @@ module KD_tree =
 
     type ShapeBBox = { maxXYZ:coordinate; 
                        minXYZ:coordinate;
-                       shape:Shape }
+                       shape:int }
 
     type BBox = { maxXYZ:coordinate; 
                   minXYZ:coordinate }
 
-    type KDTree = Leaf of BBox * BBox list
+    type KDTree = Leaf of BBox * ShapeBBox list
                 | Node of string * float * BBox * KDTree * KDTree
 
-    let rec qsort (xs:list<BBox>) axis =
+    let rec qsort (xs:list<ShapeBBox>) axis =
         match xs with
         | [] -> []
         | x :: xs -> 
             let small, large = 
                 match axis with 
-                | 0 -> let filterSmall = fun e -> e.maxXYZ.x <= x.maxXYZ.x
-                       let filterLarger = fun e -> e.maxXYZ.x >  x.maxXYZ.x
+                | 0 -> let filterSmall = fun (e:ShapeBBox) -> e.maxXYZ.x <= x.maxXYZ.x
+                       let filterLarger = fun (e:ShapeBBox) -> e.maxXYZ.x >  x.maxXYZ.x
                        filterSmall, filterLarger
-                | 1 -> let filterSmall = fun e -> e.maxXYZ.y <= x.maxXYZ.y
-                       let filterLarger = fun e -> e.maxXYZ.y >  x.maxXYZ.y
+                | 1 -> let filterSmall = fun (e:ShapeBBox) -> e.maxXYZ.y <= x.maxXYZ.y
+                       let filterLarger = fun (e:ShapeBBox) -> e.maxXYZ.y >  x.maxXYZ.y
                        filterSmall, filterLarger
-                | _ -> let filterSmall = fun e -> e.maxXYZ.z <= x.maxXYZ.z
-                       let filterLarger = fun e -> e.maxXYZ.z >  x.maxXYZ.z
+                | _ -> let filterSmall = fun (e:ShapeBBox) -> e.maxXYZ.z <= x.maxXYZ.z
+                       let filterLarger = fun (e:ShapeBBox) -> e.maxXYZ.z >  x.maxXYZ.z
                        filterSmall, filterLarger
             let smaller = qsort (xs |> List.filter(small)) axis
             let larger  = qsort (xs |> List.filter(large)) axis
             smaller @ [x] @ larger
 
 
-    let findMaxMin (xs:list<BBox>) axis = 
+    let findMaxMin (xs:list<ShapeBBox>) axis = 
         match xs with
         | []    -> (infinity, infinity)
         | x::xs -> 
-            let rec find (xs:list<BBox>) (max:float) (min:float) (axis:int) =
+            let rec find (xs:list<ShapeBBox>) (max:float) (min:float) (axis:int) =
                 match xs with
                 | []    -> (max, min)
                 | x::xs -> 
@@ -89,7 +89,7 @@ module KD_tree =
         | (true, true, true)    -> (xVisited, yVisited, zVisited, 3)
 
 
-    let rec buildKDTree (boxes:list<BBox>) = 
+    let rec buildKDTree (boxes:list<ShapeBBox>) = 
         printfn "KD Branch build start"
         //if (List.length boxes) < 10 then Leaf(boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
         //else
@@ -172,14 +172,12 @@ module KD_tree =
 
     let rec searchKDTree node ray t t' = failwith "Not Implemented"
 
-    let traverseKDTree (tree:KDTree) (ray:Ray) = 
+    (*let traverseKDTree (tree:KDTree) (ray:Ray) = 
         match tree with
         | Node(s, split, bbox, left, right) as n -> if intersect bbox ray = Some (t, t') then searchKDTree n ray t t'
                                                     else None
         | Leaf(bbox, boxes) as L                 -> if intersect bbox ray = Some (t, t') then searchKDTree L ray t t'
-                                                    else None
-
-    let rec searchKDTree node = failwith "Not Implemented"
+                                                    else None*)
 
     let rec searchKDLeaf node = failwith "Not Implemented"
 
@@ -188,17 +186,23 @@ module KD_tree =
     let rec KDHit leaf = failwith "Not Implemented"
 
     let BBox1 = {maxXYZ = {x = 4.0; y = 4.0; z = 4.0};
-                 minXYZ = {x = 3.0; y = 3.0; z = 3.0}}
+                 minXYZ = {x = 3.0; y = 3.0; z = 3.0};
+                 shape = 1}
     let BBox2 = {maxXYZ = {x = 3.0; y = 3.0; z = 3.0};
-                 minXYZ = {x = 2.0; y = 2.0; z = 2.0}}
+                 minXYZ = {x = 2.0; y = 2.0; z = 2.0};
+                 shape = 2}
     let BBox3 = {maxXYZ = {x = 2.0; y = 2.0; z = 2.0};
-                 minXYZ = {x = -1.0; y = -1.0; z = -1.0}}
+                 minXYZ = {x = -1.0; y = -1.0; z = -1.0};
+                 shape = 3}
     let BBox4 = {maxXYZ = {x = 1.0; y = 1.0; z = 1.0};
-                 minXYZ = {x = 0.0; y = 0.0; z = 0.0}}
+                 minXYZ = {x = 0.0; y = 0.0; z = 0.0};
+                 shape = 4}
     let BBox5 = {maxXYZ = {x = 0.0; y = 0.0; z = 0.0};
-                 minXYZ = {x = -1.0; y = -1.0; z = -1.0}}
+                 minXYZ = {x = -1.0; y = -1.0; z = -1.0};
+                 shape = 5}
     let BBox6 = {maxXYZ = {x = -4.0; y = -5.0; z = -5.0};
-                 minXYZ = {x = -7.0; y = -7.0; z = -7.0}}
+                 minXYZ = {x = -7.0; y = -7.0; z = -7.0};
+                 shape = 6}
     
     let BBList1 = [BBox1;BBox2;BBox3;BBox4;BBox5;BBox6]
 
