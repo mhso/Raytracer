@@ -41,6 +41,7 @@ open System
     let getList (T(a)) = a
     let vectorToMatrix (v:Vector) = mkTransformation ([[v.X];[v.Y];[v.Z];[0.]])
     let pointToMatrix (p:Point) = mkTransformation ([[p.X];[p.Y];[p.Z];[1.]])
+    let inverse (t:Transformation) = failwith("NOT IMPLEMENTED")
 
     let translate x y z = identityMatrixWithPos x y z
     let translateInv x y z = translate -x -y -z
@@ -79,11 +80,6 @@ open System
             | _ -> value
         sum (l.Head,l.Tail)
 
-    let transform = failwith("NOT IMPLEMENTED")
-    let transformRay (r : Ray) = 
-        let origin = pointToMatrix (r.GetOrigin)
-        let direction = vectorToMatrix (r.GetDirection)
-        r
 
     let matrixToVector (T(a)) = 
         let x = a.Head.Head
@@ -112,3 +108,23 @@ open System
         | :? DirectionalLight as d -> DirectionalLight(d.BaseColour, d.Intensity, transformDirectionalLight (d,t)) :> Light
         | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
         | _ -> light
+
+    let transform (s : Sphere) (r : Ray) =  
+        failwith("NOT IMPLEMENTED")
+    let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
+       failwith("NOT IMPLEMENTED")
+
+    let transformRay (r : Ray) t = 
+        let originMatrix = Transformation.multi (pointToMatrix (r.GetOrigin), t)
+        let directionMatrix = Transformation.multi (vectorToMatrix (r.GetDirection), t)
+        let origin = matrixToPoint originMatrix
+        let direction = matrixToVector directionMatrix
+        new Ray(origin, direction)
+
+    let originalHitPoint dist (r:Ray) = 
+        r.PointAtTime dist
+
+    let transformNormal (s:Sphere) (p:Point) (t: Transformation)= 
+        let vector = s.NormalAtPoint p 
+        let tVector = matrixToVector ( Transformation.multi (t,(vectorToMatrix vector)))
+        tVector
