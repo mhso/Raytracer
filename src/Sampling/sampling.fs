@@ -95,20 +95,22 @@ let regular (ni:int) =
     samples
 
 let createSampleSets (set:(float * float)[][]) =
-    let rand = new Random()
+    let rand = new Random() // We create a new Random here, for help with testing.
     for i in 0..set.Length-1 do
         let samples = set.[i]
-        for j in 0..samples.Length-1 do
+        for j in 1..samples.Length-1 do
             let r = rand.Next(j)
             let temp = samples.[r]
             samples.[r] <- samples.[j]
             samples.[j] <- temp
-    for i in 0..set.Length-1 do
+        set.[i] <- samples
+    for i in 1..set.Length-1 do
             let r = rand.Next(i)
             let temp = set.[r]
             set.[r] <- set.[i]
             set.[i] <- temp
     set
+
 let random n sn =
     let ns = n*n
     let sets = Array.create sn [|(0.0, 0.0)|]
@@ -123,7 +125,7 @@ let random n sn =
         sets.[k] <- samples
         if k > 0 then loop (k-1)
     loop (sn-1)
-    createSampleSets sets    
+    createSampleSets sets
 
 let getJitteredValue (grid:int) (max:int) = (rand.NextDouble()/float max) + ((1.0/float max) * float grid)
 
@@ -133,15 +135,15 @@ let jittered n sn =
     let rec loop k =
         let rec innerX x = 
             let rec innerY = function
-                | 0 -> samples.[0] <- (getJitteredValue x n, getJitteredValue 0 n)
+                | 0 -> samples.[x*n] <- (getJitteredValue x n, getJitteredValue 0 n)
                 | y -> 
-                    samples.[y] <- (getJitteredValue x n, getJitteredValue y n)
+                    samples.[(x*n) + y] <- (getJitteredValue x n, getJitteredValue y n)
                     (innerY (y-1))
             match x with
-            | 0 -> innerY n
+            | 0 -> innerY (n-1)
             | c ->  
+                innerY (n-1)
                 (innerX (c-1))
-                (innerY n)
         innerX (n-1)
         sets.[k] <- samples
         if k > 0 then loop (k-1)

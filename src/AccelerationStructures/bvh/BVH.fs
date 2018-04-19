@@ -2,6 +2,7 @@
 open Tracer.Basics
 
 module BVH = 
+
     //#load Vector.fs
     //#load Point.fs
 
@@ -17,46 +18,28 @@ module BVH =
                   highXYZ:coordinate;
                   shape:Shape }
 
-    let rec qsort (xs:list<BBox>) (axis:int) =
+    let rec sortListByAxis (xs:list<BBox>) (axis:int) =
       match xs with
       | [] -> []
       | x :: xs ->
-          let small, large = match axis with
-          | 0 ->
-                let filterSmall = fun e -> e.lowXYZ.x <= x.lowXYZ.x
-                let filterLarger = fun e -> e.lowXYZ.x >  x.lowXYZ.x
-                filterSmall, filterLarger
-          | 1 -> 
-                let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
-                let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
-                filterSmall, filterLarger
+          let small, large = 
+              match axis with
+              | 0 ->
+                    let filterSmall = fun e -> e.lowXYZ.x <= x.lowXYZ.x
+                    let filterLarger = fun e -> e.lowXYZ.x >  x.lowXYZ.x
+                    filterSmall, filterLarger
+              | 1 -> 
+                    let filterSmall = fun e -> e.lowXYZ.y <= x.lowXYZ.y
+                    let filterLarger = fun e -> e.lowXYZ.y >  x.lowXYZ.y
+                    filterSmall, filterLarger
+              | _ ->
+                    let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
+                    let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
+                    filterSmall, filterLarger
 
-          | _ ->
-                let filterSmall = fun e -> e.lowXYZ.z <= x.lowXYZ.z
-                let filterLarger = fun e -> e.lowXYZ.z >  x.lowXYZ.z
-                filterSmall, filterLarger
-
-          let smaller = qsort (xs |> List.filter(small)) axis
-          let larger  = qsort (xs |> List.filter(large)) axis
+          let smaller = sortListByAxis (xs |> List.filter(small)) axis
+          let larger  = sortListByAxis (xs |> List.filter(large)) axis
           smaller @ [x] @ larger
-    
-    // ----------------------------- qsort TEST BEGIN -----------------------------
-    let box1Test = {  lowXYZ = {x=1.; y=0.6; z=1.};
-                      highXYZ = {x=6.5; y=9.; z=8.9};
-                      shape = S(5.0) }
-    let box2Test = {  lowXYZ = {x=7.; y=3.; z=8.4};
-                      highXYZ = {x=12.; y=7.; z=16.6};
-                      shape = S(4.0) }
-    let box3Test = {  lowXYZ = {x=8.; y=10.; z=8.9};
-                      highXYZ = {x=11.4; y=13.5; z=15.7};
-                      shape = S(3.0) }
-
-    let qsortTestDataInput = [box1Test; box2Test; box3Test]
-
-    //let qsortTestX = qsort qsortTestDataInput 0
-    //let qsortTestY = qsort qsortTestDataInput 1
-    //let qsortTestZ = qsort qsortTestDataInput 2
-    // ----------------------------- qsort TEST END -----------------------------
 
     (* BVH TREE *)
     type 'shape BVHtree = 
@@ -70,30 +53,41 @@ module BVH =
 
     // let testBVHTree = Node(Leaf "left", Leaf "right")
     type  BoundingboxCoords = Point * Point
-
-    let getOuterBoundinBox (xs:list<BBox>) = 
-        let sortX  = qsort xs 0
-        let sortY  = qsort xs 1
-        let sortZ  = qsort xs 2
-
-        let lowPoint = Point(
-                                sortX.Head.lowXYZ.x,
-                                sortY.Head.lowXYZ.y,
-                                sortZ.Head.lowXYZ.z)
-        let highPoint = Point(
-                                sortX.Item(sortX.Length-1).highXYZ.x,
-                                sortY.Item(sortY.Length-1).highXYZ.y,
-                                sortZ.Item(sortZ.Length-1).highXYZ.z)
-        lowPoint, highPoint
-
-    // ----------------------------- getOuterBoundinBox TEST BEGIN -----------------------------
-
-    let testgetOuterBoundinBox = getOuterBoundinBox qsortTestDataInput
-
-    // ----------------------------- getOuterBoundinBox TEST END -----------------------------
-
-    // let buildBVHTree (xs:list<BBox>) = 
+    
+    let findOuterBoundingBoLowHighPoints (xs:list<BBox>) = 
+        let lowX = List.fold (fun acc box -> if box.lowXYZ.x < acc then box.lowXYZ.x else acc) 9999999.0 xs
+        let lowY = List.fold (fun acc box -> if box.lowXYZ.y < acc then box.lowXYZ.y else acc) 9999999.0 xs
+        let lowZ = List.fold (fun acc box -> if box.lowXYZ.z > acc then box.lowXYZ.z else acc) -9999999.0 xs
+        let highX = List.fold (fun acc box -> if box.highXYZ.x > acc then box.highXYZ.x else acc) -9999999.0 xs
+        let highY = List.fold (fun acc box -> if box.highXYZ.y > acc then box.highXYZ.y else acc) -9999999.0 xs
+        let highZ = List.fold (fun acc box -> if box.highXYZ.z < acc then box.highXYZ.z else acc) 9999999.0 xs
         
+        Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
+
+    let findBoundingBoxSideLengths (box:(Point*Point)) =
+        let lowPoint, highPoint = box
+        let mutable value = highPoint.X - lowPoint.X
+        let y = highPoint.Y - lowPoint.Y
+        let z = highPoint.Z - lowPoint.Z
+
+        if value < y then value <- y
+        else if value < z then value <- z
+        value
+
+    //let buildBVHTree (xs:list<BBox>) = 
+    //    if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+        
+    //    let firstAxisSplit = 0 // x=0, y=1, z=2
+    //    let sortList = sortListByAxis xs firstAxisSplit
+    //    let lowPoint, highPoint = findOuterBoundingBoLowHighPoints(xs)
+
+        
+         
+
+        //let rec innerBuild sortList axis = 
+            
+
+
         
 
     // swaps the order if d is not positive

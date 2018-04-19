@@ -21,6 +21,8 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.ResX = resX
     member this.ResY = resY
     member this.RenderFilepath = "background.bmp"
+    member this.Direction = 
+        (lookat - position).Normalise
     
         
         

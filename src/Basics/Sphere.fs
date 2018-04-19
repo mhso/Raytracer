@@ -15,15 +15,18 @@ type Sphere(origin: Point, radius: float, material: Material) =
         let rayDir = ray.GetDirection.Normalise
         let sv = s * rayDir
         let ss = s * s
-        sv*sv - ss + radius * radius
-    member this.GetHitPoints (ray:Ray) = 
+        (sv*sv) - ss + (radius*radius)
+    member this.GetHitPoint (ray:Ray) = 
         let D = this.GetDiscriminant ray
         if D < 0. then
-            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
+            new HitPoint(ray)
         else
-            let s = (ray.GetOrigin - origin)
+            let s = (ray.GetOrigin - origin.ToVector).ToVector
             let rayDir = ray.GetDirection.Normalise
             let sv = s * rayDir
-            let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            (ray.PointAtTime t1,ray.PointAtTime t2)
+            let p = ray.PointAtTime (if t1 <= t2 then t1 else t2)
+            let a = new HitPoint(ray, if t1 <= t2 then t1 else t2)
+            a
+    static member None = 
+        new Sphere(new Point(0.,0.,0.), 0., new MatteMaterial(Colour.Black))

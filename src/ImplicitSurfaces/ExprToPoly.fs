@@ -209,7 +209,7 @@ module ExprToPoly =
     List.iter (fun x ->
       match x with
       | [ANum n]      -> nums <- n + nums // Add atom groups with only constants together.
-      | (ANum n)::cr  -> match Map.tryFind cr vars with
+      | ANum n::cr    -> match Map.tryFind cr vars with
                           | Some v  -> vars <- Map.add cr (v + n) vars
                           | None    -> vars <- Map.add cr n vars
       | []            -> nums <- 0.0 
@@ -218,7 +218,7 @@ module ExprToPoly =
     // Last task is to group similar atomGroups into one group.
     let varslist = [for KeyValue(k,v) in vars -> if v = 1.0 then k
                                                  //else if v = 0.0 then [ANum 0.0]
-                                                 else (ANum v)::k]
+                                                 else ANum v::k]
     if nums <> 0.0 then SE ([[ANum nums]] @ varslist)
     else SE varslist
 
@@ -276,6 +276,19 @@ module ExprToPoly =
   let x = parseStr "x^2 - x^2"
   let x1 = simplify x
   List.map simplifyAtomGroup x1
+  
+  let x = parseStr "x^2 - x^2"
+  let x1 = simplify x
+  List.map simplifyAtomGroup x1
+  let x = FAdd (FExponent (FVar "x", 2) ,
+                         FAdd (FExponent (FVar "y", 2),
+                               FAdd (FExponent (FVar "z", 2),
+                                     FMult (FNum -1.0, FExponent (FVar "r", 2))))) 
+  let (SE z) = exprToSimpleExpr x
+  let y = simplify x
+  List.map simplifyAtomGroup y
+  
+
   let (SE z) = exprToSimpleExpr x
   List.map simplifyAtomGroup z
   ppPoly "" (exprToPoly x "") 

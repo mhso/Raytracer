@@ -2,7 +2,8 @@ namespace Tracer.ImplicitSurfaces
 
 module ExprToPoly =
   
-  type expr = ExprParse.expr
+  type expr = Tracer.ImplicitSurfaces.ExprParse.expr
+  
   val subst : expr -> (string * expr) -> expr
 
   type simpleExpr
