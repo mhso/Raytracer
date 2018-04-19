@@ -11,8 +11,8 @@ module Assert =
         static member Equal actual expected name = 
             if (actual = expected) 
                 then printfn "--------Test Passed! %s" name
-            else printfn "--------TEST FAILED! %s \n ******** \nExpected: (%O) \nActual: (%O) \n ********" name expected actual
-
+            else printfn "********************************************\nTEST FAILED! %s\nExpected: (%A) \nActual: (%A)\n********************************************" name expected actual
+                          
         static member True value name =
             if value 
                 then printfn "--------Test Passed! %s" name
