@@ -51,7 +51,7 @@ open System
     let translate x y z = mkTransformation (identityMatrixWithPos x y z, identityMatrixWithPos -x -y -z)
 
     let scale width height depth = mkTransformation (mkMatrix ([[width;0.0;0.;0.];[0.;height;0.;0.];[0.;0.;depth;0.];[0.;0.;0.;1.]]),
-                                                     mkMatrix ([[-width;0.0;0.;0.];[0.;-height;0.;0.];[0.;0.;-depth;0.];[0.;0.;0.;1.]]))
+                                                     mkMatrix ([[Math.Pow(width,-1.);0.0;0.;0.];[0.;Math.Pow(height,-1.);0.;0.];[0.;0.;Math.Pow(depth,-1.);0.];[0.;0.;0.;1.]]))
     let sheare (xy,xz,yx,yz,zx,zy) = 
         let matrix = mkMatrix([[1.;yx;zx;0.];[xy;1.;zy;0.];[xz;yz;1.;0.];[0.;0.;0.;1.]])
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
@@ -71,7 +71,8 @@ open System
     let rotateZ angle = mkTransformation(mkMatrix ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]),
                                           mkMatrix ([[Math.Cos(angle);(Math.Sin(angle));0.;0.];[-(Math.Sin(angle));Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]))
 
-    let mergeTransformations (l: Matrix List) = 
+
+    let mergeMatrix (l : Matrix List) = 
         let rec sum (value,l2)= 
             match l2 with
             | first::rest ->
@@ -80,6 +81,12 @@ open System
             | _ -> value
         sum (l.Head,l.Tail)
 
+    let mergeTransformations (l: Transformation List) : Transformation = 
+        let matrixList = l |> List.map (fun a -> getMatrix a)
+        let NewMatrix = mergeMatrix matrixList
+        let reverseMatrixList = (List.rev l) |> List.map (fun a -> getInvMatrix a)
+        let newInverseMatrix = mergeMatrix reverseMatrixList
+        mkTransformation (NewMatrix, newInverseMatrix)
 
     let matrixToVector (M(a)) = 
         let x = a.Head.Head

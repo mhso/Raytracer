@@ -43,7 +43,6 @@ let allTest =
         let trans = scale 2. 0.5 1.
         let matrix1 = (getMatrix trans)
         let matrix2 = (getInvMatrix trans)
-        printfn "%A" matrix1
         let result = getList (Matrix.multi (matrix2,matrix1))
         let expected = [[1.;0.;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
         Assert.Equal (expected,result, "ScaleInv")
@@ -103,46 +102,42 @@ let allTest =
         let expected = [[1.0;0.0;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
         Assert.Equal(expected,result,"RotateXMultiplyInverseRotateXGivesIdentityMatrix")
 
-    //let testRotateYMultiplyInverseRotateYGivesIdentityMatrix = 
-    //    let matrix1 = rotateY 1.5
-    //    let matrix2 = rotateYInv 1.5
-    //    let result = getList (Transformation.multi (matrix1,matrix2))
-    //    let expected = [[1.0;0.0;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
-    //    Assert.Equal(expected,result,"RotateYMultiplyInverseRotateYGivesIdentityMatrix")
+    let testRotateYMultiplyInverseRotateYGivesIdentityMatrix = 
+        let matrix1 = rotateY 1.5
+        let result = getList (Matrix.multi (getMatrix matrix1,getInvMatrix matrix1))
+        let expected = [[1.0;0.0;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
+        Assert.Equal(expected,result,"RotateYMultiplyInverseRotateYGivesIdentityMatrix")
 
-    //let testRotateZMultiplyInverseRotateZGivesIdentityMatrix = 
-    //    let matrix1 = rotateZ 1.5
-    //    let matrix2 = rotateZInv 1.5
-    //    let result = getList (Transformation.multi (matrix1,matrix2))
-    //    let expected = [[1.0;0.0;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
-    //    Assert.Equal(expected,result,"RotateZMultiplyInverseRotateZGivesIdentityMatrix")
+    let testRotateZMultiplyInverseRotateZGivesIdentityMatrix = 
+        let matrix1 = rotateZ 1.5
+        let result = getList (Matrix.multi (getMatrix matrix1,getInvMatrix matrix1))   
+        let expected = [[1.0;0.0;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]
+        Assert.Equal(expected,result,"RotateZMultiplyInverseRotateZGivesIdentityMatrix")
 
-    //let testMergeTransformationWithTwoTransformations = 
-    //    let matrix1 = (scale 10. 10. 10.)
-    //    let matrix2 = translate 2. 2. 2.
-    //    let listMatrix = [matrix1; matrix2]
-    //    let result = mergeTransformations listMatrix
-    //    let expected = Transformation.multi (matrix1,matrix2)
-    //    Assert.Equal(expected,result,"MergeTransformationWithTwoTransformations")
+    let testMergeTransformationWithTwoTransformations = 
+        let matrix1 = (scale 10. 10. 10.)
+        let matrix2 = translate 2. 2. 2.
+        let listMatrix = [matrix1; matrix2]
+        let result = getMatrix (mergeTransformations listMatrix)
+        let resultInv = getInvMatrix (mergeTransformations listMatrix)
+        let expected = Matrix.multi (getMatrix matrix1, getMatrix matrix2)
+        let expectedInv = Matrix.multi (getInvMatrix matrix2, getInvMatrix matrix1)
+        Assert.Equal(expected,result,"MergeTransformationWithTwoTransformations")
+        Assert.Equal(expectedInv,resultInv,"MergeTransformationWithTwoInvTransformations")
 
         
-    //let testMergeTransformationWithFiveTransformations = 
-    //    let matrix1 = (scale 10. 10. 10.)
-    //    let matrix2 = translate 2. 2. 2.
-    //    let matrix3 = rotateX 10.
-    //    let matrix4 = sheareXY 30.
-    //    let matrix5 = scale -1. 1. 1.
-    //    let listMatrix = [matrix1; matrix2; matrix3; matrix4; matrix5]
-    //    let result = mergeTransformations listMatrix
-    //    let expected = Transformation.multi ((Transformation.multi ((Transformation.multi ((Transformation.multi (matrix1,matrix2)),matrix3)),matrix4),matrix5))
-    //    Assert.Equal(expected,result,"MergeTransformationWithFiveTransformations")
-
-    let testTransformDirectionalLight = 
-        let light = new DirectionalLight(new Colour(1.,1.,1.), 1., new Vector(0.,10.,0.))
-        let move = rotateZ (Math.PI / 2.0)
-        let result = ((transformLight light move) :?> DirectionalLight).Direction.GetCoord
-        let expected = (new DirectionalLight(new Colour(1.,1.,1.), 1., new Vector(10.,0.,0.))).Direction.GetCoord
-        Assert.Equal(expected,result, "TrasformingDirectionalLight")
+    let testMergeTransformationWithFiveTransformations = 
+        let matrix1 = (scale 10. 10. 10.)
+        let matrix2 = (translate 10. 10. 10.)
+        let matrix3 = (rotateX 1.5)
+        let matrix4 = (translate 10. 10. 10.)
+        let matrix5 = (translate 10. 10. 10.)
+        let listMatrix = [matrix1; matrix2; matrix3; matrix4; matrix5]
+        let merge = mergeTransformations listMatrix
+        let result = Matrix.multi ((getMatrix merge),(getInvMatrix merge))
+        let expected = mkMatrix ([[1.;0.;0.;0.];[0.;1.;0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]])
+        //Has to use ToString() Since fsharp overrides the type and the equals somehow can't compare it
+        Assert.Equal(((getList expected).ToString()),(getList result).ToString(),"MergeTransformationWithFiveTransformations")
 
     let testTransformPointLight = 
         let light = new PointLight(new Colour(1.,1.,1.), 1., new Point(0.,10.,0.))

@@ -20,6 +20,6 @@ val rotateY : angle : float -> Transformation
 val rotateZ : angle : float -> Transformation
 val sheare : xy : float * xz :float * yx : float * yz : float * zx : float * zy : float-> Transformation
 //val sheareXYInv : distance : float -> Transformation
-val mergeTransformations : Matrix list -> Matrix
+val mergeTransformations : Transformation list -> Transformation
 //val transform : Shape -> Transformation -> Shape
 val transformLight : Light -> Transformation -> Light
