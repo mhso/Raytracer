@@ -12,6 +12,8 @@ val getColLength : Matrix -> int
 val transpose : Matrix -> Matrix
 val translate : x : float -> y : float -> z : float -> Transformation
 val getList : Matrix -> float list list
+val getMatrix : Transformation -> Matrix
+val getInvMatrix : Transformation -> Matrix
 val scale : width : float -> height : float -> depth : float -> Transformation
 val rotateX : angle : float -> Transformation
 val rotateY : angle : float -> Transformation
