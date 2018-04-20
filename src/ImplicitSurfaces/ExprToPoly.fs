@@ -1,5 +1,6 @@
 namespace Tracer.ImplicitSurfaces
 
+open System.Xml.Linq
 module ExprToPoly =
 
   open Tracer.ImplicitSurfaces.ExprParse
@@ -38,32 +39,32 @@ module ExprToPoly =
   let ppAtomGroup ag = String.concat "*" (List.map ppAtom ag)
   let ppSimpleExpr (SE ags) = String.concat "+" (List.map ppAtomGroup ags)
 
-  // xss is multiplied on all the ys's that are found. At least that's what *I think is happening.
+  // xss is multiplied on all the ys's that are found. At least that's what I think is happening.
   let rec combine (xss:atomGroup list) = function
     | [] -> []
     | ys::yss -> List.map ((@) ys) xss @ combine xss yss
 
   // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
-  let simplify e =
-    let rec inner = function
-      | FNum c          -> [[ANum c]]
-      | FVar s          -> [[AExponent(s,1)]]
-      | FRoot(e1,n)     -> failwith "shoot me now"
-      | FAdd(e1,e2)     -> inner e1 @ inner e2
-      | FMult(e1,e2)    -> combine (inner e1) (inner e2)
-      | FDiv(e1,e2)     -> combine (inner e1) (inner (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
-      | FExponent(_,0)  -> inner (FNum 1.0)
-      | FExponent(e1,1) -> inner e1
-      | FExponent(e1,n) -> if n < 0 then 
-                              match e1 with
-                              | FNum c  -> combine [[ANum (1./c)]] (inner (FExponent(e1, n + 1)))
-                              | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
-                                           else combine [[AExponent(s1, -1)]] (inner (FExponent(e1, n + 1)))
-                              | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
-                           else combine (inner e1) (inner (FExponent(e1, n-1)))
-    let ex = inner e
-    ex
+  let rec simplify = function
+  | FNum c            -> [[ANum c]]
+  | FVar s            -> [[AExponent(s,1)]]
+  | FRoot(e1,n)       -> failwith "shoot me now"
+  | FAdd(e1,FNum 0.0) -> simplify e1
+  | FAdd(FNum 0.0,e1) -> simplify e1
+  | FAdd(e1,e2)       -> simplify e1 @ simplify e2
+  | FMult(e1,e2)      -> combine (simplify e1) (simplify e2)
+  | FDiv(e1,e2)       -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
+  | FExponent(_,0)    -> [[ANum 1.0]]
+  | FExponent(e1,1)   -> simplify e1
+  | FExponent(e1,n)   -> if n < 0 then 
+                            match e1 with
+                            | FNum c  -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
+                            | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
+                                         else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
+                            | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
+                         else combine (simplify e1) (simplify (FExponent(e1, n-1)))
 
+  // the following two functions looks so much alike, that I think I maybe could be able to make one function, and apply different active patterns on them?
   let rec containsDiv = function
     | FVar _          -> false
     | FNum _          -> false
@@ -73,7 +74,28 @@ module ExprToPoly =
     | FExponent(e,_)  -> containsDiv e
     | FRoot(e,_)      -> containsDiv e
 
-  let rec simplifyToOneDiv e = 
+  let rec containsRadicals = function
+    | FVar _          -> false
+    | FNum _          -> false
+    | FRoot _         -> true
+    | FDiv(e1,e2)     -> containsRadicals e1 || containsRadicals e2
+    | FAdd(e1,e2)     -> containsRadicals e1 || containsRadicals e2
+    | FMult(e1,e2)    -> containsRadicals e1 || containsRadicals e2
+    | FExponent(e,_)  -> containsRadicals e
+
+  let rec highestRoot c = function
+    | FVar _          -> c
+    | FNum _          -> c
+    | FRoot(e,n)      -> highestRoot (max c n) e
+    | FDiv(e1,e2)     -> let c =highestRoot c e1
+                         highestRoot c e2
+    | FAdd(e1,e2)     -> let c = highestRoot c e1
+                         highestRoot c e2
+    | FMult(e1,e2)    -> let c = highestRoot c e1
+                         highestRoot c e2
+    | FExponent(e,_)  -> highestRoot c e
+
+  let rec simplifyDiv e = 
     let rec inner ex =
       match ex with
       // case 6:
@@ -82,34 +104,68 @@ module ExprToPoly =
       // case 10
       | FDiv(FDiv(e1, e2), FDiv(e3, e4)) -> FDiv(FMult(inner e1, inner e4), FMult(inner e2, inner e3))
       // case 7:
-      | FDiv(FDiv(e1, e2), e3) -> FDiv(inner e1, FMult (inner e2, inner e3))
+      | FDiv(FDiv(e1, e2), e3)  -> FDiv(inner e1, FMult (inner e2, inner e3))
       // case 8:
-      | FDiv(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e3), inner e2)
+      | FDiv(e1, FDiv(e2, e3))  -> FDiv(FMult(inner e1, inner e3), inner e2)
       // case 9:
-      | FAdd(e1, FDiv(e2, e3)) -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
-      | FAdd(FDiv(e2, e3), e1) -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
+      | FAdd(e1, FDiv(e2, e3))  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
+      | FAdd(FDiv(e2, e3), e1)  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
       // all others, just go down recursively, with no changes at this level
-      | FAdd(e1,e2)   -> FAdd(inner e1, inner e2)
-      | FMult(e1, e2) -> FMult(inner e1, inner e2)
-      | FRoot(e1, n)  -> FRoot(inner e1, n)
-      | FDiv(e1, e2)  -> FDiv(inner e1, inner e2)
-      | _             -> ex // FVar and FNum
+      | FAdd(e1,e2)             -> FAdd(inner e1, inner e2)
+      | FMult(e1, e2)           -> FMult(inner e1, inner e2)
+      | FRoot(e1, n)            -> FRoot(inner e1, n)
+      | FExponent(e1, n)        -> FExponent(inner e1,n)
+      | FDiv(e1, e2)            -> FDiv(inner e1, inner e2)
+      | _                       -> ex // FVar and FNum
     let rewritten = inner e
-    if containsDiv rewritten then
-      match rewritten with
-      | FDiv(dividend,divisor)  -> if containsDiv dividend || containsDiv divisor then simplifyToOneDiv rewritten
-                                   else rewritten
-      | _                       -> simplifyToOneDiv rewritten
-    else FDiv(rewritten, FNum 1.0)
-    
-  let rewriteExpr e =
-    // simplififying the expression into one big division of A/B, by rewriting according to some rules
-    let ex = simplifyToOneDiv e
-    match ex with
-    | FDiv(e,_) -> e
-    | _         -> failwith "shouldn't be able to get here"
-    // and now I only need to simply Radicals, and remove them...
+    if rewritten = e then e
+    else simplifyDiv rewritten
   
+  let rec simplifyRadicals e =
+    let rec inner norad rad = function
+      | FAdd(e1,e2) ->
+          let norad, rad = inner norad rad e1
+          let norad, rad = inner norad rad e2
+          norad, rad
+      | ex  -> 
+          if containsRadicals ex then norad, FAdd(rad, ex)
+          else FAdd(norad,ex), rad
+    let (norad,rad) = inner (FNum 0.0) (FNum 0.0) e
+    if rad <> FNum 0.0 then 
+      let k = highestRoot 0 rad
+      // idea, call simplify on the norads, makes it easier to deal with
+      // for norad: create a function that flips positive terms to negative and vice versa (the ecquivalent of moving them from one side of the equation sign to the other)
+      // then put both rad and norad in exponent e, k (or combine (combine e e) e)
+      // simplify if possible, and for norad toggle again
+      // is that it?
+      e
+    else e
+    // first remove all roots where if they occur 
+
+(* Not entirely sure about this one, maybe it is overkill
+  let rec firstSimplify = function
+    | FVar x          -> FVar x
+    | FNum c          -> FNum c
+    | FRoot(e1,n)     -> match e1 with
+                         | FNum c -> FNum (c**(1.0/(float n)))
+                         | _      -> FRoot (firstSimplify e1, n)
+    | FDiv(e1,e2)     -> FDiv(firstSimplify e1, firstSimplify e2)
+    | FAdd(e1,e2)     -> FAdd(firstSimplify e1,firstSimplify e2)
+    | FMult(e1,e2)    -> FMult(firstSimplify e1,firstSimplify e2)
+    | FExponent(e,n)  -> FExponent(firstSimplify e,n)
+*)
+  let rewriteExpr e =
+    // simplififying the expression into one big division of A/B, or if no division exists, just pass e along
+    let ex = if containsDiv e 
+             then let simpler = simplifyDiv e
+                  match simpler with
+                  | FDiv(keep,_)  -> keep
+                  | _             -> simpler
+             else e
+    // handle roots
+    if containsRadicals ex then simplifyRadicals ex
+    else ex
+  // containsRadicals (rewriteExpr (parseStr "1 + 2 + 3 + 4_2 + 5 + 6_1"))
   let simplifyAtomGroup ag : atomGroup =
       let mutable nums = 1.0
       let mutable exps = Map.empty
