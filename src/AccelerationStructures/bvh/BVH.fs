@@ -99,7 +99,8 @@ module BVH =
                 let rigthList = sortedList.[middle..]
                 let box = {  lowXYZ = lowPoint;
                              highXYZ = highPoint;
-                    }
+                    } 
+                printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
                 //printfn "Add new inner Nodes... Lists lenght: "
                 //printfn "intIndexes.Length: %i " intIndexes.Length
                 //printfn "boxArr.Length: %i " boxArr.Length
@@ -116,9 +117,7 @@ module BVH =
                 Leaf c
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNodeTree boxIntList 0
-            
-
-
+                            
         
 
     // swaps the order if d is not positive
