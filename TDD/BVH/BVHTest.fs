@@ -35,7 +35,7 @@ let allTest =
                     }
 
     let testBBoxDataInput = List.toArray [bBox01; bBox02; bBox03]
-    // let testBBoxDataInput = List.toArray [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
+    let testBVHDataInput = List.toArray [bBox04; bBox05; bBox06; bBox07; bBox08; bBox09]
 
     // ----------------------------- TEST BEGIN -----------------------------
     let testSortListByAxisX = 
@@ -78,10 +78,8 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
 
-    //let bBList1 = [bBox01; bBox02; bBox03; bBox04; bBox05; bBox06]
-
-    //let testBuildBVHTree = 
-    //    let tree = buildBVHTree (List.toArray(testBBoxDataInput))
-    //    tree
-    //    //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
-    //testBuildBVHTree
+    let testBuildBVHTree = 
+        let tree = buildBVHTree (testBVHDataInput)
+        tree
+        //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
+    testBuildBVHTree

@@ -77,33 +77,45 @@ module BVH =
         | 2 -> (lowXYZ.Z, highXYZ.Z)
         | _ -> invalidArg "findAxisMinMaxValues invalid axis value" "Axis value needs to be between 0-2."
     
-    let rec getBoxArrFromIndexes (boxes:array<BBox>) (indexes:array<int>) : (array<BBox>) =
+    let rec getBoxArrFromIndexes (indexes:list<int>) (boxes:array<BBox>) : (array<BBox>) =
         [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
         
 
-    //let buildBVHTree (xs:array<BBox>) : BVHtree = 
-    //    if xs.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
-    //    let boxIntArr = [|0..xs.Length-1|]
+    let buildBVHTree (boxes:array<BBox>) : BVHtree = 
+        if boxes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+        let boxIntList = [0..boxes.Length-1]
+        let rec innerNodeTree (intIndexes:list<int>) (treeLevel:int) : BVHtree = 
+            let boxArr = getBoxArrFromIndexes intIndexes boxes
+            let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
+            let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+            let treeLevel = treeLevel + 1
+            printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
+            let sortedList = sortListByAxis intIndexes boxes axisToSplit
+            match intIndexes with
+            | [] -> failwith " innerNodeTree -> Empty array"
+            | b when intIndexes.Length > 1 ->
+                let middle = sortedList.Length/2
+                let leftList = sortedList.[0..middle-1]
+                let rigthList = sortedList.[middle..]
+                let box = {  lowXYZ = lowPoint;
+                             highXYZ = highPoint;
+                    }
+                printfn "Add new inner Nodes... Lists lenght: "
+                printfn "intIndexes.Length: %i " intIndexes.Length
+                printfn "boxArr.Length: %i " boxArr.Length
+                printfn "leftList.Length: %i " leftList.Length
+                printfn "rigthList.Length: %i " rigthList.Length
 
-    //    let rec innerNodeTree boxIntArr : BVHtree = 
-    //        let boxArr = getBoxArrFromIndexes xs boxIntArr
-    //        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
-    //        let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
-    //        let sortedList = sortListByAxis (Array.toList(boxArr)) axisToSplit
-    //        match boxArr with
-    //        | [||] -> failwith " innerNodeTree -> Empty array"
-    //        | v when boxArr.Length > 1 ->
-    //            let middle = sortedList.Length/2
-    //            let leftList = sortedList.[0..middle]
-    //            let rigthList = sortedList.[middle+1..]
-
-    //            Node (
-    //                        innerBVHTree leftList (axisToSplit), 
-    //                        innerBVHTree rigthList (axisToSplit), 
-    //                        box, 
-    //                        axisToSplit)
-
-    //    innerNodeTree boxIntArr
+                Node (
+                            innerNodeTree leftList treeLevel, 
+                            innerNodeTree rigthList treeLevel, 
+                            box, 
+                            axisToSplit)
+            | c when intIndexes.Length = 1 ->
+                printfn "Add new inner Leaf... Value: %O" c
+                Leaf c
+            | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
+        innerNodeTree boxIntList 0
             
 
 
