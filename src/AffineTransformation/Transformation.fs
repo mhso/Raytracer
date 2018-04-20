@@ -3,6 +3,7 @@ open System.Windows
 open System
 open Tracer.Basics
 open System
+open Tracer.Shapes
 
     type Matrix = 
         | M of float list list
@@ -118,12 +119,6 @@ open System
         | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
         | _ -> light
 
-    let transform (s : Sphere) (r : Ray) =  
-        //let transformedShape = new Shape()
-            //hitfunction
-        failwith("NOT IMPLEMENTED")
-    let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
-       failwith("NOT IMPLEMENTED")
 
     let transformRay (r : Ray) t = 
         let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getInvMatrix(t))
@@ -137,5 +132,17 @@ open System
 
     let transformNormal (s:Sphere) (p:Point) (t: Transformation)= 
         let vector = s.NormalAtPoint p 
-        let tVector = matrixToVector (Matrix.multi (getMatrix(t),(vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi (getInvMatrix(t),(vectorToMatrix vector)))
         tVector
+
+    let transform (s : Shape) (t:Transformation) =  
+        //let tranShape = new Shape()
+        
+        //override tranShape.hitFunction (r:Ray) = 
+        //    let transformedRay = transformRay r t
+        //    let hitsOriginal = s.hitFunction transformedRay
+        //    let hitPoint = r.PointAtTime hitsOriginal.dist
+        //    let normal = transformNormal s hitPoint t
+        failwith("NOT IMPLEMENTED")
+    let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
+       failwith("NOT IMPLEMENTED")
