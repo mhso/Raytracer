@@ -14,16 +14,17 @@ let main _ =
     let resY = 1080
     
     //- SPHERE SETTINGS
-    let sphereOrigin = new Point(-4., -1.5, 0.)
+    let sphereOrigin = new Point(-4., -3., 0.)
     let sphereRadius = 2.
-    let sphereMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let sphereMaterial = new MatteMaterial(Colour.Red)
     let sphereMaterialSpecular = new BlinnPhongMaterial(1., new Colour(1., 1., 1.), 10., Colour.Red)
     let sphereMaterialBlinnPhong = new SpecularMaterial(0.1, new Colour(1., 1., 1.), 50., Colour.Blue)
     let blinnPhongSharpGreen = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 2., Colour.Green)
-    let perfectReflection = new PerfectReflectionMaterial(3, sphereMaterial, 0.5)
+    let perfectReflection = new PerfectReflectionMaterial(1, sphereMaterial, new Colour(1., 1., 1.), 1.)
+    let perfectReflection2 = new PerfectReflectionMaterial(1, sphereMaterialBlinnPhong, new Colour(1., 1., 1.), 1.)
 
     //- LIGHT SETTINGS
-    let lightPosition = new Point(0.,-1000000.,0.)
+    let lightPosition = new Point(-4.,1000.,0.)
     let lightIntensity = 1.
     let lightColour = new Colour(1.,1.,1.)
 
@@ -32,11 +33,11 @@ let main _ =
     let light        = new PointLight(lightColour, lightIntensity, lightPosition)
     let light2       = new PointLight(lightColour, lightIntensity, new Point(20.,20.,10.))
     let ambientLight = new AmbientLight(lightColour, 0.05)
-    let sphere       = new Sphere(sphereOrigin, sphereRadius, perfectReflection)
-    let sphere2      = new Sphere(new Point(-4., 1.5, 0.), 1., sphereMaterialBlinnPhong) 
-    let sphere3      = new Sphere(new Point(-4., 0., 3.), 1., sphereMaterialSpecular)
+    let sphere       = new Sphere(sphereOrigin, sphereRadius, sphereMaterialBlinnPhong)
+    let sphere2      = new Sphere(new Point(-2., 0.1, -1.), 1., sphereMaterial) 
+    let sphere3      = new Sphere(new Point(-2., 0.1, 1.), 1., sphereMaterial)
     //- FINAL 
-    let lights: Light list      = [ambientLight;light2]
+    let lights: Light list      = [ambientLight;light]
     let spheres: Sphere list    = [sphere;sphere2;sphere3]
     let scene                   = new Scene(spheres, camera, lights)
 
