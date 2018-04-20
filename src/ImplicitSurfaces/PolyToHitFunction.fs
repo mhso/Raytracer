@@ -1,11 +1,11 @@
 namespace Tracer.ImplicitSurfaces
 
-module PolyToHitFuntion =
+module PolyToHitFunction =
 
   open Tracer.ImplicitSurfaces.ExprToPoly
 
-  type Vector = Tracer.Vector
-  type Point = Tracer.Point
+  type Vector = Tracer.Basics.Vector
+  type Point = Tracer.Basics.Point
   type poly = Tracer.ImplicitSurfaces.ExprToPoly.poly
   type simpleExpr = Tracer.ImplicitSurfaces.ExprToPoly.simpleExpr
 
