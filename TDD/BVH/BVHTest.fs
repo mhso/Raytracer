@@ -80,6 +80,23 @@ let allTest =
 
     let testBuildBVHTree = 
         let tree = buildBVHTree (testBVHDataInput)
-        tree
-        //Assert.Equal (expected,(axis, lenght),"testFindLargestBoundingBoxSideLengths")
+        // tree
+        //printfn "BVH Tree:\n %O" tree
+        let expected = 
+                (Node
+                        (Node
+                            (Leaf [5],Node (Leaf [4],Leaf [2],{lowXYZ = Point(2.,2.,3.);
+                                                            highXYZ = Point(4.,4.,3.);},1),
+                            {lowXYZ = Point(-1.,-1.,3.);
+                            highXYZ = Point(4.,4.,2.);},1),
+                        Node
+                            (Leaf [3],Node (Leaf [1],Leaf [0],{lowXYZ = Point(2.,2.,3.);
+                                                            highXYZ = Point(4.,4.,3.);},1),
+                            {lowXYZ = Point(-1.,-1.,3.);
+                            highXYZ = Point(4.,4.,2.);},1),{lowXYZ = Point(-7.,-7.,3.);
+                                                    highXYZ = Point(4.,4.,-5.);},1))
+
+        //let expected = Node(Leaf([1]), Leaf([2]), bBox01, 99)
+
+        Assert.Equal (expected,tree,"testBuildBVHTree")
     testBuildBVHTree

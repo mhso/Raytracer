@@ -89,7 +89,7 @@ module BVH =
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
             let treeLevel = treeLevel + 1
-            printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
+            //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
             match intIndexes with
             | [] -> failwith " innerNodeTree -> Empty array"
@@ -100,11 +100,11 @@ module BVH =
                 let box = {  lowXYZ = lowPoint;
                              highXYZ = highPoint;
                     }
-                printfn "Add new inner Nodes... Lists lenght: "
-                printfn "intIndexes.Length: %i " intIndexes.Length
-                printfn "boxArr.Length: %i " boxArr.Length
-                printfn "leftList.Length: %i " leftList.Length
-                printfn "rigthList.Length: %i " rigthList.Length
+                //printfn "Add new inner Nodes... Lists lenght: "
+                //printfn "intIndexes.Length: %i " intIndexes.Length
+                //printfn "boxArr.Length: %i " boxArr.Length
+                //printfn "leftList.Length: %i " leftList.Length
+                //printfn "rigthList.Length: %i " rigthList.Length
 
                 Node (
                             innerNodeTree leftList treeLevel, 
@@ -112,7 +112,7 @@ module BVH =
                             box, 
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
-                printfn "Add new inner Leaf... Value: %O" c
+                //printfn "Add new inner Leaf... Value: %O" c
                 Leaf c
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNodeTree boxIntList 0
