@@ -56,6 +56,7 @@ open System
         let matrix = mkMatrix([[1.;yx;zx;0.];[xy;1.;zy;0.];[xz;yz;1.;0.];[0.;0.;0.;1.]])
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
         let mult = Math.Pow(det,-1.)
+        //TODO: Ask what is wrong with the inverse
         let inv = 
             mkMatrix (
                 [[mult*(1.-(yx*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zx);0.];
@@ -70,6 +71,7 @@ open System
                                          mkMatrix ([[Math.Cos(angle);0.;-(Math.Sin(angle));0.];[0.;1.;0.;0.];[(Math.Sin(angle));0.;Math.Cos(angle);0.];[0.;0.;0.;1.]]))
     let rotateZ angle = mkTransformation(mkMatrix ([[Math.Cos(angle);-(Math.Sin(angle));0.;0.];[Math.Sin(angle);Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]),
                                           mkMatrix ([[Math.Cos(angle);(Math.Sin(angle));0.;0.];[-(Math.Sin(angle));Math.Cos(angle);0.;0.];[0.;0.;1.;0.];[0.;0.;0.;1.]]))
+                                          
 
 
     let mergeMatrix (l : Matrix List) = 
@@ -117,13 +119,15 @@ open System
         | _ -> light
 
     let transform (s : Sphere) (r : Ray) =  
+        //let transformedShape = new Shape()
+            //hitfunction
         failwith("NOT IMPLEMENTED")
     let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
        failwith("NOT IMPLEMENTED")
 
     let transformRay (r : Ray) t = 
-        let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getMatrix(t))
-        let directionMatrix = Matrix.multi (vectorToMatrix (r.GetDirection), getMatrix(t))
+        let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getInvMatrix(t))
+        let directionMatrix = Matrix.multi (vectorToMatrix (r.GetDirection), getInvMatrix(t))
         let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
