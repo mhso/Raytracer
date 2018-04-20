@@ -26,7 +26,7 @@ module ExprToPoly =
     | FDiv(a,b)       -> FDiv(subst a (x,ex), subst b (x,ex))
     | FRoot(a,i)      -> FRoot(subst a (x,ex), i)
 
-  type atom = ANum of float | AExponent of string * int
+  type atom = ANum of float | AExponent of string * int | ARadical of simpleExpr * int
   and atomGroup = atom list  
   and simpleExpr = SE of atomGroup list
 
@@ -48,7 +48,7 @@ module ExprToPoly =
   let rec simplify = function
   | FNum c            -> [[ANum c]]
   | FVar s            -> [[AExponent(s,1)]]
-  | FRoot(e1,n)       -> failwith "shoot me now"
+  | FRoot(e1,n)       -> [[ARadical(SE (simplify e1),n)]] // can't really see any way around this. We will, however,
   | FAdd(e1,FNum 0.0) -> simplify e1
   | FAdd(FNum 0.0,e1) -> simplify e1
   | FAdd(e1,e2)       -> simplify e1 @ simplify e2
@@ -74,26 +74,16 @@ module ExprToPoly =
     | FExponent(e,_)  -> containsDiv e
     | FRoot(e,_)      -> containsDiv e
 
-  let rec containsRadicals = function
-    | FVar _          -> false
-    | FNum _          -> false
-    | FRoot _         -> true
-    | FDiv(e1,e2)     -> containsRadicals e1 || containsRadicals e2
-    | FAdd(e1,e2)     -> containsRadicals e1 || containsRadicals e2
-    | FMult(e1,e2)    -> containsRadicals e1 || containsRadicals e2
-    | FExponent(e,_)  -> containsRadicals e
-
-  let rec highestRoot c = function
-    | FVar _          -> c
-    | FNum _          -> c
-    | FRoot(e,n)      -> highestRoot (max c n) e
-    | FDiv(e1,e2)     -> let c =highestRoot c e1
-                         highestRoot c e2
-    | FAdd(e1,e2)     -> let c = highestRoot c e1
-                         highestRoot c e2
-    | FMult(e1,e2)    -> let c = highestRoot c e1
-                         highestRoot c e2
-    | FExponent(e,_)  -> highestRoot c e
+  let rec highestRoot (c:int) = function
+    | [[]]    -> c
+    | ag::cr  -> highestRoot (List.fold (fun c x -> match x with
+                                                    | ANum _          -> c
+                                                    | AExponent _     -> c
+                                                    | ARadical(_,n)   -> (max c n)
+                                                    ) c ag) cr
+    | _       -> failwith "unmatched clasue"                               
+  let rec containsRoots s =
+    highestRoot 0 s > 0
 
   let rec simplifyDiv e = 
     let rec inner ex =
@@ -121,25 +111,39 @@ module ExprToPoly =
     if rewritten = e then e
     else simplifyDiv rewritten
   
-  let rec simplifyRadicals e =
-    let rec inner norad rad = function
-      | FAdd(e1,e2) ->
-          let norad, rad = inner norad rad e1
-          let norad, rad = inner norad rad e2
-          norad, rad
-      | ex  -> 
-          if containsRadicals ex then norad, FAdd(rad, ex)
-          else FAdd(norad,ex), rad
-    let (norad,rad) = inner (FNum 0.0) (FNum 0.0) e
-    if rad <> FNum 0.0 then 
-      let k = highestRoot 0 rad
+  let rec simplifyRoots (SE s) =
+    // seperate the expr into terms with roots and those without, and in the meantime simplify them with the simplify function
+    let rec inner nr r = function
+      | [[]]    -> nr, r
+      | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
+                     else inner (nr @ [ag]) r cr
+      | _       -> failwith "shouldn't get here"
+      
+    let (noroots, roots) = inner [[]] [[]] s
+
+    if roots <> [[]] then 
+      // first we find the highest root we want to get rid of
+      let k = highestRoot 0 roots
+      // then iterate over noroots, multipply by -1 and then by its new self k times
+      // perhaps not the prettiest
+      let noroots = List.fold (fun x col -> let term = combine [[ANum -1.0]] x
+                                            let nterms = [for _ in 1 .. k -> term] |> List.fold (combine) [[]]
+                                            col @ nterms
+                                            ) noroots [[]]
+      let roots = List.fold (fun x col -> let nterms = [for _ in 1 .. k -> x] |> List.fold (combine) [[]]
+                                          col @ nterms
+                                          ) roots [[]]
+      
+     // now I should make a function -> removeNRoots, that checks all roots, if they appear n times, and if they do, change them to
+     // combine rest e
+     
       // idea, call simplify on the norads, makes it easier to deal with
       // for norad: create a function that flips positive terms to negative and vice versa (the ecquivalent of moving them from one side of the equation sign to the other)
       // then put both rad and norad in exponent e, k (or combine (combine e e) e)
       // simplify if possible, and for norad toggle again
       // is that it?
-      e
-    else e
+      noroots @ roots
+    else noroots
     // first remove all roots where if they occur 
 
 (* Not entirely sure about this one, maybe it is overkill
@@ -162,9 +166,10 @@ module ExprToPoly =
                   | FDiv(keep,_)  -> keep
                   | _             -> simpler
              else e
+    let sim = simplify ex
     // handle roots
-    if containsRadicals ex then simplifyRadicals ex
-    else ex
+    if containsRoots sim then simplifyRoots (SE sim)
+    else sim
   // containsRadicals (rewriteExpr (parseStr "1 + 2 + 3 + 4_2 + 5 + 6_1"))
   let simplifyAtomGroup ag : atomGroup =
       let mutable nums = 1.0
