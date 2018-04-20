@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ImplicitSurfaces.fsproj">
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Assert.fs" />
+    <Compile Include="ExprParseTests.fs" />
+    <Compile Include="ExprToPolyTests.fs" />
+    <Compile Include="ExprToPolyTests2.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+</Project>
