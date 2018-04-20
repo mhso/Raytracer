@@ -132,7 +132,7 @@ open Tracer.Shapes
 
     let transformNormal (s:Sphere) (p:Point) (t: Transformation)= 
         let vector = s.NormalAtPoint p 
-        let tVector = matrixToVector (Matrix.multi (getInvMatrix(t),(vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi (transpose (getInvMatrix(t)),(vectorToMatrix vector)))
         tVector
 
     let transform (s : Shape) (t:Transformation) =  
