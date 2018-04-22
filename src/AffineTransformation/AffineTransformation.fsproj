@@ -84,6 +84,11 @@
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Shapes\Shapes.fsproj">
+      <Name>Shapes</Name>
+      <Project>{d11dcb99-64dd-4ecd-a0d8-29b21e12ae72}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
