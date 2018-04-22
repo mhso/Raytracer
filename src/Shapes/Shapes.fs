@@ -126,8 +126,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
 
     override this.hitFunction (r:Ray) = 
         let D = this.GetDiscriminant r
-        if D < 0. then
-            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
+        if D < 0. then (None, None, None)
         else
             let s = (r.GetOrigin - origin)
             let rayDir = r.GetDirection.Normalise

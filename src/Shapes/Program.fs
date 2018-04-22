@@ -53,7 +53,7 @@ let main _ =
     let light = new PointLight(lightColour, lightIntensity, lightPosition)
     let light2 = new PointLight(lightColour, lightIntensity, new Point(20.,0.,0.))
     let ambientLight = new AmbientLight(lightColour, 0.1)
-    let scene = new Scene(Shape, camera, [light2])
+    let scene = new SceneShapes(shapes, camera, [light2])
     
     printfn "Rendering ..."
     ignore scene.Render
