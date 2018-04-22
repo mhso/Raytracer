@@ -1,5 +1,4 @@
 ﻿open Tracer.Shapes
-
 open System
 open Tracer.Basics
 
@@ -16,13 +15,23 @@ let main _ =
     let resX = 640
     let resY = 480
     
-    // Cylinder Settings
+    // shape Settings
     let cylinderOrigin = new Point(0., 0., 0.)
-    let sphereRadius = 1.
+    let radius = 1.
     let height = 4.
+    let Material = new MatteMaterial(new Colour(0., 0., 1.))
+    let MaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
+    let cylinder = new HollowCylinder(cylinderOrigin, radius, height, Material)
+
+    let sphereOrigin = new Point(0., 0., 0.)
+    let sphereRadius = 1.
     let sphereMaterial = new MatteMaterial(new Colour(0., 0., 1.))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
+    let sphere = new SphereShape(sphereOrigin, sphereRadius, sphereMaterial)
+
+    let shapes : Shape list = [cylinder; sphere]
 
     (*
     //- SPHERE SETTINGS
@@ -44,10 +53,10 @@ let main _ =
     let light = new PointLight(lightColour, lightIntensity, lightPosition)
     let light2 = new PointLight(lightColour, lightIntensity, new Point(20.,0.,0.))
     let ambientLight = new AmbientLight(lightColour, 0.1)
-    //let scene = new Scene(Shape, camera, [light2])
+    let scene = new Scene(Shape, camera, [light2])
     
     printfn "Rendering ..."
-    //ignore scene.Render
+    ignore scene.Render
     printfn "Finished!"
 
     0

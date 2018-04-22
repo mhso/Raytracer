@@ -95,7 +95,7 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
 
 
 //most of code taken from Basics.Sphere module, need to refactor it a bit, but this should work for now
-type Sphere(origin: Point, radius: float, tex: Material) = 
+type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
     //i dont think these are needed
     //let origin = origin
