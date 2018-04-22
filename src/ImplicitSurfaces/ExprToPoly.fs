@@ -1,6 +1,5 @@
 namespace Tracer.ImplicitSurfaces
 
-open System.Xml.Linq
 module ExprToPoly =
 
   open Tracer.ImplicitSurfaces.ExprParse
@@ -75,15 +74,17 @@ module ExprToPoly =
     | FRoot(e,_)      -> containsDiv e
 
   let rec highestRoot (c:int) = function
-    | [[]]    -> c
+    | []      -> c
     | ag::cr  -> highestRoot (List.fold (fun c x -> match x with
                                                     | ANum _          -> c
                                                     | AExponent _     -> c
                                                     | ARadical(_,n)   -> (max c n)
                                                     ) c ag) cr
-    | _       -> failwith "unmatched clasue"                               
+                            
   let rec containsRoots s =
     highestRoot 0 s > 0
+
+  
 
   let rec simplifyDiv e = 
     let rec inner ex =
@@ -110,54 +111,55 @@ module ExprToPoly =
     let rewritten = inner e
     if rewritten = e then e
     else simplifyDiv rewritten
-  
+
+  let removeNRoots s =
+    let rec inner ag =
+      let mutable roots = Map.empty
+      let mutable freed = [[]]
+      let mutable rest = [[]]
+      for a in ag do
+        match a with
+          | ANum _      -> rest <- combine [[a]] rest
+          | AExponent _ -> rest <- combine [[a]] rest
+          | ARadical((SE x),n)  ->
+            match Map.tryFind a roots with
+            | Some v  -> if n = (v + 1) 
+                         then freed <- combine x freed
+                              roots <- Map.remove a roots
+                         else roots <- Map.add a (v + 1) roots
+            | None    -> roots <- Map.add a 1 roots
+      for KeyValue(k,v) in roots do let remainingRoots = [for _ in 1 .. v -> [[k]]] |> List.fold (combine) [[]]
+                                    rest <- combine rest remainingRoots
+      combine rest freed
+    List.fold (fun acc x -> acc @ (inner x)) [] s
+
   let rec simplifyRoots (SE s) =
     // seperate the expr into terms with roots and those without, and in the meantime simplify them with the simplify function
     let rec inner nr r = function
-      | [[]]    -> nr, r
+      | []      -> nr, r
       | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
                      else inner (nr @ [ag]) r cr
-      | _       -> failwith "shouldn't get here"
-      
-    let (noroots, roots) = inner [[]] [[]] s
+    let (noroots, roots) = inner [] [] s
 
     if roots <> [[]] then 
       // first we find the highest root we want to get rid of
       let k = highestRoot 0 roots
       // then iterate over noroots, multipply by -1 and then by its new self k times
       // perhaps not the prettiest
-      let noroots = List.fold (fun x col -> let term = combine [[ANum -1.0]] x
-                                            let nterms = [for _ in 1 .. k -> term] |> List.fold (combine) [[]]
-                                            col @ nterms
-                                            ) noroots [[]]
-      let roots = List.fold (fun x col -> let nterms = [for _ in 1 .. k -> x] |> List.fold (combine) [[]]
-                                          col @ nterms
-                                          ) roots [[]]
-      
-     // now I should make a function -> removeNRoots, that checks all roots, if they appear n times, and if they do, change them to
-     // combine rest e
-     
-      // idea, call simplify on the norads, makes it easier to deal with
-      // for norad: create a function that flips positive terms to negative and vice versa (the ecquivalent of moving them from one side of the equation sign to the other)
-      // then put both rad and norad in exponent e, k (or combine (combine e e) e)
-      // simplify if possible, and for norad toggle again
-      // is that it?
-      noroots @ roots
+      let noroots = List.fold 
+                      (fun col x -> let term = combine [[ANum -1.0]] [x]
+                                    let nterms = [for _ in 1 .. k -> term] |> List.fold (combine) [[]]
+                                    col @ (combine [[ANum -1.0]] nterms)
+                                     ) [] noroots
+      let roots = List.fold 
+                      (fun col x -> let nterms = [for _ in 1 .. k -> [x]] |> List.fold (combine) [[]]
+                                    col @ nterms
+                                    ) [] roots
+      let result = noroots @ removeNRoots roots
+      printfn "result: %A" result
+      if containsRoots result then simplifyRoots (SE result) else result
     else noroots
-    // first remove all roots where if they occur 
 
-(* Not entirely sure about this one, maybe it is overkill
-  let rec firstSimplify = function
-    | FVar x          -> FVar x
-    | FNum c          -> FNum c
-    | FRoot(e1,n)     -> match e1 with
-                         | FNum c -> FNum (c**(1.0/(float n)))
-                         | _      -> FRoot (firstSimplify e1, n)
-    | FDiv(e1,e2)     -> FDiv(firstSimplify e1, firstSimplify e2)
-    | FAdd(e1,e2)     -> FAdd(firstSimplify e1,firstSimplify e2)
-    | FMult(e1,e2)    -> FMult(firstSimplify e1,firstSimplify e2)
-    | FExponent(e,n)  -> FExponent(firstSimplify e,n)
-*)
   let rewriteExpr e =
     // simplififying the expression into one big division of A/B, or if no division exists, just pass e along
     let ex = if containsDiv e 
@@ -167,25 +169,26 @@ module ExprToPoly =
                   | _             -> simpler
              else e
     let sim = simplify ex
-    // handle roots
-    if containsRoots sim then simplifyRoots (SE sim)
-    else sim
-  // containsRadicals (rewriteExpr (parseStr "1 + 2 + 3 + 4_2 + 5 + 6_1"))
+    if containsRoots sim then 
+      simplifyRoots (SE sim)
+    else 
+      sim
+
   let simplifyAtomGroup ag : atomGroup =
-      let mutable nums = 1.0
-      let mutable exps = Map.empty
-      for  a in ag do
-        match a with
-          | ANum n          -> nums <- n * nums
-          | AExponent(x,n)  -> 
-            match Map.tryFind x exps with
-              | Some v  -> exps <- Map.add x (n + v) exps
-              | None    -> exps <- Map.add x n exps
-      let expslist = [for KeyValue(k,v) in exps -> 
-                          if v = 0 then ANum 1.0
-                          else AExponent(k,v)]
-      if nums = 0.0 then []
-      else [ANum nums] @ expslist
+    let mutable nums = 1.0
+    let mutable exps = Map.empty
+    for a in ag do
+      match a with
+        | ANum n          -> nums <- n * nums
+        | AExponent(x,n)  -> 
+          match Map.tryFind x exps with
+            | Some v  -> exps <- Map.add x (n + v) exps
+            | None    -> exps <- Map.add x n exps
+    let expslist = [for KeyValue(k,v) in exps ->
+                        if v = 0 then ANum 1.0
+                        else AExponent(k,v)]
+    if nums = 0.0 then []
+    else [ANum nums] @ expslist
 
   let simplifySimpleExpr (SE ags) =
     let ags' = List.map simplifyAtomGroup ags
@@ -207,7 +210,8 @@ module ExprToPoly =
     if nums <> 0.0 then SE ([[ANum nums]] @ varslist)
     else SE varslist
 
-  let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (simplify e))
+  // formerly: let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (simplify e))
+  let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e))
 
   type poly = P of Map<int,simpleExpr>
 
@@ -276,7 +280,9 @@ module ExprToPoly =
 
   let (SE z) = exprToSimpleExpr x
   List.map simplifyAtomGroup z
-  ppPoly "" (exprToPoly x "") 
+  ppPoly "" (exprToPoly (parseStr "x^2 + x + x^3")"") 
+
+  ppPoly "" (exprToPoly (parseStr "x_2 + y_3") "")
 
   ppPoly "" (exprToPoly (parseStr "-x * (y - z)") "")
 
