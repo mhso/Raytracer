@@ -6,7 +6,7 @@ open Tracer.Basics
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(4.,0.,0.)
+    let position = new Point(10.,0.,0.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -17,8 +17,8 @@ let main _ =
     
     // shape Settings
     let cylinderOrigin = new Point(0., 0., 0.)
-    let radius = 1.
-    let height = 4.
+    let radius = 0.5
+    let height = 2.
     let Material = new MatteMaterial(new Colour(0., 0., 1.))
     let MaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
@@ -26,12 +26,30 @@ let main _ =
 
     let sphereOrigin = new Point(0., 0., 0.)
     let sphereRadius = 1.
-    let sphereMaterial = new MatteMaterial(new Colour(0., 0., 1.))
+    let sphereMaterial = new MatteMaterial(new Colour(1., 1., 0.))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
     let sphere = new SphereShape(sphereOrigin, sphereRadius, sphereMaterial)
 
-    let shapes : Shape list = [cylinder; sphere]
+    let low = new Point(0., 0., 0.)
+    let high = new Point(1., 1., 1.)
+    let boxMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let boxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.))
+    let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
+    let box = new Box(low, high, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial)
+
+    let planeMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let infinitePlane = InfinitePlane(planeMaterial)
+
+
+    let bLeft = new Point(0., 0., 0.)
+    let tLeft = new Point(0., 1., 0.)
+    let bRight = new Point(1., 0., 0.)
+    let rectangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let rectangle = Rectangle(bLeft, tLeft, bRight, rectangleMaterial) 
+
+    let shapes : Shape list = [rectangle]
 
     (*
     //- SPHERE SETTINGS

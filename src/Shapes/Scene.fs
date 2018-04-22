@@ -9,7 +9,7 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
     let shapes = shapes
     let camera = camera
     let lights = lights
-    let backgroundColour = new Colour(1.,1.,1.)
+    let backgroundColour = new Colour(0.,0.,0.)
     member this.Shapes = shapes
     member this.Camera = camera
     member this.Lights = lights
@@ -36,7 +36,7 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
 
                 let mutable tSmallest = infinity 
                 let mutable normal = Vector(0., 0., 0.)
-                let mutable colour = Colour(0., 0., 0.)
+                let mutable colour = backgroundColour
 
                 for s in shapes do
                     match s.hitFunction ray with

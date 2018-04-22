@@ -112,6 +112,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
         let sv = s * rayDir
         let ss = s * s
         sv*sv - ss + radius * radius
+        (*
     member this.GetHitPoints (ray:Ray) = 
         let D = this.GetDiscriminant ray
         if D < 0. then
@@ -123,6 +124,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             (ray.PointAtTime t1,ray.PointAtTime t2)
+         *)
 
     override this.hitFunction (r:Ray) = 
         let D = this.GetDiscriminant r
