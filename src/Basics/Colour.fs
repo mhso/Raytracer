@@ -36,7 +36,7 @@ type Colour (r:float, g:float, b:float)=
                                     max 0 (min (int (sqrt g*255.0)) 255),
                                     max 0 (min (int (sqrt b*255.0)) 255))
 
-    member this.FromColor (c:System.Drawing.Color) = 
+    new (c:System.Drawing.Color) = 
         let newR = (System.Math.Pow (float c.R / 255.0, 2.0))
         let newG = (System.Math.Pow (float c.G / 255.0, 2.0))
         let newB = (System.Math.Pow (float c.B / 255.0, 2.0))
@@ -48,7 +48,7 @@ type Colour (r:float, g:float, b:float)=
     static member (*) (s:float, a:Colour) = a.Scale s
     static member (/) (s:float, a:Colour) = a.Scale(1./s)
     static member (/) (a:Colour, s:float) = a.Scale(1./s)
-    
+
     // Predefined colours
     static member Black = new Colour(0., 0., 0.)
     static member Red = new Colour(1., 0., 0.)
