@@ -4,7 +4,7 @@ open System
 open System.Drawing
 open System.Diagnostics
 
-type Scene(spheres: Sphere list, camera: Camera, lights: Light list) = 
+type Scene(spheres: Shape list, camera: Camera, lights: Light list) = 
     let spheres = spheres
     let camera = camera
     let lights = lights
