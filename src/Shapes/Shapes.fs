@@ -3,11 +3,6 @@ namespace Tracer.Shapes
 open System
 open Tracer.Basics
 
-type texture = NotImplementedException
-
-
-type baseShape = (Point*Vector) -> (Point option*Vector option)
-
 [<AbstractClass>]
 type Shape()=
     abstract member hitFunction: Ray -> float option*Vector option*Material option
