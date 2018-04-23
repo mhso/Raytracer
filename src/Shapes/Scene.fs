@@ -38,6 +38,16 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
                 let mutable normal = Vector(0., 0., 0.)
                 let mutable colour = backgroundColour
 
+                //printfn "%A" ray.GetOrigin.Z
+                //printfn "%A" ray.GetDirection.Z
+
+                //printfn "%A" (-(ray.GetOrigin.Z) / (ray.GetDirection.Z))
+
+                //if (-(ray.GetOrigin.Z) / (ray.GetDirection.Z)) > 0.0  then printfn "ray shoots toward 2D shape and crosses the XY Plane" else printfn "misses the 2D shapes"
+
+                //-(ray.GetOrigin.Z / ray.GetDirection.Z)
+                //&& ray.GetDirection.Z <> 0.0
+
                 for s in shapes do
                     match s.hitFunction ray with
                     |(None,None,None) ->  tSmallest |> ignore

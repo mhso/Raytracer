@@ -59,15 +59,7 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
-    //this is to simplify the discriminant hit calc, so its actually somewhat readable... 
-    //member this.pa = ((a.X)-(b.X))
-    //member this.pb = ((a.X)-(c.X))
-    //member this.e = ((a.Y)-(b.Y))
-    //member this.f = ((a.Y)-(c.Y))
-    //member this.i = ((a.Z)-(b.Z))
-    //member this.j = ((a.Z)-(c.Z))
-
-    //the man let statements are fo simplifying cramers rule
+    //the many let statements are fo simplifying cramers rule
     override this.hitFunction (r:Ray) = let pa = ((a.X)-(b.X))
                                         let pb = ((a.X)-(c.X))
                                         let e = ((a.Y)-(b.Y))
@@ -93,8 +85,6 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
                                                       then (Some(z), Some((this.u % this.v).Normalise), Some(mat)) else (None, None, None) //why mat instead of texture
 
 
-
-//most of code taken from Basics.Sphere module, need to refactor it a bit, but this should work for now
 type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
     //i dont think these are needed
@@ -112,19 +102,6 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
         let sv = s * rayDir
         let ss = s * s
         sv*sv - ss + radius * radius
-        (*
-    member this.GetHitPoints (ray:Ray) = 
-        let D = this.GetDiscriminant ray
-        if D < 0. then
-            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
-        else
-            let s = (ray.GetOrigin - origin)
-            let rayDir = ray.GetDirection.Normalise
-            let sv = s * rayDir
-            let ss = s * s
-            let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            (ray.PointAtTime t1,ray.PointAtTime t2)
-         *)
 
     override this.hitFunction (r:Ray) = 
         let D = this.GetDiscriminant r
@@ -183,7 +160,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, t
 
 
 
-type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bottom:Material, left:Material, right:Material) = //Not implemented yet....
+type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bottom:Material, left:Material, right:Material) = 
     inherit Shape()
     member this.low = low
     member this.high = high
