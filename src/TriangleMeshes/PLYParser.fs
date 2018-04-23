@@ -56,6 +56,7 @@ let parsePLY (filepath:string) =
                     let listFloat = parse listFloatParser nextLine
                     triangleArray.[i] <- listFloat
                 printfn "Array Of Vertices done"
+                let triangleParse = pint32 >> WhiteSpace >>. sepBy pint32 WhiteSpace
             | _,true -> printfn ("BINARY START")
             | _,_ -> printfn ("WRONG FORMAT")
 
