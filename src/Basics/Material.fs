@@ -5,12 +5,12 @@ open Tracer.Sampling
 [<AbstractClass>]
 type Material() = 
     abstract member Bounce: Sphere -> Sphere list -> Point*Vector -> Ray -> Light -> Colour
-    abstract member AmbientColour: Colour
+    abstract member AmbientColour: Sphere -> Point -> Colour
     member this.PreBounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normal: Vector) (ray: Ray) (light: Light) = 
         
         if light :? AmbientLight then
             // If the light is ambient, simply add the colour
-            light.GetColour * this.AmbientColour
+            light.GetColour * this.AmbientColour sphere hitPoint
         else
             // Check if the shape is in the shadow
             let shadowRay: Ray = light.GetShadowRay hitPoint sphere
@@ -32,7 +32,7 @@ and MatteMaterial(colour:Colour) =
     
     member this.Colour = colour
     member this.Coefficient = coefficient
-    default this.AmbientColour = colour
+    default this.AmbientColour sphere hitPoint = colour
     
     default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
         
@@ -60,11 +60,10 @@ and SpecularMaterial
         matteColour: Colour
     ) = 
     inherit MatteMaterial(matteColour)
-    let specularCoefficient = 1.
     let specularColour = specularColour
     let matteColour = matteColour
     let matteMaterial = new MatteMaterial(matteColour)
-    default this.AmbientColour = matteColour
+    default this.AmbientColour sphere hitPoint = matteColour
     member this.SpecularCoefficient = specularCoefficient
     member this.SpecularColour = specularColour
     member this.MatteColour = matteColour
@@ -87,10 +86,10 @@ and SpecularMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matteFriction = matteMaterial.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
+            let matte = matteMaterial.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
             
             // The specular colour
-            let specularFriction = 
+            let specular = 
                 if r1 * -rd > 0. then
                     ks * cs * ((r1 * (-rd)) ** e)
                 else
@@ -98,7 +97,7 @@ and SpecularMaterial
             let direction = lc * (n * ld)
             
             // The final colour
-            (matteFriction + specularFriction) * direction
+            (matte + specular) * direction
         else
             Colour.Black
 
@@ -129,7 +128,7 @@ and BlinnPhongMaterial (specularCoefficient: float, specularColour: Colour, spec
 //- PERFECT REFLECTION MATERIALS
 and PerfectReflectionMaterial(bounces: int, baseMaterial: Material, reflectionColour: Colour, reflectionCoefficient: float) =
     inherit Material()
-    default this.AmbientColour = baseMaterial.AmbientColour                   
+    default this.AmbientColour sphere hitPoint = baseMaterial.AmbientColour sphere hitPoint         
     member this.Bounces = bounces                               // Number of recursive bounces
     member this.BaseMaterial = baseMaterial                     // Material to apply perfect reflection to
     member this.ReflectionCoefficient = reflectionCoefficient   // Reflection coefficient
@@ -177,7 +176,7 @@ and GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, baseM
     
     member this.ReflectionCoefficient = reflectionCoefficient
     member this.BaseMaterial = baseMaterial
-    default this.AmbientColour = Colour.White
+    default this.AmbientColour sphere hitPoint = Colour.White
     default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
 
         // Colour of the base material
@@ -211,19 +210,22 @@ and TexturedMaterial(baseMaterial: Material, textureFilePath: string) =
     member this.TextureFilePath = textureFilePath
     member this.Bitmap = bitmap
 
-    default this.AmbientColour = baseMaterial.AmbientColour
-    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+    default this.AmbientColour sphere hitPoint = 
         let d:Vector = sphere.NormalAtPoint hitPoint
         let u = 0.5 + (atan2 d.Z d.X) / (2. * Math.PI)
         let v = 0.5 - (asin d.Y) / Math.PI
+        getUVPixel u v
+
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
         let baseColour = baseMaterial.Bounce sphere spheres (hitPoint,normalHitPoint) ray light
+        let (u,v) = sphere.GetUV hitPoint
         let uvColour = getUVPixel u v
-        baseColour + uvColour
+        uvColour * baseColour
 
 //- MIX TWO MATERIALS
 and MixedMaterial(a: Material, b: Material, factor: float) =
     inherit Material()
-    default this.AmbientColour = a.AmbientColour.Scale(1.-factor) + b.AmbientColour.Scale(factor)
+    default this.AmbientColour sphere hitPoint = (a.AmbientColour sphere hitPoint).Scale(1.-factor) + (b.AmbientColour sphere hitPoint).Scale(factor)
     member this.MaterialA = a
     member this.MaterialB = b
     member this.Factor = factor
@@ -238,6 +240,40 @@ and MixedMaterial(a: Material, b: Material, factor: float) =
         // Combine the two in the balance of the factor
         colorA.Scale(1.-factor) + colorB.Scale(factor)
 
+//- ADD TWO MATERIALS
+and AddMaterial(a: Material, b: Material) = 
+    inherit Material()
+    default this.AmbientColour sphere hitPoint = a.AmbientColour sphere hitPoint + b.AmbientColour sphere hitPoint
+    member this.MaterialA = a
+    member this.MaterialB = b
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+
+        // First material colour
+        let colorA = a.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
+
+        // Second material colour
+        let colorB = b.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
+
+        // Final colour
+        colorA + colorB
+
+//- USE CURRYING ON TWO MATERIALS
+and CurryMaterial(curry: Colour -> Colour -> Colour, a: Material, b: Material) = 
+    inherit Material()
+    default this.AmbientColour sphere hitPoint = curry (a.AmbientColour sphere hitPoint) (b.AmbientColour sphere hitPoint)
+    member this.MaterialA = a
+    member this.MaterialB = b
+    default this.Bounce (sphere: Sphere) (spheres: Sphere list) (hitPoint: Point, normalHitPoint: Vector) (ray: Ray) (light: Light) = 
+
+        // First material colour
+        let colorA = a.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
+
+        // Second material colour
+        let colorB = b.Bounce sphere spheres (hitPoint, normalHitPoint) ray light
+
+        // Final colour
+        curry colorA colorB
+    
         
 //- SPHERE (for testing purposes only)
 and Sphere(origin: Point, radius: float, material: Material) = 
@@ -273,6 +309,12 @@ and Sphere(origin: Point, radius: float, material: Material) =
                 let p = ray.PointAtTime (if t1 <= t2 then t1 else t2)
                 HitPoint(ray, if t1 <= t2 then t1 else t2)
     
+    member this.GetUV (hitPoint: Point)= 
+        let d:Vector = this.NormalAtPoint hitPoint
+        let u = 0.5 + (atan2 d.Z d.X) / (2. * Math.PI)
+        let v = 0.5 - (asin d.Y) / Math.PI
+        (u,v)
+
     // Same as GetHitPoint, but accepts negative ray lengths
     member this.GetHitPointBidirectional (ray:Ray) = 
         let D = this.GetDiscriminant ray
