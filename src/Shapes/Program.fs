@@ -6,7 +6,7 @@ open Tracer.Basics
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(4.,0.,0.)
+    let position = new Point(8.,4.,4.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -37,7 +37,7 @@ let main _ =
     let boxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
-    let box = new Box(low, high, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial2, boxMaterial2)
+    let box = new Box(low, high, boxMaterial, boxMaterial, boxMaterial, boxMaterial, boxMaterial, boxMaterial2)
 
     let planeMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let infinitePlane = InfinitePlane(planeMaterial)

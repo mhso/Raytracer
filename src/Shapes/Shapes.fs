@@ -169,7 +169,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.top = top
     member this.bottom = bottom
     member this.left = left
-    member this.rght = right
+    member this.right = right
 
     override this.hitFunction (r:Ray) = 
         let tx = if r.GetDirection.X >= 0.0 then (low.X - r.GetOrigin.X)/r.GetDirection.X else (high.X - r.GetOrigin.X)/r.GetDirection.X
@@ -190,22 +190,18 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
                                                          else (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right))
                 |(tx,ty,tz) when ty >= tx && ty >= tz -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, -1.0, 0.0)), Some(bottom)) //when ty is the biggest and t > 0.0
                                                          else (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top))
-                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 0.0, -1.0)), Some(back)) //when tz is the biggest and t > 0.0
+                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Z > 0.0 then (Some(t), Some(Vector(0.0, 0.0, -1.0)), Some(back)) //when tz is the biggest and t > 0.0
                                                          else (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front))
             else
                 match (tx', ty', tz') with
-                |(tx',ty',tz') when tx <= ty && tx <= tz -> if r.GetDirection.X > 0.0 then (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right)) //when tx' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(-1.0, 0.0, 0.0)), Some(left))
-                |(tx',ty',tz') when ty <= tx && ty <= tz -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top)) //when ty' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(0.0, -1.0, 0.0)), Some(bottom))
-                |(tx',ty',tz') when tz <= tx && tz <= ty -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front)) //when tz' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(0.0, 0.0, -1.0)), Some(back))
+                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right)) //when tx' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(-1.0, 0.0, 0.0)), Some(left))
+                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top)) //when ty' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(0.0, -1.0, 0.0)), Some(bottom))
+                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front)) //when tz' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(0.0, 0.0, -1.0)), Some(back))
         else (None, None, None)
-
         
-
-
-
 
 
 type InfinitePlane(tex:Material) = 

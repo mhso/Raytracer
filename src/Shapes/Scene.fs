@@ -48,6 +48,8 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
                 //-(ray.GetOrigin.Z / ray.GetDirection.Z)
                 //&& ray.GetDirection.Z <> 0.0
 
+                //printfn "%A" ray.GetDirection.X
+
                 for s in shapes do
                     match s.hitFunction ray with
                     |(None,None,None) ->  tSmallest |> ignore
