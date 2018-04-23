@@ -3,11 +3,6 @@ namespace Tracer.Shapes
 open System
 open Tracer.Basics
 
-type texture = NotImplementedException
-
-
-type baseShape = (Point*Vector) -> (Point option*Vector option)
-
 [<AbstractClass>]
 type Shape()=
     abstract member hitFunction: Ray -> float option*Vector option*Material option
@@ -89,7 +84,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     inherit Shape()
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
-    //member this.Material = //new Material ()
+    member this.Material = tex
     member this.NormalAtPoint (p:Point) = 
         (p - origin).Normalise
     member this.GetDiscriminant (ray:Ray) = 
@@ -142,7 +137,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
                                                                                             else this.determineHitPoint r t1
 
 
-type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, top:texture, bottom:texture) =
+type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
     inherit Shape()
     member this.center = center
     member this.radius = radius
