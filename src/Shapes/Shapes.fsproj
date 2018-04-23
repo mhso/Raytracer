@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="BaseShape.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="Scene.fs" />
