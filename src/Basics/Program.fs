@@ -5,7 +5,7 @@ open System.IO
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(7.,0.,0.)
+    let position = new Point(7.,7.,0.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -29,9 +29,7 @@ let main _ =
     let perfectReflection4 = new PerfectReflectionMaterial(1, blinnPhongSharpGreen, new Colour(1., 1., 1.), 1.)
     let glossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 2.)
     let niceShade = new MixedMaterial(rawMatte, phongShades, 0.5)
-    let earthGroundMaterial = new TexturedMaterial(niceShade, "textures/Earth.png")
-    let earthCloudsMaterial = new TexturedMaterial(niceShade, "textures/Earth-clouds.jpg")
-    let earthMaterial = new AddMaterial(earthGroundMaterial, earthCloudsMaterial)
+    let earthMaterial = new TexturedMaterial(niceShade, "textures/earth.jpg")
         
 
     //- LIGHT SETTINGS
