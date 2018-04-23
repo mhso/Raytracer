@@ -179,9 +179,10 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
         let tz = if r.GetDirection.Z >= 0.0 then (low.Z - r.GetOrigin.Z)/r.GetDirection.Z else (high.Z - r.GetOrigin.Z)/r.GetDirection.Z
         let tz' = if r.GetDirection.Z >= 0.0 then (high.Z - r.GetOrigin.Z)/r.GetDirection.Z else (low.Z - r.GetOrigin.Z)/r.GetDirection.Z
         
+
         let t = max tx (max ty tz)
 
-        let t' = max tx' (max ty' tz')
+        let t' = min tx' (min ty' tz')
 
         if t < t' && t' > 0.0 then 
             if t > 0.0 then 
