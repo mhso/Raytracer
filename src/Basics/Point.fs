@@ -28,7 +28,18 @@ type Point(x:float, y:float, z:float) =
     static member ( + ) (p:Point, v: Vector) : Point = p.Move v 
     static member ( - ) (p:Point, v: Vector) : Point = 
         p.Move v.Invert
+    member this.OrthonormalTransform (u: Vector, v: Vector, w: Vector) = 
+        let newX = u * x
+        let newY = v * y
+        let newZ = w * z
+        x * newX + y * newY + z * newZ
     static member ( - ) (p1: Point, p2: Point) = new Vector(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z)
     static member ( - ) (v:Vector, p:Point) : Vector = 
         new Vector (((v.X) - (p.X)), ((v.Y) - (p.Y)), ((v.Z) - (p.Z)))
-    static member ( - ) (p: Point,n:float) = new Point((p.X-n), (p.Y-n), (p.Z-n))
+    static member ( - ) (p: Point, n:float) = new Point((p.X-n), (p.Y-n), (p.Z-n))
+    static member ( / ) (p: Point, n:float) = new Point((p.X/n), (p.Y/n), (p.Z/n))
+    static member ( / ) (n:float, p: Point) = new Point((p.X/n), (p.Y/n), (p.Z/n))
+
+    new(hemispherePoint: float * float * float) = 
+        let (x,y,z) = hemispherePoint
+        Point(x,y,z)

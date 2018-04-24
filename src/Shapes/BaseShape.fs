@@ -1,7 +1,10 @@
-namespace Tracer.Shapes
+﻿namespace Tracer.BaseShape
 
 open System
 open Tracer.Basics
+
+type texture = NotImplementedException
+
 
 [<AbstractClass>]
 type Shape()=
@@ -221,6 +224,8 @@ type InfinitePlane(tex:Material) =
 //let mkShape (bShape:baseShape) (t:texture) = function
     //| _  -> NotImplementedException
   
+
+
 
 
 
