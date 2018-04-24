@@ -120,8 +120,11 @@ open System
 
 
     let transformRay (r : Ray) t = 
-        let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getInvMatrix(t))
-        let directionMatrix = Matrix.multi (vectorToMatrix (r.GetDirection), getInvMatrix(t))
+        let o = pointToMatrix r.GetOrigin
+        let d = vectorToMatrix r.GetDirection
+        let invT = getInvMatrix t
+        let originMatrix = Matrix.multi (invT, o)
+        let directionMatrix = Matrix.multi (invT, d)
         let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
@@ -131,18 +134,17 @@ open System
 
     let transformNormal (v:Vector) (t: Transformation)= 
         let vector = v
-        let tVector = matrixToVector (Matrix.multi (transpose (getInvMatrix(t)),(vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
         tVector
 
-    let transform (s : Shape) (t:Transformation) =  
-        //let tranShape = new Shape()
-        
-        //override tranShape.hitFunction (r:Ray) = 
-        //    let transformedRay = transformRay r t
-        //    let hitsOriginal = s.hitFunction transformedRay
-        //    let hitPoint = r.PointAtTime hitsOriginal.dist
-        //    let normal = transformNormal  hitPoint.normal t
-        //    new Hitpoint (r, hitsOriginal.time,normal,s.material)
-        failwith("NOT IMPLEMENTED")
-    let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
-       failwith("NOT IMPLEMENTED")
+    let transform (s : Shape) (t:Transformation) =    
+        let transHitFunction (r:Ray) = 
+            let transformedRay = transformRay r t
+            let hitsOriginal = s.hitFunction transformedRay
+            match hitsOriginal.DidHit with
+            | true -> 
+                let normal = transformNormal (hitsOriginal.Normal) t
+                (Some (hitsOriginal.Time), Some (normal), Some (hitsOriginal.Material))
+            | false -> 
+                (None, None, None)
+        new TransformShape(transHitFunction)
