@@ -23,6 +23,8 @@ let parseBool parser str =
 
 let WhiteSpace = pstring " "
 
+let test =
+
 let parsePLY (filepath:string) = 
     let sr = new StreamReader(filepath)
     let mutable parsing = true
@@ -55,8 +57,9 @@ let parsePLY (filepath:string) =
                     let listFloatParser = (sepBy pfloat WhiteSpace)
                     let listFloat = parse listFloatParser nextLine
                     triangleArray.[i] <- listFloat
+                    let test = 
                 printfn "Array Of Vertices done"
-                let triangleParse = pint32 >> WhiteSpace >>. sepBy pint32 WhiteSpace
+                //let triangleParse = pint32 >> WhiteSpace >>. sepBy pint32 WhiteSpace
             | _,true -> printfn ("BINARY START")
             | _,_ -> printfn ("WRONG FORMAT")
 
