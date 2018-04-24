@@ -3,11 +3,6 @@ namespace Tracer.Shapes
 open System
 open Tracer.Basics
 
-type texture = NotImplementedException
-
-
-type baseShape = (Point*Vector) -> (Point option*Vector option)
-
 [<AbstractClass>]
 type Shape()=
     abstract member hitFunction: Ray -> float option*Vector option*Material option
@@ -59,15 +54,7 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
-    //this is to simplify the discriminant hit calc, so its actually somewhat readable... 
-    //member this.pa = ((a.X)-(b.X))
-    //member this.pb = ((a.X)-(c.X))
-    //member this.e = ((a.Y)-(b.Y))
-    //member this.f = ((a.Y)-(c.Y))
-    //member this.i = ((a.Z)-(b.Z))
-    //member this.j = ((a.Z)-(c.Z))
-
-    //the man let statements are fo simplifying cramers rule
+    //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = let pa = ((a.X)-(b.X))
                                         let pb = ((a.X)-(c.X))
                                         let e = ((a.Y)-(b.Y))
@@ -93,17 +80,11 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
                                                       then (Some(z), Some((this.u % this.v).Normalise), Some(mat)) else (None, None, None) //why mat instead of texture
 
 
-
-//most of code taken from Basics.Sphere module, need to refactor it a bit, but this should work for now
-type Sphere(origin: Point, radius: float, tex: Material) = 
+type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
-    //i dont think these are needed
-    //let origin = origin
-    //let radius = radius
-    //let material = material
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
-    //member this.Material = //new Material ()
+    member this.Material = tex
     member this.NormalAtPoint (p:Point) = 
         (p - origin).Normalise
     member this.GetDiscriminant (ray:Ray) = 
@@ -112,22 +93,10 @@ type Sphere(origin: Point, radius: float, tex: Material) =
         let sv = s * rayDir
         let ss = s * s
         sv*sv - ss + radius * radius
-    member this.GetHitPoints (ray:Ray) = 
-        let D = this.GetDiscriminant ray
-        if D < 0. then
-            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
-        else
-            let s = (ray.GetOrigin - origin)
-            let rayDir = ray.GetDirection.Normalise
-            let sv = s * rayDir
-            let ss = s * s
-            let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            (ray.PointAtTime t1,ray.PointAtTime t2)
 
     override this.hitFunction (r:Ray) = 
         let D = this.GetDiscriminant r
-        if D < 0. then
-            invalidArg "ray" "ray did not hit, so no hitpoints can be returned"
+        if D < 0. then (None, None, None)
         else
             let s = (r.GetOrigin - origin)
             let rayDir = r.GetDirection.Normalise
@@ -168,7 +137,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
                                                                                             else this.determineHitPoint r t1
 
 
-type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, top:texture, bottom:texture) =
+type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
     inherit Shape()
     member this.center = center
     member this.radius = radius
@@ -182,7 +151,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, t
 
 
 
-type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bottom:Material, left:Material, right:Material) = //Not implemented yet....
+type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bottom:Material, left:Material, right:Material) = 
     inherit Shape()
     member this.low = low
     member this.high = high
@@ -191,7 +160,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.top = top
     member this.bottom = bottom
     member this.left = left
-    member this.rght = right
+    member this.right = right
 
     override this.hitFunction (r:Ray) = 
         let tx = if r.GetDirection.X >= 0.0 then (low.X - r.GetOrigin.X)/r.GetDirection.X else (high.X - r.GetOrigin.X)/r.GetDirection.X
@@ -201,9 +170,10 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
         let tz = if r.GetDirection.Z >= 0.0 then (low.Z - r.GetOrigin.Z)/r.GetDirection.Z else (high.Z - r.GetOrigin.Z)/r.GetDirection.Z
         let tz' = if r.GetDirection.Z >= 0.0 then (high.Z - r.GetOrigin.Z)/r.GetDirection.Z else (low.Z - r.GetOrigin.Z)/r.GetDirection.Z
         
+
         let t = max tx (max ty tz)
 
-        let t' = max tx' (max ty' tz')
+        let t' = min tx' (min ty' tz')
 
         if t < t' && t' > 0.0 then 
             if t > 0.0 then 
@@ -212,22 +182,18 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
                                                          else (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right))
                 |(tx,ty,tz) when ty >= tx && ty >= tz -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, -1.0, 0.0)), Some(bottom)) //when ty is the biggest and t > 0.0
                                                          else (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top))
-                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 0.0, -1.0)), Some(back)) //when tz is the biggest and t > 0.0
+                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Z > 0.0 then (Some(t), Some(Vector(0.0, 0.0, -1.0)), Some(back)) //when tz is the biggest and t > 0.0
                                                          else (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front))
             else
                 match (tx', ty', tz') with
-                |(tx',ty',tz') when tx <= ty && tx <= tz -> if r.GetDirection.X > 0.0 then (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right)) //when tx' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(-1.0, 0.0, 0.0)), Some(left))
-                |(tx',ty',tz') when ty <= tx && ty <= tz -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top)) //when ty' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(0.0, -1.0, 0.0)), Some(bottom))
-                |(tx',ty',tz') when tz <= tx && tz <= ty -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front)) //when tz' is the smallest and t > 0.0
-                                                            else (Some(t'), Some(Vector(0.0, 0.0, -1.0)), Some(back))
+                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then (Some(t), Some(Vector(1.0, 0.0, 0.0)), Some(right)) //when tx' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(-1.0, 0.0, 0.0)), Some(left))
+                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then (Some(t), Some(Vector(0.0, 1.0, 0.0)), Some(top)) //when ty' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(0.0, -1.0, 0.0)), Some(bottom))
+                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then (Some(t), Some(Vector(0.0, 0.0, 1.0)), Some(front)) //when tz' is the smallest and t > 0.0
+                                                                else (Some(t'), Some(Vector(0.0, 0.0, -1.0)), Some(back))
         else (None, None, None)
-
         
-
-
-
 
 
 type InfinitePlane(tex:Material) = 
