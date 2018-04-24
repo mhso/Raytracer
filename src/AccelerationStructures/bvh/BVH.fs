@@ -80,6 +80,22 @@ module BVH =
     let rec getBoxArrFromIndexes (indexes:list<int>) (boxes:array<BBox>) : (array<BBox>) =
         [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
         
+ 
+    //Temporary Intersect-function. Use Alexanders when available.
+    let hit (r:Ray)(box:BBox) = 
+        let tx = if r.GetDirection.X >= 0.0 then (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X
+        let tx' = if r.GetDirection.X >= 0.0 then (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X
+        let ty = if r.GetDirection.Y >= 0.0 then (box.lowXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y else (box.highXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let ty' = if r.GetDirection.Y >= 0.0 then (box.highXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y else (box.lowXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let tz = if r.GetDirection.Z >= 0.0 then (box.lowXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z else (box.highXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z
+        let tz' = if r.GetDirection.Z >= 0.0 then (box.highXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z else (box.lowXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z
+
+        let t = max tx (max ty tz)
+
+        let t' = min tx' (min ty' tz')
+
+        if t < t' && t' > 0.0 then Some(t, t')
+        else None
 
     let buildBVHTree (boxes:array<BBox>) : BVHtree = 
         if boxes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
@@ -121,43 +137,58 @@ module BVH =
         
 
     // swaps the order if d is not positive
-    // type Order () = int -> Node -> Node
-    //let order d left right = 
-    //    match d with
-    //    | d when d > 0 -> (left, right)
-    //    | _            -> (right, left)
+    //type Order () = int -> Node -> Node
+    let order d left right = 
+        match d with
+        | d when d > 0 -> (left, right)
+        | _            -> (right, left)
 
     // let search node ray tmax = Some hit
 
-    //let getRayDirectionValue (ray:Ray) (axis:int) =
-    //    match axis with
-    //    | 0 -> (int ray.GetDirection.X)
-    //    | 1 -> (int ray.GetDirection.Y)
-    //    | 2 -> (int ray.GetDirection.Z)
-    //    | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
+    let getRayDirectionValue (ray:Ray) (axis:int) =
+        match axis with
+        | 0 -> (int ray.GetDirection.X)
+        | 1 -> (int ray.GetDirection.Y)
+        | 2 -> (int ray.GetDirection.Z)
+        | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
-    //let searchNode node ray tmax = 
-    //    let (fst, snd) = order (getRayDirectionValue ray getAxis node) node.left node.right
-    //    (fst, snd)
-    // if search(fst, ray, tmax) = Some hit then
-    //    if search(fst, ray, hit.distance) = Some hit2 then
-    //     Some hit2
-    //    else
-    //     Some hit
-    // else
-    //     search(snd, ray tmax)
+    let searchNode node ray tmax = 
+        let nleft, nright, nbbox, naxis = node
+        let fst, snd = order (getRayDirectionValue ray (naxis)) nleft nright
+        if search(fst, ray, tmax) = Some hit then
+            if search(fst, ray, hit.distance) = Some hit' then
+             Some hit'
+            else
+             Some hit
+        else
+             search(snd, ray tmax)
 
 
-    //let isLeaf input =
-    //    match input with
-    //    | input when (input :? Leaf) -> true
-    //    | _ -> false
+    let isLeaf input = function
+        | Leaf _ -> true
+        | _ -> false
 
-    //let isClosetHit [] ray = failWith "Not implemented"
+    let isClosetHit [] ray = failwith "Not implemented"
 
-    //let intersect bbox ray = failWith "Not implemented"
+    let intersect bbox ray = failwith "Not implemented"
 
-    //let traverse(bvh, ray) = failWith "Not implemented" //search(bvh.root, ray, 1)
+    let traverse(bvh, ray) = 
+        search bvh ray infinity
 
-    //let search node ray tmax = failWith "Not implemented"
+    let search node ray tmax = 
+        let _, _, bbox, _ = node 
+        if intersect bbox ray = Some (t, t') && t < tmax then
+            if isLeaf(node) then
+                if closestHit(leaf.shapes, ray) = Some hit && hit.distance < tmax then
+                    Some hit
+                else
+                    None
+            else
+            searchnode(node, ray, tmax)
+        else
+            None
+        
+
+
+    //let search node ray tmax = failwith "Not implemented"
         
