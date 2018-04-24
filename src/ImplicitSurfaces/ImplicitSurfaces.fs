@@ -35,8 +35,9 @@ module Main =
     | FExponent(e,_)-> containsVar var e
     | FRoot(e,_)    -> containsVar var e
 
+  // returns a partial derivative with respect to var
   let rec partial var = function // the follow rewrites are based on the chain rule
-    | FNum c          -> FNum 0.0 // case 1
+    | FNum _          -> FNum 0.0 // case 1
     | FVar x          -> if x <> var then FNum 0.0 // case 1
                          else FNum 1.0 // case 2
     | FAdd(e1, e2)    -> FAdd (partial var e1, partial var e2) // case 3
@@ -46,14 +47,15 @@ module Main =
     | FRoot(e1, n)    -> FDiv(partial var e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
 
   // thou shall not be simplified!
-  let derivative (e:expr) px py pz =
+  // returns a derivative vector, based on the partial derivatives for x, y, and z
+  let derivative (p:Point) dx dy dz  =
     let m = Map.empty
-              .Add("x",px)
-              .Add("y",py)
-              .Add("z",pz)
-    let x = solveExpr m (partial "x" e)
-    let y = solveExpr m (partial "y" e)
-    let z = solveExpr m (partial "z" e)
+              .Add("x",p.X)
+              .Add("y",p.Y)
+              .Add("z",p.Z)
+    let x = solveExpr m dx
+    let y = solveExpr m dy
+    let z = solveExpr m dz
     Vector(x, y, z)
 
   let discriminant (a:float) (b:float) (c:float) =
@@ -75,6 +77,9 @@ module Main =
     let cSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
+    let dx = partial "x" e
+    let dy = partial "y" e
+    let dz = partial "z" e
 
     let hitFunction (r:Ray) =
       let m = Map.empty 
@@ -94,7 +99,7 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', derivative e hp.X hp.Y hp.Z)
+          Some (t', derivative hp dx dy dz)
 
     hitFunction
 
@@ -113,30 +118,3 @@ module Main =
     printfn "we are running this shit!"
     0 // return a beautiful integer exit code
 *)
-  (* Test string
-
-  test "x^2 + y^2 + z^2 - 1"
-  "(pz^2+py^2+px^2+-1)+t(2*dz*pz+2*dy*py+2*dx*px)+t^2(dz^2+dy^2+dx^2)"
-
-  (parseStr >> substWithRay >> exprToPoly) "x^2 + y^2 + z^2 - 1" "t"
-
-  Test strings from the TracerTestSuite > ImplicitSurfaces.fs
-
-  sphere1:
-  makeImplicit "x^2 + y^2 + z^2 - 9.9"
-  
-  sphere2:
-  test "(x^2 + y^2 + z^2)_2 - 3.3"
-
-  torus:
-  test "(((x^2 + y^2)_2 - 1.1)^2 + z^2)_2 - 2.2"
-
-  torus2:
-  test "x^4 + 2x^2*y^2 + 2x^2*z^2 - 2*(2.2^2 + 1.1^2)*x^2 + y^4 + 2y^2*z^2 + 2*(2.2^2 - 1.1^2)*y^2 + z^4 - 2*(2.2^2 + 1.1^2)*z^2 + (2.2^2 - 1.1^2)^2"
-
-  testShape:
-  test "(x - 2)^2(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22"
-
-  heart:
-  test "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3"
-  *)

@@ -4,6 +4,7 @@ let main argv =
     Tests.ExprToPolyTests.allTests
     Tests.ExprToPolyTests2.allTests
     Tests.ExprToPolyTests3.allTests
+    Tests.ImplicitSurfacesTests.allTests
     printfn("PRESS A KEY TO EXIT")
     System.Console.ReadKey() |> ignore
     0
