@@ -54,7 +54,7 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
-    //the many let statements are fo simplifying cramers rule
+    //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = let pa = ((a.X)-(b.X))
                                         let pb = ((a.X)-(c.X))
                                         let e = ((a.Y)-(b.Y))
