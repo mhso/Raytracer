@@ -711,7 +711,6 @@ and InfinitePlane(tex:Material) =
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         if r.GetDirection.Z <> 0.0 && t > 0.0 then (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None)
 
-and TransformShape (hitFunction, mat:Material) =
+and TransformShape (hitFunction) =
     inherit Shape()
-    member this.mat = mat
     member this.hitFunction = hitFunction
