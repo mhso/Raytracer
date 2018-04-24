@@ -45,19 +45,17 @@ module ExprToPoly =
 
   // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
   let rec simplify = function
-  | FNum c            -> [[ANum c]]
-  | FVar s            -> [[AExponent(s,1)]]
-  | FRoot(e1,n)       -> [[ARadical(SE (simplify e1),n)]]
-  | FAdd(e1,FNum 0.0) -> simplify e1
-  | FAdd(FNum 0.0,e1) -> simplify e1
-  | FAdd(e1,e2)       -> simplify e1 @ simplify e2
-  | FMult(e1,e2)      -> combine (simplify e1) (simplify e2)
-  | FDiv(e1,e2)       -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
-  | FExponent(_,0)    -> [[ANum 1.0]]
-  | FExponent(e1,1)   -> simplify e1
-  | FExponent(e1,n)   -> if n < 0 then 
+    | FNum c          -> [[ANum c]]
+    | FVar s          -> [[AExponent(s,1)]]
+    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
+    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
+    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
+    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
+    | FExponent(_,0)  -> simplify (FNum 1.0)
+    | FExponent(e1,1) -> simplify e1
+    | FExponent(e1,n) -> if n < 0 then 
                             match e1 with
-                            | FNum c  -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
+                            | FNum c  -> combine (simplify (FNum (1./c))) (simplify (FExponent(e1, n + 1)))
                             | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
                                          else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
                             | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
@@ -75,9 +73,19 @@ module ExprToPoly =
   let rec containsRoots s =
     highestRoot 0 s > 0
 
-  let rec simplifyDiv e = 
+  let rec simplifyExpr e =
     let rec inner ex =
       match ex with
+      // numbers
+      | FAdd(FNum c1, FNum c2)  -> FNum (c1 + c2)
+      | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
+      | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
+      | FExponent(FNum c, n)    -> FNum (c**(float n))
+      | FRoot(FNum c, n)        -> FNum (c**(1./(float n)))
+      // exponents
+      | FExponent(_,0)          -> FNum 1.0
+      | FExponent(e1,1)         -> simplifyExpr e1
+      // division cases
       | FMult(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e2), inner e3) // case 6
       | FMult(FDiv(e2, e3), e1) -> FDiv(FMult(inner e1, inner e2), inner e3) // case 6
       | FDiv(FDiv(e1, e2), FDiv(e3, e4)) -> FDiv(FMult(inner e1, inner e4), FMult(inner e2, inner e3)) // case 10
@@ -94,7 +102,7 @@ module ExprToPoly =
       | _                       -> ex // FVar and FNum
     let rewritten = inner e
     if rewritten = e then e
-    else simplifyDiv rewritten
+    else simplifyExpr rewritten
 
   let removeNRoots s =
     let rec inner ag =
@@ -117,7 +125,7 @@ module ExprToPoly =
       combine rest freed
     List.fold (fun acc x -> acc @ (inner x)) [] s
 
-  let rec simplifyRoots (SE s) =
+  let rec simplifyRoots s =
     let s' =  removeNRoots s // e_2 * e_2 will be e
     let rec inner nr r = function
       | []      -> nr, r
@@ -126,17 +134,16 @@ module ExprToPoly =
     let (noroots, roots) = inner [] [] s'
     if roots <> [] then
       let k = highestRoot 0 roots // first we find the highest root we want to get rid of
-      let noroots = List.fold 
-                      (fun col x -> let term = combine [[ANum -1.0]] [x]
-                                    let nterms = [for _ in 1 .. k -> term] |> List.fold (combine) [[]]
-                                    col @ (combine [[ANum -1.0]] nterms)
-                                     ) [] noroots
-      let roots = List.fold 
-                      (fun col x -> let nterms = [for _ in 1 .. k -> [x]] |> List.fold (combine) [[]]
-                                    col @ nterms
-                                    ) [] roots
-      let result = noroots @ removeNRoots roots
-      if containsRoots result then simplifyRoots (SE result) else result
+      
+      // no roots term. Multiply by -1, then to the power of k, and then again multiply by -1
+      let nrTerm = combine [[ANum -1.0]] noroots
+      let nrTermMultiplied = [for _ in 1 .. k -> nrTerm] |> List.fold (combine) [[]]
+      let nrTermDone = combine [[ANum -1.0]] nrTermMultiplied
+      
+      let rtTerm = [for _ in 1 .. k -> roots] |> List.fold (combine) [[]]
+      let result = nrTermDone @ removeNRoots rtTerm
+
+      if containsRoots result then simplifyRoots result else result
     else noroots
 
   let simplifyAtomGroup ag : atomGroup =
@@ -176,11 +183,11 @@ module ExprToPoly =
     else SE varslist
 
   let rewriteExpr e =
-    let nodivs =
-      match simplifyDiv e with
+    let reduced =
+      match simplifyExpr e with
       | FDiv(keep,_)  -> keep
       | _             -> e
-    simplifyRoots (SE (simplify nodivs))
+    (simplifyRoots << simplify) reduced
 
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
@@ -217,19 +224,22 @@ module ExprToPoly =
   // same as (simpleExprToPoly (simplifySimpleExpr (exprToSimpleExpr e)) v)
   let exprToPoly e v = (exprToSimpleExpr >> simplifySimpleExpr >> simpleExprToPoly) e v
 
-  let solveSimpleExpr (SE agl) m : float =
+  // requires a map of all variables, mapped to float values
+  let rec solveSimpleExpr m s : float =
     let rec innerAG = function
-    | []     -> 1.0
-    | a :: r -> match a with
-                | ANum f         -> f * innerAG r
-                | AExponent(e,x) -> 
-                    let v = Map.find e m
-                    if x = 1 then v * innerAG r 
-                    else v**(float x) * innerAG r
-    let rec innerSE = function
-      | []      -> 0.0
-      | ag :: r -> (innerAG ag) + (innerSE r)
-    innerSE agl
+    | []   -> 1.0
+    | a::r -> match a with
+              | ANum c         -> c * innerAG r
+              | AExponent(e,x) -> 
+                  match Map.tryFind e m with
+                  | Some v -> if x = 1 then v * innerAG r
+                                else v**(float x) * innerAG r
+                  | None   -> failwith "solveSimpleExpr: variable not found in map"
+              | _ -> failwith "solveSimpleExpr: met a simpleExpr that shouldn't exist here"                
+    match s with
+    | SE ([])     -> 0.0
+    | SE (ag::cr) -> innerAG ag + solveSimpleExpr m (SE cr)
+                               
 
  (* Simple tests
 

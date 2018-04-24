@@ -148,6 +148,18 @@ module ExprParse =
 
   let parseStr s = (scan >> insertMult >> parse) s
 
+  // requires a map of all the variables used in the expression, mapped to float values
+  let rec solveExpr m = function
+  | FNum c          -> c
+  | FVar s          -> match Map.tryFind s m with
+                       | Some v -> v
+                       | None   -> failwith "solveExpr: variable not found"
+  | FRoot(e1,n)     -> (solveExpr m e1)**(1. / (float n))
+  | FAdd(e1,e2)     -> solveExpr m e1 + solveExpr m e2
+  | FMult(e1,e2)    -> solveExpr m e1 * solveExpr m e2
+  | FDiv(e1,e2)     -> solveExpr m e1 / solveExpr m e2
+  | FExponent(e1,n) -> solveExpr m e1**(float n)
+
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")
     let genDot s n e = "digraph G {\nlabel=\"" + (fixStr s) + "\"\n" + n + e + "\n}"

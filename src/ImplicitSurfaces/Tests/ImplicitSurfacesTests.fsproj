@@ -16,6 +16,7 @@
     <Compile Include="ExprParseTests.fs" />
     <Compile Include="ExprToPolyTests.fs" />
     <Compile Include="ExprToPolyTests2.fs" />
+    <Compile Include="ExprToPolyTests3.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
