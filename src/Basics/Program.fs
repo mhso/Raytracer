@@ -5,7 +5,7 @@ open System.IO
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(7.,7.,0.)
+    let position = new Point(7.,0.,0.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -15,7 +15,7 @@ let main _ =
     let resY = 1080
     
     //- SPHERE SETTINGS
-    let sphereOrigin = new Point(-2., -3., 0.)
+    let sphereOrigin = new Point(-5., 0., 0.)
     let sphereRadius = 2.
     let rawMatte = new MatteMaterial(Colour.White)
     let sphereMaterial = new MatteMaterial(Colour.Red)
@@ -30,7 +30,8 @@ let main _ =
     let glossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 2.)
     let niceShade = new MixedMaterial(rawMatte, phongShades, 0.5)
     let earthMaterial = new TexturedMaterial(niceShade, "textures/earth.jpg")
-        
+    let perfectEarth = new CurryMaterial((fun a b -> a + b * 0.2),earthMaterial, perfectReflection)
+    let purePerfect = PerfectReflectionMaterial(1, rawMatte, Colour.White, 1.)    
 
     //- LIGHT SETTINGS
     let lightPosition = new Point(8.,-4.,0.)
@@ -43,17 +44,24 @@ let main _ =
     let light2       = new PointLight(lightColour, lightIntensity, new Point(0.,8.,0.))
     let light3       = new PointLight(lightColour, lightIntensity, new Point(8.,8.,8.))
 
+    // Working
     let ambientLight = new AmbientLight(lightColour, 0.05)
-    let sphere       = new Sphere(sphereOrigin, sphereRadius, earthMaterial)
-    let sphere4       = new Sphere(new Point(-2., 3., 0.), sphereRadius, rawMatte)
-    let sphere2      = new Sphere(new Point(-2., 0.0, -1.), 1., perfectReflection) 
-    let sphere3      = new Sphere(new Point(-2., 0.0, 1.1), 1., phongShades)
-    let earth        = new Sphere(new Point(0.,0.,0.), 1.5, earthMaterial)
-    let moon         = new Sphere(new Point(-1.,-1.0, 0.), 1.25, glossyMaterial1)
+    let sphere       = new SphereShape(sphereOrigin, sphereRadius, earthMaterial)
+    let sphere4       = new SphereShape(new Point(-2., 3., 0.), sphereRadius, rawMatte)
+    let sphere2      = new SphereShape(new Point(-2., 0.0, -1.), 1., perfectReflection) 
+    let sphere3      = new SphereShape(new Point(-2., 0.0, 1.1), 1., phongShades)
+    let earth        = new SphereShape(new Point(-3.,1.5,0.), 1.5, perfectEarth)
+    let moon         = new SphereShape(new Point(-1.,-1.0, 0.), 1.25, glossyMaterial1)
+    let box = new Box(Point(-2.,-2.,-2.),Point(-1.,-1.,-1.),purePerfect,purePerfect,purePerfect,purePerfect,purePerfect,purePerfect)
+    
+
+    
+    let infinitePlane = new InfinitePlane(sphereMaterial)
+    let cylinder = new HollowCylinder(Point(-2.,2.,-2.),1.,10.,sphereMaterial)
 
     //- FINAL 
-    let lights: Light list      = [ambientLight; light]
-    let spheres: Sphere list    = [earth]
+    let lights: Light list      = [light;ambientLight]
+    let spheres: Shape list    = [sphere;box]
     let scene                   = new Scene(spheres, camera, lights)
 
     printfn "Rendering ..."
