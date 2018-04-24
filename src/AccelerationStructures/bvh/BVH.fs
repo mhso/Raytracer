@@ -152,28 +152,30 @@ module BVH =
         | Node (_,_,bbox,_) -> bbox
         | Leaf (_, bbox) -> bbox
 
-
+    let closetHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) =
+        
     let rec search (treeNode:BVHtree) (ray:Ray) (tmax:float) : 'T option =     
         let value = intersect (getBbox treeNode) ray
         match value with  
         | Some (t, t')  -> if (t<tmax) then 
                                 if (isLeaf treeNode) == true then
-                                    
-                                else 
-                                    searchNode (treeNode ray tmax)
+                                    if closestHit(treeNode, ray) = Some hit ^ hit.distance < tmax then
+                                        Some hit
+                                //else 
+                                //    searchNode (treeNode ray tmax)
         | None -> None
-    and searchNode (tree:BVHtree) (ray:Ray) tmax : 'T option =
-        match tree with
-        | Node (nleft, nright, bbox, naxis) ->
-            let fst, snd = order (ray.GetDirection nleft nright)
-            if search(fst, ray, tmax) = Some hit then
-                if search(fst, ray, hit.distance) = Some hit' then
-                    Some hit'
-                else
-                    Some HitPoint
-            else
-                    search (snd ray tmax)
-        | _ -> None
+    //and searchNode (tree:BVHtree) (ray:Ray) tmax : 'T option =
+    //    match tree with
+    //    | Node (nleft, nright, bbox, naxis) ->
+    //        let fst, snd = order (ray.GetDirection nleft nright)
+    //        if search(fst, ray, tmax) = Some hit then
+    //            if search(fst, ray, hit.distance) = Some hit' then
+    //                Some hit'
+    //            else
+    //                Some HitPoint
+    //        else
+    //                search (snd ray tmax)
+    //    | _ -> None
 
     let traverse(bvh, ray) = 
         search bvh ray infinity
