@@ -13,7 +13,7 @@ type Material() =
             light.GetColour * this.AmbientColour shape hitPoint
         else
             // Check if the shape is in the shadow
-            let shadowRay: Ray = light.GetShadowRay hitPoint shape
+            let shadowRay: Ray = light.GetShadowRay hitPoint
             let (_, shadowHitPoint: HitPoint) = shadowRay.GetFirstHitPointExcept shapes shape
             if shadowHitPoint.DidHit then
                 // It is a shadow
@@ -43,7 +43,7 @@ and MatteMaterial(colour:Colour) =
         let cd  = colour                                // Matte colour
         let lc:Colour  = light.GetColour                // Light colour
         let n   = hitPoint.Normal                       // Normal at hit point
-        let ld  = (light.GetDirectionFromPoint hitPoint.Point shape)  // Light direction
+        let ld  = (light.GetDirectionFromPoint hitPoint.Point)  // Light direction
 
         // Determine the colour
         if n * ld > 0. then
@@ -76,7 +76,7 @@ and SpecularMaterial
         let kd = matteMaterial.Coefficient             // Matte coefficient
         let cd = matteMaterial.Colour                  // Matte colour
         let ld  = 
-            let l:Vector = (light.GetDirectionFromPoint hitPoint.Point shape)
+            let l:Vector = (light.GetDirectionFromPoint hitPoint.Point)
             l.Normalise // Light direction
         let n = hitPoint.Normal                         // Normal at hit point
         let r1 = -ld + (2. * (n * ld)) * n             // Light ray direction
@@ -120,7 +120,7 @@ and BlinnPhongMaterial (specularCoefficient: float, specularColour: Colour, spec
         let diffuse = this.MatteMaterial.Bounce shape shapes hitPoint light
         
         // The specular colour
-        let L:Vector = light.GetDirectionFromPoint hitPoint.Point shape
+        let L:Vector = light.GetDirectionFromPoint hitPoint.Point
         let V:Vector = hitPoint.Point - hitPoint.Ray.GetOrigin
         let H = (L + V).Normalise
         let Is = Math.Pow(Math.Max(0.0, (H * hitPoint.Normal)), specularExponent)
@@ -439,22 +439,22 @@ and Light(colour: Colour, intensity: float) =
         new Colour(r, g, b)
 
     // Returns the direction from a point to the light
-    member this.GetDirectionFromPoint (point:Point) (shape: Shape) = 
+    member this.GetDirectionFromPoint (point:Point) = 
         match this with
             | :? PointLight as p ->
-                p.GetDirectionFromPoint point shape
+                p.GetDirectionFromPoint point
             | :? DirectionalLight as p ->
-                p.GetDirectionFromPoint point shape
+                p.GetDirectionFromPoint point
             | _ -> raise LightException
 
     // Returns the shadow ray to the light
     // .. same as GetDirectionFromPoint, but inverted
-    member this.GetShadowRay (hitPoint: HitPoint) (shape: Shape) = 
+    member this.GetShadowRay (hitPoint: HitPoint) = 
         match this with
             | :? PointLight as p ->
-                p.GetShadowRay hitPoint shape
+                p.GetShadowRay hitPoint
             | :? DirectionalLight as p ->
-                p.GetShadowRay hitPoint shape
+                p.GetShadowRay hitPoint
             | _ -> raise LightException
 
 
@@ -465,7 +465,7 @@ and AmbientLight(colour: Colour, intensity: float) =
     inherit Light(colour, intensity)
     member this.GetDirectionFromPoint (point:Point) = 
         raise LightException
-    member this.GetShadowRay (hitPoint:Point) = 
+    member this.GetShadowRay (hitPoint:HitPoint) = 
         raise LightException
 
 
@@ -475,9 +475,9 @@ and PointLight(colour: Colour, intensity: float, position: Point) =
     inherit Light(colour, intensity)
     let position = position
     member this.Position = position
-    member this.GetDirectionFromPoint (hitPoint:Point) (shape: Shape) = 
-        (position - hitPoint).Normalise
-    member this.GetShadowRay (hitPoint:HitPoint) (shape: Shape) = 
+    member this.GetDirectionFromPoint (point:Point) = 
+        (position - point).Normalise
+    member this.GetShadowRay (hitPoint:HitPoint) = 
         let normal:Vector = hitPoint.Normal
         let shadowRayOrigin = hitPoint.Point + normal * 0.00001
         let direction = (position - shadowRayOrigin).Normalise
@@ -490,9 +490,9 @@ and DirectionalLight(colour: Colour, intensity: float, direction: Vector) =
     inherit Light(colour, intensity)
     let direction = direction
     member this.Direction = direction
-    member this.GetDirectionFromPoint (hitPoint:Point) (shape: Shape) = 
+    member this.GetDirectionFromPoint (point:Point) = 
         direction.Normalise
-    member this.GetShadowRay (hitPoint:HitPoint) (shape: Shape) = 
+    member this.GetShadowRay (hitPoint:HitPoint) = 
         new Ray(hitPoint.Point, direction.Normalise)
 
 
@@ -509,7 +509,8 @@ and Shape() =
             | :? SolidCylinder as s -> s.hitFunction ray
             | :? Box as s -> s.hitFunction ray
             | :? InfinitePlane as s -> s.hitFunction ray
-        
+            | :? TransformShape as s -> s.hitFunction ray
+
         match hit with
             | (Some(time),Some(normal),Some(material)) -> 
                 HitPoint(ray, time, normal, material)
@@ -709,3 +710,8 @@ and InfinitePlane(tex:Material) =
     member this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         if r.GetDirection.Z <> 0.0 && t > 0.0 then (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None)
+
+and TransformShape (hitFunction, mat:Material) =
+    inherit Shape()
+    member this.mat = mat
+    member this.hitFunction = hitFunction
