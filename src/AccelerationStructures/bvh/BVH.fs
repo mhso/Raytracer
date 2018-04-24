@@ -2,12 +2,8 @@
 open Tracer.Basics
 
 module BVH = 
-
-    //#load Vector.fs
-    //#load Point.fs
-
-    (* TEMP SHAPE *)
-    type Shape = S of float
+    open System
+    open Tracer
 
     (* BVH TREE *)
     type BBox = { lowXYZ:Point; 
@@ -16,7 +12,7 @@ module BVH =
 
     (* BVH TREE *)
     type BVHtree = 
-        | Leaf of List<int>  
+        | Leaf of List<int> * BBox
         | Node of BVHtree * BVHtree * BBox * int
 
     let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
@@ -69,7 +65,7 @@ module BVH =
             value <- (2, z)
         value
 
-    let findAxisMinMaxValues (bBox : BBox) axis =
+    let findAxisMinMaxValues (bBox:BBox) axis =
         let (lowXYZ, highXYZ) = (bBox.lowXYZ, bBox.highXYZ);
         match axis with
         | 0 -> (lowXYZ.X, highXYZ.X)
@@ -82,7 +78,7 @@ module BVH =
         
  
     //Temporary Intersect-function. Use Alexanders when available.
-    let hit (r:Ray)(box:BBox) = 
+    let intersect (box:BBox)(r:Ray) = 
         let tx = if r.GetDirection.X >= 0.0 then (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X
         let tx' = if r.GetDirection.X >= 0.0 then (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X
         let ty = if r.GetDirection.Y >= 0.0 then (box.lowXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y else (box.highXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y
@@ -91,9 +87,7 @@ module BVH =
         let tz' = if r.GetDirection.Z >= 0.0 then (box.highXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z else (box.lowXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z
 
         let t = max tx (max ty tz)
-
         let t' = min tx' (min ty' tz')
-
         if t < t' && t' > 0.0 then Some(t, t')
         else None
 
@@ -104,6 +98,9 @@ module BVH =
             let boxArr = getBoxArrFromIndexes intIndexes boxes
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+            let box = {  lowXYZ = lowPoint;
+                             highXYZ = highPoint;
+                    } 
             let treeLevel = treeLevel + 1
             //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
@@ -113,9 +110,7 @@ module BVH =
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
-                let box = {  lowXYZ = lowPoint;
-                             highXYZ = highPoint;
-                    } 
+                
                 printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
                 //printfn "Add new inner Nodes... Lists lenght: "
                 //printfn "intIndexes.Length: %i " intIndexes.Length
@@ -130,20 +125,16 @@ module BVH =
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
                 //printfn "Add new inner Leaf... Value: %O" c
-                Leaf c
+                Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNodeTree boxIntList 0
                             
-        
-
     // swaps the order if d is not positive
     //type Order () = int -> Node -> Node
-    let order d left right = 
+    let order d (left:BVHtree) (right:BVHtree) = 
         match d with
         | d when d > 0 -> (left, right)
         | _            -> (right, left)
-
-    // let search node ray tmax = Some hit
 
     let getRayDirectionValue (ray:Ray) (axis:int) =
         match axis with
@@ -152,43 +143,39 @@ module BVH =
         | 2 -> (int ray.GetDirection.Z)
         | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
-    let searchNode node ray tmax = 
-        let nleft, nright, nbbox, naxis = node
-        let fst, snd = order (getRayDirectionValue ray (naxis)) nleft nright
-        if search(fst, ray, tmax) = Some hit then
-            if search(fst, ray, hit.distance) = Some hit' then
-             Some hit'
+    let isLeaf = function
+    | Leaf (_,_) -> true
+    | _ -> false
+
+    let getBbox (tree:BVHtree) : BBox = 
+        match tree with
+        | Node (_,_,bbox,_) -> bbox
+        | Leaf (_, bbox) -> bbox
+
+
+    let rec search (treeNode:BVHtree) (ray:Ray) (tmax:float) : 'T option =     
+        let value = intersect (getBbox treeNode) ray
+        match value with  
+        | Some (t, t')  -> if (t<tmax) then 
+                                if (isLeaf treeNode) == true then
+                                    
+                                else 
+                                    searchNode (treeNode ray tmax)
+        | None -> None
+    and searchNode (tree:BVHtree) (ray:Ray) tmax : 'T option =
+        match tree with
+        | Node (nleft, nright, bbox, naxis) ->
+            let fst, snd = order (ray.GetDirection nleft nright)
+            if search(fst, ray, tmax) = Some hit then
+                if search(fst, ray, hit.distance) = Some hit' then
+                    Some hit'
+                else
+                    Some HitPoint
             else
-             Some hit
-        else
-             search(snd, ray tmax)
-
-
-    let isLeaf input = function
-        | Leaf _ -> true
-        | _ -> false
-
-    let isClosetHit [] ray = failwith "Not implemented"
-
-    let intersect bbox ray = failwith "Not implemented"
+                    search (snd ray tmax)
+        | _ -> None
 
     let traverse(bvh, ray) = 
         search bvh ray infinity
-
-    let search node ray tmax = 
-        let _, _, bbox, _ = node 
-        if intersect bbox ray = Some (t, t') && t < tmax then
-            if isLeaf(node) then
-                if closestHit(leaf.shapes, ray) = Some hit && hit.distance < tmax then
-                    Some hit
-                else
-                    None
-            else
-            searchnode(node, ray, tmax)
-        else
-            None
         
-
-
-    //let search node ray tmax = failwith "Not implemented"
         
