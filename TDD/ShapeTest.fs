@@ -28,7 +28,7 @@ let allTest =
 
 
     //Tests that shapes are built correctly
-    Assert.Equal(rectangle.bottomleft, Point(0.,0.,0.), "rectangle.bottomLeft")
+    Assert.Equal(rectangle.bottomLeft, Point(0.,0.,0.), "rectangle.bottomLeft")
     Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")
     Assert.Equal(rectangle.bottomRight, Point(1.,0.,0.), "rectangle.bottomRight")
 
@@ -42,24 +42,38 @@ let allTest =
     Assert.Equal(sphere.Origin, Point(0.,0.,0.), "sphere.origin")
     Assert.Equal(sphere.Radius, 2., "sphere.radius")
 
-    Assert.Equal(hollowCylinder.center, Point(0.,0.,0.), "cylinder.center")
-    Assert.Equal(hollowCylinder.radius, 2., "cylinder.radius")
-    Assert.Equal(hollowCylinder.height, 4., "cylinder.height")
+    Assert.Equal(hollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
+    Assert.Equal(hollowCylinder.radius, 2., "hollowCylinder.radius")
+    Assert.Equal(hollowCylinder.height, 4., "hollowCylinder.height")
 
     Assert.Equal(box.low, Point(0.,0.,0.), "box.low")
     Assert.Equal(box.low, Point(0.,0.,0.), "box.high")
 
     
     //Tests that BaseShapes are built correctly
+    Assert.Equal(baseRectangle.bottomLeft, Point(0.,0.,0.), "baseRectangle.bottomLeft")
+    Assert.Equal(baseRectangle.topLeft, Point(0.,1.,0.), "baseRectangle.topLeft")
+    Assert.Equal(baseRectangle.bottomRight, Point(1.,0.,0.), "baseRectangle.bottomRight")
 
+    Assert.Equal(baseDisc.center, Point(0.,0.,0.), "baseDisc.center")
+    Assert.Equal(baseDisc.radius, 2., "baseDisc.radius")
+
+    Assert.Equal(baseTriangle.a, Point(0.,0.,0.), "baseTriangle.a")
+    Assert.Equal(baseTriangle.b, Point(0.,1.,0.), "baseTriangle.b")
+    Assert.Equal(baseTriangle.c, Point(1.,0.,0.), "baseTriangle.c")
+
+    Assert.Equal(baseSphere.origin, Point(0.,0.,0.), "baseSphere.origin")
+    Assert.Equal(baseSphere.radius, 2., "baseSphere.radius")
+
+    Assert.Equal(baseHollowCylinder.center, Point(0.,0.,0.), "baseHollowCylinder.center")
+    Assert.Equal(baseHollowCylinder.radius, 2., "baseHollowCylinder.radius")
+    Assert.Equal(baseHollowCylinder.height, 4., "baseHollowCylinder.height")
 
 
     //Tests that hitFunctions act as expected
 
 
 
-
-    //Assert.Equal()
 
 
 
