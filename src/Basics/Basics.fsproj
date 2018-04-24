@@ -64,10 +64,10 @@
     <Compile Include="Material.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="BBox.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="BBox.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

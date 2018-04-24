@@ -11,7 +11,7 @@ type Shape()=
 
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     inherit Shape()
-    member this.bottomleft = bottomLeft
+    member this.bottomLeft = bottomLeft
     member this.topLeft = topLeft
     member this.bottomRight = bottomRight
     member this.tex = tex
