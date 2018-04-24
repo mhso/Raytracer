@@ -5,5 +5,4 @@ open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
-
     0
