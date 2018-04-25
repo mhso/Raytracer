@@ -1,7 +1,6 @@
 ﻿namespace Tracer.BaseShape
 
 open Tracer.Basics
-open Tracer.Shapes
 
 
 [<AbstractClass>]

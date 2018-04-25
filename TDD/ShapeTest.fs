@@ -1,6 +1,5 @@
 ﻿module ShapeTest
 
-open Tracer.Shapes
 open Tracer.BaseShape
 open Assert
 open Tracer.Basics
@@ -71,9 +70,34 @@ let allTest =
 
 
     //Tests that hitFunctions act as expected
+    //hmm a bit difficult t write unittests 
 
 
+    //Tests that toShape functions in BaseShape works
+    let toRectangle = baseRectangle.toShape (MatteMaterial(Colour(1.,1.,1.)))
+    let RectangleFromBase = toRectangle :?> RectangleFromBase
+    let toDisc = baseDisc.toShape (MatteMaterial(Colour(1.,1.,1.)))
+    let toTriangle = baseTriangle.toShape (MatteMaterial(Colour(1.,1.,1.)))
+    let toSphere = baseSphere.toShape (MatteMaterial(Colour(1.,1.,1.)))
+    let toCylinder = baseCylinder.toShape (MatteMaterial(Colour(1.,1.,1.)))
 
+    Assert.Equal(toRectangle.bottomLeft, Point(0.,0.,0.), "rectangle.bottomLeft")
+    Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")
+    Assert.Equal(rectangle.bottomRight, Point(1.,0.,0.), "rectangle.bottomRight")
+
+    Assert.Equal(disc.center, Point(0.,0.,0.), "disc.center")
+    Assert.Equal(disc.radius, 2., "disc.radius")
+
+    Assert.Equal(triangle.a, Point(0.,0.,0.), "triangle.a")
+    Assert.Equal(triangle.b, Point(0.,1.,0.), "triangle.b")
+    Assert.Equal(triangle.c, Point(1.,0.,0.), "triangle.c")
+
+    Assert.Equal(sphere.Origin, Point(0.,0.,0.), "sphere.origin")
+    Assert.Equal(sphere.Radius, 2., "sphere.radius")
+
+    Assert.Equal(hollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
+    Assert.Equal(hollowCylinder.radius, 2., "hollowCylinder.radius")
+    Assert.Equal(hollowCylinder.height, 4., "hollowCylinder.height")
 
 
 
