@@ -118,8 +118,26 @@ let allTest =
         //                    {
         //                        lowXYZ = Point(-7.,-7.,3.);
         //                        highXYZ = Point(4.,4.,-5.);},1))
+        let expectedSmall = 
+            (Node
+                  (Node
+                     (Leaf ([0],{lowXYZ = Point(1.,0.6,-1.);
+                                 highXYZ = Point(6.,9.,-8.9);}),
+                                    Leaf ([1],{lowXYZ = Point(1.,0.6,-1.);
+                                    highXYZ = Point(6.,9.,-8.9);}),
+                                    {lowXYZ = Point(1.,0.6,-1.);
+                                    highXYZ = Point(12.,9.,-16.6);},1),
+                   Node
+                     (Leaf ([2],{lowXYZ = Point(1.,0.6,-1.);
+                                 highXYZ = Point(6.,9.,-8.9);}),
+                                    Leaf ([3],{lowXYZ = Point(1.,0.6,-1.);
+                                    highXYZ = Point(6.,9.,-8.9);}),
+                                    {lowXYZ = Point(1.,0.6,-1.);
+                                    highXYZ = Point(12.,9.,-16.6);},1),
+                                    {lowXYZ = Point(1.,0.6,-1.);
+                                    highXYZ = Point(12.,13.5,-16.6);},1))
 
-        let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
+        //let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
 
-        Assert.Equal (expected3,tree,"testBuildBVHTree")
+        Assert.Equal (expectedSmall,tree,"testBuildBVHTree")
     testBuildBVHTree
