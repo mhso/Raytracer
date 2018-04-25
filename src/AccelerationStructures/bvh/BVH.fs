@@ -90,7 +90,7 @@ module BVH =
         let t' = min tx' (min ty' tz')
         if t < t' && t' > 0.0 then Some(t, t')
         else None
-
+ // ######################### BUILD BVH TREE #########################
     let buildBVHTree (boxes:array<BBox>) : BVHtree = 
         if boxes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
         let boxIntList = [0..boxes.Length-1]
@@ -128,13 +128,20 @@ module BVH =
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNodeTree boxIntList 0
-                            
+ 
+ 
+  // ######################### TRAVERSAL BVH TREE #########################
+
     // swaps the order if d is not positive
-    //type Order () = int -> Node -> Node
     let order d (left:BVHtree) (right:BVHtree) = 
         match d with
         | d when d > 0 -> (left, right)
         | _            -> (right, left)
+
+    // Checking for tree leaf.
+    let isLeaf = function
+    | Leaf (_,_) -> true
+    | _ -> false
 
     let getRayDirectionValue (ray:Ray) (axis:int) =
         match axis with
@@ -143,37 +150,70 @@ module BVH =
         | 2 -> (int ray.GetDirection.Z)
         | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
-    let isLeaf = function
-    | Leaf (_,_) -> true
-    | _ -> false
-
     let getBbox (tree:BVHtree) : BBox = 
         match tree with
         | Node (_,_,bbox,_) -> bbox
         | Leaf (_, bbox) -> bbox
-
-    let closetHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) =
+    
+    let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
         match treeNode with
         | Leaf (shapesRef, _) -> 
                             let mutable closestShape = None
                             let mutable closestDist = infinity
                             for shapeRef in shapesRef do
-                                let hit = shapes[shapeRef].hitFunction ray
-                                let dist = hit.time
+                                let hit = shapes.[shapeRef].hitFunction ray
+                                let dist = hit.Time
                                 if dist < closestDist then
                                     closestDist <- dist
-                                    closestShape <- 
+                                    closestShape <- Some shapes.[shapeRef]
+                            closestShape
         | _ -> None
 
-    let rec search (treeNode:BVHtree) (ray:Ray) (tmax:float) : 'T option =     
+    let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =     
         let value = intersect (getBbox treeNode) ray
         match value with  
         | Some (t, t')  -> if (t<tmax) then 
-                                if (isLeaf treeNode) == true then
-                                    if closestHit(treeNode, ray) = Some hit ^ hit.distance < tmax then
-                                        Some hit
-                                //else 
-                                //    searchNode (treeNode ray tmax)
+                                if isLeaf treeNode then
+                                    let checkForHit = (closestHit treeNode ray shapes)
+                                    match checkForHit with
+                                    | Some hitFound -> 
+                                        let hit = hitFound.hitFunction ray
+                                        if hit.Time < tmax then Some hitFound
+                                        else None
+                                    | None -> None
+                                else 
+                                    match treeNode with
+                                    | Node (left, right, _, _) ->
+                                        let first = search left ray shapes tmax
+                                        let second = search right ray shapes tmax
+                                        match first with
+                                        | Some hitFound1 ->
+                                                let hit1 = hitFound1.hitFunction ray
+                                                let result2 = search treeNode ray shapes hit1.Time
+                                                match result2 with
+                                                | Some hitFound2 -> 
+                                                    Some hitFound2
+                                                | _ -> Some hitFound1
+            
+                                        | None -> search treeNode ray shapes tmax
+                                    | _ -> None
+                            else None
+        | None -> None
+    
+    let rec searchNode (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
+        match treeNode with
+        | Node (left, right, _, _) ->
+            let first = search left ray shapes tmax
+            let second = search right ray shapes tmax
+            match first with
+            | Some hitFound ->
+                    let hit1 = hitFound.hitFunction ray
+                    let result2 = search treeNode ray shapes hit1.Time
+                    match result2 with
+                    | Some value2 -> value2.hitFunction ray
+                    | _ -> hit1
+            
+            | None -> search treeNode ray shapes tmax
         | None -> None
     //and searchNode (tree:BVHtree) (ray:Ray) tmax : 'T option =
     //    match tree with
