@@ -150,6 +150,7 @@ module BVH =
         | 2 -> (int ray.GetDirection.Z)
         | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
+    // Get bounding box from tree element.
     let getBbox (tree:BVHtree) : BBox = 
         match tree with
         | Node (_,_,bbox,_) -> bbox
@@ -199,36 +200,8 @@ module BVH =
                                     | _ -> None
                             else None
         | None -> None
-    
-    let rec searchNode (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
-        match treeNode with
-        | Node (left, right, _, _) ->
-            let first = search left ray shapes tmax
-            let second = search right ray shapes tmax
-            match first with
-            | Some hitFound ->
-                    let hit1 = hitFound.hitFunction ray
-                    let result2 = search treeNode ray shapes hit1.Time
-                    match result2 with
-                    | Some value2 -> value2.hitFunction ray
-                    | _ -> hit1
-            
-            | None -> search treeNode ray shapes tmax
-        | None -> None
-    //and searchNode (tree:BVHtree) (ray:Ray) tmax : 'T option =
-    //    match tree with
-    //    | Node (nleft, nright, bbox, naxis) ->
-    //        let fst, snd = order (ray.GetDirection nleft nright)
-    //        if search(fst, ray, tmax) = Some hit then
-    //            if search(fst, ray, hit.distance) = Some hit' then
-    //                Some hit'
-    //            else
-    //                Some HitPoint
-    //        else
-    //                search (snd ray tmax)
-    //    | _ -> None
 
-    let traverse(bvh, ray) = 
-        search bvh ray infinity
+    let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) = 
+        search treeNode ray shapes infinity
         
         
