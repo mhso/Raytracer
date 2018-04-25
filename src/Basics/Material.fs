@@ -10,7 +10,7 @@ type Material() =
         
         if light :? AmbientLight then
             // If the light is ambient, simply add the colour
-            light.GetColour * this.AmbientColour shape hitPoint
+            (light.GetColour hitPoint.Point) * (this.AmbientColour shape hitPoint)
         else
             // Check if the shape is in the shadow
             let shadowRay: Ray = light.GetShadowRay hitPoint
@@ -41,7 +41,7 @@ and MatteMaterial(colour:Colour) =
         // Initialize parameters 
         let kd  = coefficient                           // Matte coefficient
         let cd  = colour                                // Matte colour
-        let lc:Colour  = light.GetColour                // Light colour
+        let lc:Colour  = light.GetColour hitPoint.Point // Light colour
         let n   = hitPoint.Normal                       // Normal at hit point
         let ld  = (light.GetDirectionFromPoint hitPoint.Point)  // Light direction
 
@@ -74,7 +74,7 @@ and SpecularMaterial
         
         // Initialize parameters
         let kd = matteMaterial.Coefficient             // Matte coefficient
-        let cd = matteMaterial.Colour                  // Matte colour
+        let cd = matteMaterial.Colour                   // Matte colour
         let ld  = 
             let l:Vector = (light.GetDirectionFromPoint hitPoint.Point)
             l.Normalise // Light direction
@@ -85,7 +85,7 @@ and SpecularMaterial
         let e = specularExponent                       // Specular exponent
         let ks = specularCoefficient                   // Specular coefficient
         let cs = specularColour                        // Specular colour
-        let lc  = light.GetColour                      // Light colour
+        let lc  = light.GetColour hitPoint.Point       // Light colour
         
         // Detemine the colour
         if n * ld > 0. then
@@ -228,6 +228,21 @@ and TexturedMaterial(baseMaterial: Material, textureFilePath: string) =
         let v = 0.5 - (asin d.Y) / Math.PI
         let uvColour = getUVPixel u v
         uvColour * baseColour
+
+and EmisiveMaterial(lightColour: Colour, lightIntensity: float) = 
+    inherit Material()
+
+    let emisiveRadience = lightColour * lightIntensity
+
+    member this.LightColour = lightColour
+    member this.LightIntensity = lightIntensity
+    member this.EmisiveRadience = emisiveRadience
+    default this.AmbientColour shape hitPoint = emisiveRadience
+    default this.Bounce (shape: Shape) (shapes: Shape list) (hitPoint: HitPoint) (light: Light) = 
+        if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then
+            emisiveRadience
+        else
+            Colour.Black
 
 //- MIX TWO MATERIALS
 and MixedMaterial(a: Material, b: Material, factor: float) =
@@ -405,9 +420,10 @@ and Ray(origin: Point, direction: Vector) =
     member this.Invert = 
         new Ray(origin, direction.Invert)
 
+
 //- HITPOINT
-//  .. a hit point is the point where a ray meets a shape
 and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: bool) = 
+    
     member this.Ray = ray
     member this.Time = time
     member this.Point: Point = ray.PointAtTime time
@@ -415,86 +431,91 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
     member this.Normal = normal
     member this.Material = material
 
-    // Constructor for a hit point that hit something
+    // For hit rays
     new(ray: Ray, time:float, normal: Vector, material: Material) = 
         HitPoint(ray, time, normal, material, true)
 
-    // Constructor for a hit point that missed
+    // For missed rays
     new(ray: Ray) = HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None , false)
 
+
 //- LIGHT
-// .. Never instantiate this instance directly, always a subclass. 
-// .. The class is meant to be abstract, but it was needed mutually recursively
-and Light(colour: Colour, intensity: float) =
+and [<AbstractClass>] Light(colour: Colour, intensity: float) =
     let colour = colour
     let intensity = intensity
     member this.BaseColour = colour
     member this.Intensity = intensity
 
-    // Returns the final colour of the light
-    member this.GetColour = 
-        let r = colour.R * intensity
-        let g = colour.G * intensity
-        let b = colour.B * intensity
-        new Colour(r, g, b)
+    // (l_c) Final colour
+    abstract member GetColour: Point -> Colour
 
-    // Returns the direction from a point to the light
-    member this.GetDirectionFromPoint (point:Point) = 
-        match this with
-            | :? PointLight as p ->
-                p.GetDirectionFromPoint point
-            | :? DirectionalLight as p ->
-                p.GetDirectionFromPoint point
-            | _ -> raise LightException
+    // (l_d) Direction from a point to this light
+    abstract member GetDirectionFromPoint: Point -> Vector
 
-    // Returns the shadow ray to the light
-    // .. same as GetDirectionFromPoint, but inverted
-    member this.GetShadowRay (hitPoint: HitPoint) = 
-        match this with
-            | :? PointLight as p ->
-                p.GetShadowRay hitPoint
-            | :? DirectionalLight as p ->
-                p.GetShadowRay hitPoint
-            | _ -> raise LightException
+    // (_ls) Shadow ray
+    abstract member GetShadowRay: HitPoint -> Ray
+
+    // (l_G) Geometric factor
+    abstract member GetGeometricFactor: Point -> float
+
+    // (l_pdf) Probability density function
+    abstract member GetProbabilityDensity: float
 
 
 
 //- AMBIENT LIGHT
-//.. read comments above for Light if in doubt
 and AmbientLight(colour: Colour, intensity: float) =
     inherit Light(colour, intensity)
-    member this.GetDirectionFromPoint (point:Point) = 
+
+    override this.GetColour point = 
+        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+    override this.GetDirectionFromPoint (point:Point) = 
         raise LightException
-    member this.GetShadowRay (hitPoint:HitPoint) = 
+    override this.GetShadowRay (hitPoint:HitPoint) = 
         raise LightException
+    override this.GetGeometricFactor point = 
+        1.
+    override this.GetProbabilityDensity = 
+        1.
 
 
 //- POINT LIGHT
-//.. read comments above for Light if in doubt
 and PointLight(colour: Colour, intensity: float, position: Point) = 
     inherit Light(colour, intensity)
-    let position = position
+
     member this.Position = position
-    member this.GetDirectionFromPoint (point:Point) = 
+
+    override this.GetColour point = 
+        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+    override this.GetDirectionFromPoint (point:Point) = 
         (position - point).Normalise
-    member this.GetShadowRay (hitPoint:HitPoint) = 
+    override this.GetShadowRay (hitPoint:HitPoint) = 
         let normal:Vector = hitPoint.Normal
         let shadowRayOrigin = hitPoint.Point + normal * 0.00001
         let direction = (position - shadowRayOrigin).Normalise
         new Ray((shadowRayOrigin), direction)
+    override this.GetGeometricFactor point = 
+        1.
+    override this.GetProbabilityDensity = 
+        1.
 
 
 //- DIRECTIONAL LIGHT  
-//.. read comments above for Light if in doubt
 and DirectionalLight(colour: Colour, intensity: float, direction: Vector) = 
     inherit Light(colour, intensity)
-    let direction = direction
-    member this.Direction = direction
-    member this.GetDirectionFromPoint (point:Point) = 
-        direction.Normalise
-    member this.GetShadowRay (hitPoint:HitPoint) = 
-        new Ray(hitPoint.Point, direction.Normalise)
 
+    member this.Direction = direction
+
+    override this.GetColour point = 
+        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+    override this.GetDirectionFromPoint (point:Point) = 
+        direction.Normalise
+    override this.GetShadowRay (hitPoint:HitPoint) = 
+        new Ray(hitPoint.Point, direction.Normalise)
+    override this.GetGeometricFactor point = 
+        1.
+    override this.GetProbabilityDensity = 
+        1.
 
 //- SHAPES (everything below is made by Alexander)
 and Shape() =
@@ -525,6 +546,7 @@ and Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     member this.tex = tex
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
+    member this.normal:Vector = new Vector(0.0, 0.0, 1.0)
     member this.hitFunction (r:Ray) = 
         match r with
             |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -542,6 +564,7 @@ and Disc(center:Point, radius:float, tex:Material)=
     member this.center = center
     member this.radius = radius
     member this.tex = tex
+    member this.normal: Vector = new Vector(0.0, 0.0, 1.0)
     member this.hitFunction (r:Ray) = 
         match r with
             |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 

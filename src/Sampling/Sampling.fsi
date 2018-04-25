@@ -8,3 +8,13 @@ val nRooks : int -> int -> (float * float) [][]
 val multiJittered : int -> int -> (float * float) [][]
 val mapToDisc : (float * float) [] -> (float * float) []
 val mapToHemisphere : (float * float) [] -> float -> (float * float * float) []
+
+type SampleGenerator =
+    new: samplingAlgorighm:(int -> int -> (float * float) [][]) * sampleCount:int * sampleSetCount:int -> SampleGenerator
+    member Current: float * float
+    member Next: float * float
+
+type HemisphereSampleGenerator =
+    new: sampleCount:int * sampleSetCount:int -> HemisphereSampleGenerator
+    member Current: float * float * float
+    member Next: float * float * float
