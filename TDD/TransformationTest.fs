@@ -86,7 +86,7 @@ let allTest =
         Assert.Equal(expected, result, "SheareZY")
 
     let testSheareInv = 
-        let trans = sheare (1.,2.,3.,4.,5.,6.)
+        let trans = sheare (10., 0.,0.,0.,0.,0.)
         let matrix1 = getMatrix trans
         let matrix2 = getInvMatrix trans
         let result = getList (Matrix.multi (matrix1,matrix2))
