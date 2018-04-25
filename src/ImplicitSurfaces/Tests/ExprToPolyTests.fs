@@ -1,7 +1,7 @@
 namespace Tests
 
 (*
-  Some of these tests are from the ones given in the Functional Programming course (test01 - test08)
+  All of these tests are based on the ones given in the Functional Programming course
 *)
 
 module ExprToPolyTests =

@@ -3,7 +3,6 @@ open System.Windows
 open System
 open Tracer.Basics
 open System
-open Tracer.Shapes
 
     type Matrix = 
         | M of float list list
@@ -56,11 +55,11 @@ open Tracer.Shapes
     let sheare (xy,xz,yx,yz,zx,zy) = 
         let matrix = mkMatrix([[1.;yx;zx;0.];[xy;1.;zy;0.];[xz;yz;1.;0.];[0.;0.;0.;1.]])
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
-        let mult = Math.Pow(det,-1.)
+        let mult = 1./det
         //TODO: Ask what is wrong with the inverse
         let inv = 
             mkMatrix (
-                [[mult*(1.-(yx*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zx);0.];
+                [[mult*(1.-(yz*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zy);0.];
                 [mult*(-xy+xz*zy);mult*(1.-xz*zx);mult*(-zy+xy*zx);0.];
                 [mult*(-xz+xy*yz);mult*(-yz+xz*yx);mult*(1.-xy*yx);0.];
                 [0.;0.;0.;mult*det]])
@@ -121,8 +120,11 @@ open Tracer.Shapes
 
 
     let transformRay (r : Ray) t = 
-        let originMatrix = Matrix.multi (pointToMatrix (r.GetOrigin), getInvMatrix(t))
-        let directionMatrix = Matrix.multi (vectorToMatrix (r.GetDirection), getInvMatrix(t))
+        let o = pointToMatrix r.GetOrigin
+        let d = vectorToMatrix r.GetDirection
+        let invT = getInvMatrix t
+        let originMatrix = Matrix.multi (invT, o)
+        let directionMatrix = Matrix.multi (invT, d)
         let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
@@ -130,19 +132,19 @@ open Tracer.Shapes
     let originalHitPoint dist (r:Ray) = 
         r.PointAtTime dist
 
-    let transformNormal (s:Sphere) (p:Point) (t: Transformation)= 
-        let vector = s.NormalAtPoint p 
-        let tVector = matrixToVector (Matrix.multi (transpose (getInvMatrix(t)),(vectorToMatrix vector)))
+    let transformNormal (v:Vector) (t: Transformation)= 
+        let vector = v
+        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
         tVector
 
-    let transform (s : Shape) (t:Transformation) =  
-        //let tranShape = new Shape()
-        
-        //override tranShape.hitFunction (r:Ray) = 
-        //    let transformedRay = transformRay r t
-        //    let hitsOriginal = s.hitFunction transformedRay
-        //    let hitPoint = r.PointAtTime hitsOriginal.dist
-        //    let normal = transformNormal s hitPoint t
-        failwith("NOT IMPLEMENTED")
-    let transform2 (hf : Ray -> HitPoint * Vector) (t: Transformation) = 
-       failwith("NOT IMPLEMENTED")
+    let transform (s : Shape) (t:Transformation) =    
+        let transHitFunction (r:Ray) = 
+            let transformedRay = transformRay r t
+            let hitsOriginal = s.hitFunction transformedRay
+            match hitsOriginal.DidHit with
+            | true -> 
+                let normal = transformNormal (hitsOriginal.Normal) t
+                (Some (hitsOriginal.Time), Some (normal), Some (hitsOriginal.Material))
+            | false -> 
+                (None, None, None)
+        new TransformShape(transHitFunction)
