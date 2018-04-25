@@ -153,7 +153,18 @@ module BVH =
         | Leaf (_, bbox) -> bbox
 
     let closetHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) =
-        
+        match treeNode with
+        | Leaf (shapesRef, _) -> 
+                            let mutable closestShape = None
+                            let mutable closestDist = infinity
+                            for shapeRef in shapesRef do
+                                let hit = shapes[shapeRef].hitFunction ray
+                                let dist = hit.time
+                                if dist < closestDist then
+                                    closestDist <- dist
+                                    closestShape <- 
+        | _ -> None
+
     let rec search (treeNode:BVHtree) (ray:Ray) (tmax:float) : 'T option =     
         let value = intersect (getBbox treeNode) ray
         match value with  
