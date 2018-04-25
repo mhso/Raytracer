@@ -70,37 +70,46 @@ let allTest =
 
 
     //Tests that hitFunctions act as expected
-    //hmm a bit difficult t write unittests 
+    let rayHit =  Ray(Point(6., 3., 3.), Vector(-1., -0.5, -0.5))
+    let rayMiss =  Ray(Point(6., 3., 3.), Vector(1., -0.5, -0.5))
+    Assert.Equal((None,None,None), rectangle.hitFunction rayMiss, "hitFunction, rectangle, miss")
+    Assert.Equal((None,None,None), disc.hitFunction rayMiss, "hitFunction, disc, miss")
+    Assert.Equal((None,None,None), triangle.hitFunction rayMiss, "hitFunction, triangle, miss")
+    Assert.Equal((None,None,None), sphere.hitFunction rayMiss, "hitFunction, sphere, miss")
+    Assert.Equal((None,None,None), hollowCylinder.hitFunction rayMiss, "hitFunction, hollowCylinder, miss")
+    Assert.Equal((None,None,None), box.hitFunction rayMiss, "hitFunction, box, miss")
+
+    //Assert.Equal((Some(float),Some(Vector),Some(Material)), rectangle.hitFunction rayHit, "hitFunction, rectangle, hit")
+
 
 
     //Tests that toShape functions in BaseShape works
-    let toRectangle = baseRectangle.toShape (MatteMaterial(Colour(1.,1.,1.)))
-    let RectangleFromBase = toRectangle :?> RectangleFromBase
-    let toDisc = baseDisc.toShape (MatteMaterial(Colour(1.,1.,1.)))
-    let toTriangle = baseTriangle.toShape (MatteMaterial(Colour(1.,1.,1.)))
-    let toSphere = baseSphere.toShape (MatteMaterial(Colour(1.,1.,1.)))
-    let toCylinder = baseCylinder.toShape (MatteMaterial(Colour(1.,1.,1.)))
+    let toRectangle = baseRectangle.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> Rectangle
+    let toDisc = baseDisc.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> Disc
+    let toTriangle = baseTriangle.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> Triangle
+    let toSphere = baseSphere.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> SphereShape
+    let toHollowCylinder = baseHollowCylinder.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> HollowCylinder
 
     Assert.Equal(toRectangle.bottomLeft, Point(0.,0.,0.), "rectangle.bottomLeft")
     Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")
     Assert.Equal(rectangle.bottomRight, Point(1.,0.,0.), "rectangle.bottomRight")
 
-    Assert.Equal(disc.center, Point(0.,0.,0.), "disc.center")
-    Assert.Equal(disc.radius, 2., "disc.radius")
+    Assert.Equal(toDisc.center, Point(0.,0.,0.), "disc.center")
+    Assert.Equal(toDisc.radius, 2., "disc.radius")
 
-    Assert.Equal(triangle.a, Point(0.,0.,0.), "triangle.a")
-    Assert.Equal(triangle.b, Point(0.,1.,0.), "triangle.b")
-    Assert.Equal(triangle.c, Point(1.,0.,0.), "triangle.c")
+    Assert.Equal(toTriangle.a, Point(0.,0.,0.), "triangle.a")
+    Assert.Equal(toTriangle.b, Point(0.,1.,0.), "triangle.b")
+    Assert.Equal(toTriangle.c, Point(1.,0.,0.), "triangle.c")
 
-    Assert.Equal(sphere.Origin, Point(0.,0.,0.), "sphere.origin")
-    Assert.Equal(sphere.Radius, 2., "sphere.radius")
+    Assert.Equal(toSphere.Origin, Point(0.,0.,0.), "sphere.origin")
+    Assert.Equal(toSphere.Radius, 2., "sphere.radius")
 
-    Assert.Equal(hollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
-    Assert.Equal(hollowCylinder.radius, 2., "hollowCylinder.radius")
-    Assert.Equal(hollowCylinder.height, 4., "hollowCylinder.height")
+    Assert.Equal(toHollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
+    Assert.Equal(toHollowCylinder.radius, 2., "hollowCylinder.radius")
+    Assert.Equal(toHollowCylinder.height, 4., "hollowCylinder.height")
 
 
-
+    //Tests for finding texture coordinates
     
 
     //test that all shapes hitfunctions act as expected

@@ -5,7 +5,7 @@ open System.IO
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(7.,1.,1.)
+    let position = new Point(7.,4.,4.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -27,7 +27,7 @@ let main _ =
     let perfectReflection2 = new PerfectReflectionMaterial(1, sphereMaterialBlinnPhong, new Colour(1., 1., 1.), 1.)
     let perfectReflection3 = new PerfectReflectionMaterial(1, sphereMaterialSpecular, new Colour(1., 1., 1.), 1.)
     let perfectReflection4 = new PerfectReflectionMaterial(1, blinnPhongSharpGreen, new Colour(1., 1., 1.), 1.)
-    let glossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 50.)
+    let glossyMaterial1 = new GlossyMaterial(2., Colour.Green, rawMatte, 20, 30, 1, 50.)
     let niceShade = new MixedMaterial(rawMatte, phongShades, 0.5)
     let earthMaterial = new TexturedMaterial(niceShade, "C:/Users/Alexander-Laptop/source/repos/raytracer/resources/textures/earth.jpg")
     let perfectEarth = new CurryMaterial((fun a b -> a + b * 0.2),earthMaterial, perfectReflection)
@@ -61,10 +61,10 @@ let main _ =
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
     let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
 
-    let planeMaterial = new MatteMaterial(new Colour(0.5, 0.5, 0.2))
+    let planeMaterial = new MatteMaterial(new Colour(0.8, 0.2, 0.2))
     let planeMaterial2 = new PerfectReflectionMaterial(1, planeMaterial, new Colour(1., 1., 1.), 1.)
-    let planeGlossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 50.)
-    let infinitePlane = InfinitePlane(planeMaterial2)
+    let planeGlossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 2.)
+    let infinitePlane = InfinitePlane(planeGlossyMaterial1)
 
     let bLeft = new Point(0., 0., 0.)
     let tLeft = new Point(0., 1., 0.)
@@ -83,7 +83,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let shapes : Shape list = [triangle]
+    let shapes : Shape list = [infinitePlane; box]
 
     //- LIGHT SETTINGS
     let lightPosition = new Point(8.,-4.,0.)
