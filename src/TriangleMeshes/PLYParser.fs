@@ -23,7 +23,6 @@ let parseBool parser str =
 
 let WhiteSpace = pstring " "
 
-let test =
 
 let parsePLY (filepath:string) = 
     let sr = new StreamReader(filepath)
@@ -46,19 +45,36 @@ let parsePLY (filepath:string) =
                     nextLine <- sr.ReadLine()
                 let arraySizeParser = pstring "element vertex " >>. pint32
                 let arraySize = parse arraySizeParser nextLine
-                let triangleArray : float list array = Array.zeroCreate arraySize
+                let triangleArray = Array.zeroCreate arraySize
                 let isEndOfHeader s = parseBool (pstring "end_header") s
+                let readPropertyParser = 
+                    nextLine <- sr.ReadLine()
+                    let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
+                    while (startWithProperty nextLine) do
+                        printfn "is a property tag"
+                        nextLine <- sr.ReadLine()
+                readPropertyParser
+                let faceLength = parse (pstring "element face " >>. pint32) nextLine
+                let faceArray = Array.zeroCreate faceLength
+                nextLine <- sr.ReadLine()
                 while (not (isEndOfHeader nextLine)) do
-                    printfn "NOT IMPLEMENTED"
+                    //let isFaceValue = parseBool (pstring "element face" >> (anyString (nextLine.Length-12))) nextLine
+                    printfn "Final Property values"
                     nextLine <- sr.ReadLine()
                 for i in 0..triangleArray.Length-1 do
-                    nextLine <- sr.ReadLine()
                     nextLine <- nextLine.Substring(0,nextLine.Length-1)
                     let listFloatParser = (sepBy pfloat WhiteSpace)
                     let listFloat = parse listFloatParser nextLine
                     triangleArray.[i] <- listFloat
-                    let test = 
+                    nextLine <- sr.ReadLine()
                 printfn "Array Of Vertices done"
+                for i in 0..faceArray.Length-1 do 
+                    nextLine <- nextLine.Substring(0,nextLine.Length-1)
+                    let listIntParser = (sepBy pint32 WhiteSpace)
+                    let listInt = parse listIntParser nextLine
+                    faceArray.[i] <- listInt
+                    nextLine <- sr.ReadLine()
+                printfn "Array Of Face done"
                 //let triangleParse = pint32 >> WhiteSpace >>. sepBy pint32 WhiteSpace
             | _,true -> printfn ("BINARY START")
             | _,_ -> printfn ("WRONG FORMAT")
