@@ -81,7 +81,7 @@ let allTest =
 
     //Assert.Equal((Some(float),Some(Vector),Some(Material)), rectangle.hitFunction rayHit, "hitFunction, rectangle, hit")
 
-
+    
 
     //Tests that toShape functions in BaseShape works
     let toRectangle = baseRectangle.toShape (MatteMaterial(Colour(1.,1.,1.))) :?> Rectangle
