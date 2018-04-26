@@ -148,6 +148,18 @@ module ExprParse =
 
   let parseStr s = (scan >> insertMult >> parse) s
 
+  // requires a map of all the variables used in the expression, mapped to float values
+  let rec solveExpr m = function
+  | FNum c          -> c
+  | FVar s          -> match Map.tryFind s m with
+                       | Some v -> v
+                       | None   -> failwith "solveExpr: variable not found"
+  | FRoot(e1,n)     -> (solveExpr m e1)**(1. / (float n))
+  | FAdd(e1,e2)     -> solveExpr m e1 + solveExpr m e2
+  | FMult(e1,e2)    -> solveExpr m e1 * solveExpr m e2
+  | FDiv(e1,e2)     -> solveExpr m e1 / solveExpr m e2
+  | FExponent(e1,n) -> solveExpr m e1**(float n)
+
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")
     let genDot s n e = "digraph G {\nlabel=\"" + (fixStr s) + "\"\n" + n + e + "\n}"
@@ -172,5 +184,5 @@ module ExprParse =
                            (i2+1,Map.add (i2+1) (genNodeStr (i2+1) "^") nmap2,                            // Add node for "^"
                             Set.add (genEdgeStr (i2+1) i2) (Set.add (genEdgeStr (i2+1) i1) eset1))        // Add edges for "^"->e1 and "^"->ie
     let (_,nmap,eset) = genNE (0,Map.empty,Set.empty) ast  // Generate map for nodes and set for edges
-    genDot (sprintf "%A\n" ast) (Map.fold (fun acc _ s -> acc + s) "" nmap) (Set.fold (fun acc s -> acc + s) "" eset)  // Generate big string with dot-code.
+    genDot (sprintf "%A\n" ast) (Map.fold (fun acc _ s -> acc + s) "" nmap) (Set.fold (+) "" eset)  // Generate big string with dot-code.
     

@@ -2,12 +2,8 @@
 open Tracer.Basics
 
 module BVH = 
-
-    //#load Vector.fs
-    //#load Point.fs
-
-    (* TEMP SHAPE *)
-    type Shape = S of float
+    open System
+    open Tracer
 
     (* BVH TREE *)
     type BBox = { lowXYZ:Point; 
@@ -16,7 +12,7 @@ module BVH =
 
     (* BVH TREE *)
     type BVHtree = 
-        | Leaf of List<int>  
+        | Leaf of List<int> * BBox
         | Node of BVHtree * BVHtree * BBox * int
 
     let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
@@ -69,7 +65,7 @@ module BVH =
             value <- (2, z)
         value
 
-    let findAxisMinMaxValues (bBox : BBox) axis =
+    let findAxisMinMaxValues (bBox:BBox) axis =
         let (lowXYZ, highXYZ) = (bBox.lowXYZ, bBox.highXYZ);
         match axis with
         | 0 -> (lowXYZ.X, highXYZ.X)
@@ -80,7 +76,21 @@ module BVH =
     let rec getBoxArrFromIndexes (indexes:list<int>) (boxes:array<BBox>) : (array<BBox>) =
         [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
         
+ 
+    //Temporary Intersect-function. Use Alexanders when available.
+    let intersect (box:BBox)(r:Ray) = 
+        let tx = if r.GetDirection.X >= 0.0 then (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X
+        let tx' = if r.GetDirection.X >= 0.0 then (box.highXYZ.X - r.GetOrigin.X)/r.GetDirection.X else (box.lowXYZ.X - r.GetOrigin.X)/r.GetDirection.X
+        let ty = if r.GetDirection.Y >= 0.0 then (box.lowXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y else (box.highXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let ty' = if r.GetDirection.Y >= 0.0 then (box.highXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y else (box.lowXYZ.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let tz = if r.GetDirection.Z >= 0.0 then (box.lowXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z else (box.highXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z
+        let tz' = if r.GetDirection.Z >= 0.0 then (box.highXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z else (box.lowXYZ.Z - r.GetOrigin.Z)/r.GetDirection.Z
 
+        let t = max tx (max ty tz)
+        let t' = min tx' (min ty' tz')
+        if t < t' && t' > 0.0 then Some(t, t')
+        else None
+ // ######################### BUILD BVH TREE #########################
     let buildBVHTree (boxes:array<BBox>) : BVHtree = 
         if boxes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
         let boxIntList = [0..boxes.Length-1]
@@ -88,6 +98,9 @@ module BVH =
             let boxArr = getBoxArrFromIndexes intIndexes boxes
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+            let box = {  lowXYZ = lowPoint;
+                             highXYZ = highPoint;
+                    } 
             let treeLevel = treeLevel + 1
             //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
@@ -97,9 +110,8 @@ module BVH =
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
-                let box = {  lowXYZ = lowPoint;
-                             highXYZ = highPoint;
-                    }
+                
+                printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
                 //printfn "Add new inner Nodes... Lists lenght: "
                 //printfn "intIndexes.Length: %i " intIndexes.Length
                 //printfn "boxArr.Length: %i " boxArr.Length
@@ -113,52 +125,83 @@ module BVH =
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
                 //printfn "Add new inner Leaf... Value: %O" c
-                Leaf c
+                Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNodeTree boxIntList 0
-            
-
-
-        
+ 
+ 
+  // ######################### TRAVERSAL BVH TREE #########################
 
     // swaps the order if d is not positive
-    // type Order () = int -> Node -> Node
-    //let order d left right = 
-    //    match d with
-    //    | d when d > 0 -> (left, right)
-    //    | _            -> (right, left)
+    let order d (left:BVHtree) (right:BVHtree) = 
+        match d with
+        | d when d > 0 -> (left, right)
+        | _            -> (right, left)
 
-    // let search node ray tmax = Some hit
+    // Checking for tree leaf.
+    let isLeaf = function
+    | Leaf (_,_) -> true
+    | _ -> false
 
-    //let getRayDirectionValue (ray:Ray) (axis:int) =
-    //    match axis with
-    //    | 0 -> (int ray.GetDirection.X)
-    //    | 1 -> (int ray.GetDirection.Y)
-    //    | 2 -> (int ray.GetDirection.Z)
-    //    | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
+    let getRayDirectionValue (ray:Ray) (axis:int) =
+        match axis with
+        | 0 -> (int ray.GetDirection.X)
+        | 1 -> (int ray.GetDirection.Y)
+        | 2 -> (int ray.GetDirection.Z)
+        | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
-    //let searchNode node ray tmax = 
-    //    let (fst, snd) = order (getRayDirectionValue ray getAxis node) node.left node.right
-    //    (fst, snd)
-    // if search(fst, ray, tmax) = Some hit then
-    //    if search(fst, ray, hit.distance) = Some hit2 then
-    //     Some hit2
-    //    else
-    //     Some hit
-    // else
-    //     search(snd, ray tmax)
+    // Get bounding box from tree element.
+    let getBbox (tree:BVHtree) : BBox = 
+        match tree with
+        | Node (_,_,bbox,_) -> bbox
+        | Leaf (_, bbox) -> bbox
+    
+    let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
+        match treeNode with
+        | Leaf (shapesRef, _) -> 
+                            let mutable closestShape = None
+                            let mutable closestDist = infinity
+                            for shapeRef in shapesRef do
+                                let hit = shapes.[shapeRef].hitFunction ray
+                                let dist = hit.Time
+                                if dist < closestDist then
+                                    closestDist <- dist
+                                    closestShape <- Some shapes.[shapeRef]
+                            closestShape
+        | _ -> None
 
+    let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =     
+        let value = intersect (getBbox treeNode) ray
+        match value with  
+        | Some (t, t')  -> if (t<tmax) then 
+                                if isLeaf treeNode then
+                                    let checkForHit = (closestHit treeNode ray shapes)
+                                    match checkForHit with
+                                    | Some hitFound -> 
+                                        let hit = hitFound.hitFunction ray
+                                        if hit.Time < tmax then Some hitFound
+                                        else None
+                                    | None -> None
+                                else 
+                                    match treeNode with
+                                    | Node (left, right, _, _) ->
+                                        let first = search left ray shapes tmax
+                                        let second = search right ray shapes tmax
+                                        match first with
+                                        | Some hitFound1 ->
+                                                let hit1 = hitFound1.hitFunction ray
+                                                let result2 = search treeNode ray shapes hit1.Time
+                                                match result2 with
+                                                | Some hitFound2 -> 
+                                                    Some hitFound2
+                                                | _ -> Some hitFound1
+            
+                                        | None -> search treeNode ray shapes tmax
+                                    | _ -> None
+                            else None
+        | None -> None
 
-    //let isLeaf input =
-    //    match input with
-    //    | input when (input :? Leaf) -> true
-    //    | _ -> false
-
-    //let isClosetHit [] ray = failWith "Not implemented"
-
-    //let intersect bbox ray = failWith "Not implemented"
-
-    //let traverse(bvh, ray) = failWith "Not implemented" //search(bvh.root, ray, 1)
-
-    //let search node ray tmax = failWith "Not implemented"
+    let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) = 
+        search treeNode ray shapes infinity
+        
         
