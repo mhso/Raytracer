@@ -5,7 +5,9 @@ open FParsec
 
 [<EntryPoint>]
 let main argv = 
-    let result = PLYParser.parse PLYParser.stringToFloatList "-0.0378297 0.12794 0.00447467 0.850855 0.5 "
-    printfn "%A" result
+    let answer = PLYParser.parsePLY @"C:\Users\mathi\Documents\GIT-ITU\Working\raytracer\resources\ply\urn2.ply"
+    //laptop: C:\Users\mathi\Documents\GIT-ITU\Working\raytracer
+    //Desktop: D:\Users\Mathias\Documents\GIT-ITU\SecondYearProject\raytracer\resources\ply\bunny.ply
+    //printfn "%A" answer
     System.Console.ReadKey() |> ignore
     0 // return an integer exit code
