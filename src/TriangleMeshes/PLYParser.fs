@@ -5,16 +5,23 @@ open System.IO
 
 type UserState = unit
 type Parser<'t> = Parser<'t,UserState>
-type Vertex(x,y,z) = 
+
+
+type Vertex(x,y,z,nx, ny, nz, u, v) = 
     member this.x = x
     member this.y = y
     member this.z = z
+    member this.nx = nx
+    member this.ny = ny
+    member this.nz = nz
+    member this.u = u
+    member this.v = v
 
 
 let parse parser str = 
     match run parser str with
     | Success(result,_,_) ->  result
-    | Failure (errorMsg,_,_) ->  failwith("WRONG FORMAT")
+    | Failure (errorMsg,_,_) ->  failwith(errorMsg)
 
 let parseBool parser str = 
     match run parser str with
@@ -22,7 +29,6 @@ let parseBool parser str =
     | Failure (_,_,_) ->  false
 
 let WhiteSpace = pstring " "
-
 
 let parsePLY (filepath:string) = 
     let sr = new StreamReader(filepath)
@@ -47,12 +53,25 @@ let parsePLY (filepath:string) =
                 let arraySize = parse arraySizeParser nextLine
                 let triangleArray = Array.zeroCreate arraySize
                 let isEndOfHeader s = parseBool (pstring "end_header") s
+                let vertexPosition : int array = Array.zeroCreate 8
                 let readPropertyParser = 
+                    let mutable i = 0
                     nextLine <- sr.ReadLine()
                     let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
                     while (startWithProperty nextLine) do
-                        printfn "is a property tag"
+                        let endChars = nextLine.Substring(nextLine.Length-2)
+                        match endChars with
+                            | " x" -> vertexPosition.[0] <- i
+                            | " y" -> vertexPosition.[1] <- i
+                            | " z" -> vertexPosition.[2] <- i
+                            | "nx" -> vertexPosition.[3] <- i
+                            | "ny" -> vertexPosition.[4] <- i
+                            | "nz" -> vertexPosition.[5] <- i
+                            | " u" -> vertexPosition.[6] <- i
+                            | " v" -> vertexPosition.[7] <- i
+                            | _ -> printfn "not used propertyTag"
                         nextLine <- sr.ReadLine()
+                        i <- i + 1
                 readPropertyParser
                 let faceLength = parse (pstring "element face " >>. pint32) nextLine
                 let faceArray = Array.zeroCreate faceLength
@@ -65,6 +84,10 @@ let parsePLY (filepath:string) =
                     nextLine <- nextLine.Substring(0,nextLine.Length-1)
                     let listFloatParser = (sepBy pfloat WhiteSpace)
                     let listFloat = parse listFloatParser nextLine
+                    //let findVertex (a: int array) (b : float list)= 
+                    //    printfn "%A" a
+                        
+                    //    new Vertex (b.[a.[0]], b.[a.[1]], b.[a.[2]], b.[a.[3]], b.[a.[4]], b.[a.[5]], b.[a.[6]], b.[a.[7]])
                     triangleArray.[i] <- listFloat
                     nextLine <- sr.ReadLine()
                 printfn "Array Of Vertices done"
