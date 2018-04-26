@@ -9,6 +9,8 @@ let main argv =
     let before = new System.TimeSpan()
     printfn("-=-=-=-=-=-=- BVH Test -=-=-=-=-=-=-")
     BVHTest.allTest
+    printfn("-=-=-=-=-=-=- KD-Tree Test -=-=-=-=-=-=-")
+    KDTest.allTest
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
     printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")
