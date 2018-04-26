@@ -35,10 +35,7 @@ type Scene(spheres: Shape list, camera: Camera, lights: Light list) =
         let mutable loadingIndex = 0
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
-                let rayOrigin = vpc + (float(x)-camera.Width/2.) * pw * u + float(float(y)-camera.Height/2.)*ph*v
-                let rayDirection = (rayOrigin - camera.Position).Normalise
-                let ray = new Ray(camera.Position,rayDirection)
-                let colour = ray.Cast backgroundColour lights spheres
+                camera.Cast x y
                 let pct = int((float (x*y)/total) * 100.0)
 
                 // Progress bar!!!
