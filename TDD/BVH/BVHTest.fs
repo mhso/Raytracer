@@ -23,8 +23,7 @@ let allTest =
     let bBox06 = {  lowXYZ = Point(2.0, y = 2.0, z = 2.0);
                     highXYZ = Point(3.0, y = 3.0, z = 3.0);
                     }
-    let bBox07 = {  
-                    lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
+    let bBox07 = {  lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
                     highXYZ = Point(2.0, y = 2.0, z = 2.0);
                     }
     let bBox08 = {  highXYZ = Point(1.0, y = 1.0, z = 1.0);
@@ -141,3 +140,10 @@ let allTest =
 
         Assert.Equal (expectedSmall,tree,"testBuildBVHTree")
     testBuildBVHTree
+
+// ----------------------------- TEST BEGIN -----------------------------
+    //let testTraverse (testBVHDataInputSmall) = 
+    //    let tree = buildBVHTree (testBVHDataInputSmall)
+    //    let ray = Ray(Point(0.0,0.0,0.0), Vector(1.,2.,3.))
+    //    let shapes = [Shape()] 
+    //    let result = traverse tree ray shapes infinity
