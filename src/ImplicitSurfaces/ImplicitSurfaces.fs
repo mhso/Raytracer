@@ -6,17 +6,7 @@ module Main =
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Tracer.Basics
 
-  type Vector = Tracer.Basics.Vector
-  type Point = Tracer.Basics.Point
-
-  type Ray(o: Point, d: Vector) = 
-    member this.GetOrigin = o
-    member this.GetDirection = d.Normalise
-    // Returns a point from a given time/length of the ray
-    member this.PointAtTime (t:float) = 
-        o + (t * d)
-
-  type hf = Ray -> (float * Vector) option
+  type hf = Ray -> (float * Vector * Material) option
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -93,9 +83,8 @@ module Main =
       let b = solveSimpleExpr m bSimple
       let t = (-b) / a
       if t < 0.0 then None
-      else Some (t, derivative (r.PointAtTime t) dx dy dz)
-
-    hitFunction    
+      else Some (t, derivative (r.PointAtTime t) dx dy dz, MatteMaterial(Colour.Black))
+    hitFunction
 
   let getSecondDegreeHF (P m) e = 
     let aSimple = match Map.tryFind 2 m with
@@ -123,8 +112,7 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', derivative hp dx dy dz)
-
+          Some (t', derivative hp dx dy dz, MatteMaterial(Colour.White))
     hitFunction
 
   let mkImplicit (s:string) : hf =

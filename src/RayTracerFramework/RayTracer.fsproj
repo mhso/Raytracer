@@ -58,9 +58,9 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
     <Compile Include="API.fsi" />
-    <Compile Include="API.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="API.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
