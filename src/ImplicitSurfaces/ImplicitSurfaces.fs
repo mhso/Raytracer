@@ -128,8 +128,8 @@ module Main =
     hitFunction
 
   let mkImplicit (s:string) : hf =
-    let exp = parseStr s
-    let (P m) = (substWithRayVars >> exprToPoly) exp "t"
+    let exp = parseStr s // parsing the equation string to expression
+    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
     match getOrder m with
     | 1     -> getFirstDegreeHF (P m) exp
     | 2     -> getSecondDegreeHF (P m) exp
