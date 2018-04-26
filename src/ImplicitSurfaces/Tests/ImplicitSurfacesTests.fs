@@ -3,9 +3,25 @@ namespace Tests
 module ImplicitSurfacesTests =
 
   open Tests.Assert
-  
+  open Tracer.ImplicitSurfaces.ExprParse
+  open Tracer.ImplicitSurfaces.ExprToPoly
+  open Tracer.ImplicitSurfaces.Main
   let allTests =
-  0
+   
+    let test01 = 
+     let input = "2*y^2*x^2*z^2"
+     let actualX = ppPoly "" (exprToPoly (partial "x" (parseStr input)) "")
+     let actualY = ppPoly "" (exprToPoly (partial "y" (parseStr input)) "")
+     let actualZ = ppPoly "" (exprToPoly (partial "z" (parseStr input)) "")
+     
+     let expectedX = "(4*x*y^2*z^2)"
+     let expectedY = "(4*x^2*y*z^2)"
+     let expectedZ = "(4*x^2*y^2*z)"     
+     Assert.Equal actualX expectedX "derivativeTest01: with respect to x"
+     Assert.Equal actualY expectedY "derivativeTest01: with respect to y"
+     Assert.Equal actualZ expectedZ "derivativeTest01: with respect to z"
+
+    test01   
 
   (* Test string
 
