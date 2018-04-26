@@ -137,7 +137,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
                                                                                             else this.determineHitPoint r t1
 
 
-type SolidCylinder(center:Point, radius:float, height:float, cylinder:texture, top:texture, bottom:texture) =
+type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
     inherit Shape()
     member this.center = center
     member this.radius = radius
