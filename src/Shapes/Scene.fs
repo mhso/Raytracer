@@ -5,6 +5,7 @@ open System
 open System.Drawing
 open System.Diagnostics
 
+
 type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) = 
     let shapes = shapes
     let camera = camera

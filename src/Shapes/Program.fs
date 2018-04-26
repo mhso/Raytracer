@@ -6,7 +6,7 @@ open Tracer.Basics
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(7.,7.,7.)
+    let position = new Point(5.,5.,5.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -35,9 +35,13 @@ let main _ =
     let high = new Point(1., 1., 1.)
     let boxMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let boxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.))
+    let boxMaterial3 = new MatteMaterial(new Colour(1., 0., 1.))
+    let boxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.))
+    let boxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.))
+    let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
-    let box = new Box(low, high, boxMaterial, boxMaterial, boxMaterial, boxMaterial, boxMaterial, boxMaterial2)
+    let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
 
     let planeMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let infinitePlane = InfinitePlane(planeMaterial)
@@ -61,7 +65,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let shapes : Shape list = [sphere]
+    let shapes : Shape list = [infinitePlane]
 
 
     //- LIGHT SETTINGS

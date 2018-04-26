@@ -11,6 +11,8 @@ let main argv =
     BVHTest.allTest
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
+    printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")
+    ShapeTest.allTest
     printfn ""
     printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
     SamplingTest.allTest
