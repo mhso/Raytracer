@@ -65,7 +65,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let shapes : Shape list = [box]
+    let shapes : Shape list = [infinitePlane]
 
 
     //- LIGHT SETTINGS

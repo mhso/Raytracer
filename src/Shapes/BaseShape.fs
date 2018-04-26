@@ -1,7 +1,6 @@
 ﻿namespace Tracer.BaseShape
 
 open Tracer.Basics
-open Tracer.Shapes
 
 
 [<AbstractClass>]
@@ -11,7 +10,7 @@ type BaseShape()=
 
 type BaseRectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point)=
     inherit BaseShape()
-    member this.bottomleft = bottomLeft
+    member this.bottomLeft = bottomLeft
     member this.topLeft = topLeft
     member this.bottomRight = bottomRight
     member this.width = bottomRight.X - bottomLeft.X

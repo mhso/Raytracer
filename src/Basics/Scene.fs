@@ -8,7 +8,7 @@ type Scene(spheres: Shape list, camera: Camera, lights: Light list) =
     let spheres = spheres
     let camera = camera
     let lights = lights
-    let backgroundColour = new Colour(1., 1., 1.)
+    let backgroundColour = new Colour(0., 0., 0.)
     member this.Spheres = spheres
     member this.Camera = camera
     member this.Lights = lights
@@ -29,12 +29,29 @@ type Scene(spheres: Shape list, camera: Camera, lights: Light list) =
         let vpc = camera.Position - n    
 
         // Shoot rays and render image
+        let total = float (camera.ResX * camera.ResY)
+        let mutable currPct = 0
+        let loadingSymbols = [|"|"; "/"; "―"; "\\"; "|"; "/"; "―"; "\\"|]
+        let mutable loadingIndex = 0
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
                 let rayOrigin = vpc + (float(x)-camera.Width/2.) * pw * u + float(float(y)-camera.Height/2.)*ph*v
                 let rayDirection = (rayOrigin - camera.Position).Normalise
                 let ray = new Ray(camera.Position,rayDirection)
                 let colour = ray.Cast backgroundColour lights spheres
+                let pct = int((float (x*y)/total) * 100.0)
+
+                // Progress bar!!!
+                if pct > currPct then 
+                    Console.Clear()
+                    printf "%s" ("Rendering: " + loadingSymbols.[loadingIndex] + " |")
+                    currPct <- pct
+                    let dots = String.replicate (currPct/2) "█"
+                    let white = String.replicate (50-(currPct/2)) "░"
+                    loadingIndex <- loadingIndex + 1
+                    if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
+                    printf "%s" (dots + white)
+                    printf "%s"  ("| " + string pct + "%")
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         // Save image

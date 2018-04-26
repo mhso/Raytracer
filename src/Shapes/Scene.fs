@@ -5,6 +5,7 @@ open System
 open System.Drawing
 open System.Diagnostics
 
+
 type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) = 
     let shapes = shapes
     let camera = camera
@@ -49,7 +50,7 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
                 //&& ray.GetDirection.Z <> 0.0
 
                 //printfn "%A" ray.GetDirection.X
-
+                (*
                 for s in shapes do
                     match s.hitFunction ray with
                     |(None,None,None) ->  tSmallest |> ignore
@@ -60,6 +61,7 @@ type SceneShapes(shapes: Shape list, camera: Camera, lights: Light list) =
                     //shoot ray at all shapes, if t < tsmallest, update the mutable values. 
                     //might want to do this without the mutable values
                 //let colour = ray.Cast backgroundColour lights shapes
+                *)
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         // Save image
