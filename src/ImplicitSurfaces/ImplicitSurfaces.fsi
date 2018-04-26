@@ -4,7 +4,7 @@ module Main =
 
   open Tracer.Basics
 
-  type hf = Ray -> (float * Vector) option
+  type hf = Ray -> (float * Vector * MatteMaterial) option
 
   type shape =
     abstract hf : hf
@@ -12,4 +12,4 @@ module Main =
   type baseShape =
     abstract mkShape : TexturedMaterial -> shape
 
-  val mkImplicit : string -> baseShape
+  val mkImplicit : string -> shape

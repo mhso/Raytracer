@@ -20,7 +20,7 @@ module SimpleTracer =
                    (fileName : string)     // Name of the file to save the rendered image
                    : unit =
 
-    let bm = new System.Drawing.Bitmap (resX, resY)
+    let bm = new Bitmap (resX, resY)
 
     let pixelWidth = width / float resX
     let pixelHeight = height / float resY
@@ -28,12 +28,12 @@ module SimpleTracer =
     // the direction vector for the camera and the view plane
     let camDirection =
       let (lx, ly, lz) = lookat.X, lookat.Y, lookat.Z
-      let (px, py, pz) = Point.getCoord position
-      mkVector (lx - px) (ly - py) (lz - pz)
+      let (px, py, pz) = position.X, position.Y, position.Z
+      Vector (lx - px, ly - py, lz - pz)
 
     // the view plane
-    let w = Vector.normalise camDirection
-    let u = Vector.normalise (up % w) // we need the crossProduct
+    let w = camDirection.Normalise
+    let u = (up % w).Normalise // we need the crossProduct
     let v = w % u // this is already normalised, since w and u are
     
     // loops to traverse our bitmap, and paint the individual pixel
@@ -44,23 +44,17 @@ module SimpleTracer =
         // the rayray
         let ray = (position, (px * u) + (py * v) - (zoom * w))
         // fire the cannon!!
-        if (hitSphere ray radius) then bm.SetPixel(x, y, colour)
-        else bm.SetPixel(x, y, Color.Black)
+        //if (hitSphere ray radius) then bm.SetPixel(x, y, colour)
+        //else
+        bm.SetPixel(x, y, Color.Black)
     // save the bitmap as a png
     bm.Save("output/"+fileName)
-
+    (*
   [<EntryPoint>]
   let main argv = 
-
       // red sphere, with the camera in front of it
-      renderSphere 2.0 Color.Red (mkPoint 0.0 0.0 4.0) (mkPoint 0.0 0.0 0.0) (mkVector 0.0 1.0 0.0) 1.0 2.0 2.0 512 512 "front.png"
+      renderSphere 2.0 Colour.Red (Point(0.0, 0.0, 4.0)) (Point(0.0, 0.0, 0.0)) (Vector(0.0, 1.0, 0.0)) 1.0 2.0 2.0 512 512 "front.png"
       // larger golden sphere, with the camera in front of it
-      renderSphere 3.0 Color.Gold (mkPoint 0.0 0.0 4.0) (mkPoint 0.0 0.0 0.0) (mkVector 0.0 1.0 0.0) 1.0 2.0 2.0 512 512 "big.png"
-      // green sphere, with the camera in front of it
-      renderSphere 2.0 Color.Green (mkPoint 0.0 0.0 4.0) (mkPoint 0.0 2.0 0.0) (mkVector 0.0 1.0 0.0) 1.0 2.0 2.0 512 512 "up.png"
-      // blue sphere, with the camera inside of it
-      renderSphere 2.0 Color.Blue (mkPoint 0.0 0.0 0.0) (mkPoint 0.0 0.0 -4.0) (mkVector 0.0 1.0 0.0) 1.0 2.0 2.0 512 512 "inside.png"
-      // yellow sphere, with the camera behind it (pointing in the other direction)
-      renderSphere 2.0 Color.Yellow (mkPoint 0.0 0.0 -4.0) (mkPoint 0.0 0.0 -8.0) (mkVector 0.0 1.0 0.0) 1.0 2.0 2.0 512 512 "behind.png"
-
       0
+
+      *)

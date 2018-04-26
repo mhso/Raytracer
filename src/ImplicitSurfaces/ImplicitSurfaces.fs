@@ -6,7 +6,11 @@ module Main =
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Tracer.Basics
 
-  type hf = Ray -> (float * Vector * Material) option
+  type hf = Ray -> (float * Vector * MatteMaterial) option
+  type shape =
+    abstract hf : hf
+  type baseShape =
+    abstract mkShape : TexturedMaterial -> shape
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -76,14 +80,15 @@ module Main =
     let dx = partial "x" e
     let dy = partial "y" e
     let dz = partial "z" e
-
     let hitFunction (r:Ray) =
       let m = getVarMap r
       let a = solveSimpleExpr m aSimple
       let b = solveSimpleExpr m bSimple
       let t = (-b) / a
       if t < 0.0 then None
-      else Some (t, derivative (r.PointAtTime t) dx dy dz, MatteMaterial(Colour.Black))
+      else 
+        let c = new Colour(1.,1.,1.)
+        Some (t, derivative (r.PointAtTime t) dx dy dz, MatteMaterial(new Colour(1.,1.,1.)))
     hitFunction
 
   let getSecondDegreeHF (P m) e = 
@@ -99,7 +104,6 @@ module Main =
     let dx = partial "x" e
     let dy = partial "y" e
     let dz = partial "z" e
-
     let hitFunction (r:Ray) =
       let m = getVarMap r
       let a = solveSimpleExpr m aSimple
@@ -112,16 +116,23 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', derivative hp dx dy dz, MatteMaterial(Colour.White))
+          Some (t', derivative hp dx dy dz, MatteMaterial(Colour.Black))
     hitFunction
 
-  let mkImplicit (s:string) : hf =
+  let mkImplicit (s:string) : shape =
     let exp = parseStr s // parsing the equation string to expression
     let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
-    match getOrder m with
-    | 1     -> getFirstDegreeHF (P m) exp
-    | 2     -> getSecondDegreeHF (P m) exp
-    | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let hitfunction =
+      match getOrder m with
+      | 1     -> getFirstDegreeHF (P m) exp
+      | 2     -> getSecondDegreeHF (P m) exp
+      | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let sh = { new shape with
+                member this.hf = hitfunction
+                }
+    sh
+
+                
 
 (*
   [<EntryPoint>]

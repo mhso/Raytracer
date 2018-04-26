@@ -47,8 +47,6 @@ let parsePLY (filepath:string) =
                 nextLine <- sr.ReadLine()
                 let isComment (s:string) = parseBool (pstring "comment" .>> (anyString (s.Length-7))) s
                 while (isComment nextLine) do 
-                    printfn "%A" nextLine
-                    nextLine <- sr.ReadLine()
                 let arraySizeParser = pstring "element vertex " >>. pint32
                 let arraySize = parse arraySizeParser nextLine
                 let triangleArray = Array.zeroCreate arraySize
