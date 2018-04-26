@@ -79,7 +79,7 @@ module Main =
   let getFirstDegreeHF (P m) e : hf =
     let aSimple = match Map.tryFind 1 m with
                   | Some v -> v
-                  | None   -> Se []
+                  | None   -> SE []
     let bSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
