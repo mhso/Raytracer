@@ -5,10 +5,9 @@ open Tracer.Basics
 
 [<AbstractClass>]
 type Shape()=
-    abstract member getTextureCoords: Point -> float*float
     abstract member hitFunction: Ray -> float option*Vector option*Material option
-
-
+    // abstract member hitFunction: Ray -> (float * Vector * Texture) option
+    // abstract member getUV: Point -> float * float
 
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     inherit Shape()
@@ -18,7 +17,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
     member this.tex = tex
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
-    override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+    //override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
     override this.hitFunction (r:Ray) = match r with
                                              |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
                                              |(r) when (-((r.GetOrigin.Z) / (r.GetDirection.Z))) <= 0.0 -> (None, None, None) //This checks if t is 0 or smaller, in which case there is no hit
@@ -35,10 +34,12 @@ type Disc(center:Point, radius:float, tex:Material)=
     member this.center = center
     member this.radius = radius
     member this.tex = tex
+    (*
     override this.getTextureCoords (p:Point) = 
         let u = (p.X + radius)/(2.*radius)
         let v = (p.Y + radius)/(2.*radius)
         (u, v)
+    *)
     override this.hitFunction (r:Ray) = match r with
                                              |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
                                              |(r) when (-((r.GetOrigin.Z) / (r.GetDirection.Z))) <= 0.0 -> (None, None, None) //This checks if t is 0 or smaller, in which case there is no hit
@@ -46,7 +47,10 @@ type Disc(center:Point, radius:float, tex:Material)=
                                                      let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                                                      let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
                                                      if (((px*px)+(py*py)) <= radius*radius) 
-                                                         then (Some(t),Some(new Vector(0.0, 0.0, 1.0)),Some(tex)) else (None, None, None) //needs to return texture somehow
+                                                         then 
+                                                            let u = (px + radius)/(2.*radius)
+                                                            let v = (py + radius)/(2.*radius)
+                                                            (Some(t),Some(new Vector(0.0, 0.0, 1.0)),Some(tex)) else (None, None, None) //needs to return texture somehow
     
 
 
@@ -64,11 +68,11 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
 
     //no method for returning texture coords are given by the lecture notes....
     //seems to be under triangle meshes (perhaps texturing)
-    override this.getTextureCoords (p:Point) = 
+    //override this.getTextureCoords (p:Point) = 
         //let uCoord =
         //let vCoord =
         //(uCoord, vCoord)
-        (0., 0.)
+        //(0., 0.)
 
     //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = let pa = ((a.X)-(b.X))
@@ -101,8 +105,8 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.Material = tex
-
-    override this.getTextureCoords (p:Point) = 
+    
+    member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
         let theta = Math.Acos n.Y
         let phiNot = Math.Atan2(n.X, n.Z)
@@ -110,7 +114,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
         let u = phi / (2. * Math.PI)
         let v = 1.0-(theta / Math.PI)
         (u, v)
-
+    
     member this.NormalAtPoint (p:Point):Vector = 
         (p - origin).Normalise
     member this.GetDiscriminant (ray:Ray) = 
@@ -129,8 +133,9 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             let sv = s * rayDir
             let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            if t1 < t2 then (Some(t1), Some(this.NormalAtPoint (r.PointAtTime t1)), Some(tex)) 
-            else (Some(t2), Some(this.NormalAtPoint (r.PointAtTime t2)), Some(tex))
+
+            if t1 < t2 then (Some(t1), Some(this.NormalAtPoint (r.PointAtTime t1)), Some(tex)) //this.getTextureCoords (r.PointAtTime t1))
+            else (Some(t2), Some(this.NormalAtPoint (r.PointAtTime t2)), Some(tex)) //this.getTextureCoords (r.PointAtTime t2))
 
 
 
@@ -141,7 +146,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
     member this.height = height
     member this.tex = tex
 
-    override this.getTextureCoords (p:Point) = 
+    member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
@@ -154,7 +159,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        if p.Y > -(height/2.0) && p.Y < (height/2.0) then (Some(t), Some(new Vector(p.X/radius, 0.0, p.Z/radius)), Some(tex)) else (None, None, None)
+        if p.Y > -(height/2.0) && p.Y < (height/2.0) then (Some(t), Some(new Vector(p.X/radius, 0.0, p.Z/radius)), Some(tex)) else (None, None, None) //this.getTextureCoords (r.PointAtTime t)
 
     override this.hitFunction (r:Ray) = 
         let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
@@ -164,7 +169,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
         let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
         let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
         match D with
-        |(0.0) -> match (t1,t2) with
+        |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
                   |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> (None, None, None)
                   |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
         |(D) when D < 0.0 -> (None, None, None)
@@ -183,7 +188,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.top = top
     member this.bottom = bottom
 
-    override this.getTextureCoords (p:Point) = NotImplementedException()
+    member this.getTextureCoords (p:Point) = //NotImplementedException()
                                                (0.0, 0.0)
 
     override this.hitFunction (r:Ray) = (None, None, None)
@@ -202,7 +207,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.left = left
     member this.right = right
 
-    override this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes ae not detailed about how i should construct this (p. 37)
+    member this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
         let width = high.X - low.X
         let height = high.Y - low.Y
         ((p.X / width), (p.Y / height))
@@ -244,10 +249,12 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
 type InfinitePlane(tex:Material) = 
     inherit Shape()
     member this.tex = tex
-    override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
+    //override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
-        if r.GetDirection.Z <> 0.0 && t > 0.0 then (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None)
+        if r.GetDirection.Z <> 0.0 && t > 0.0 then 
+                                                let p = r.PointAtTime t
+                                                (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None) //(p.X), (p.Y)
 
 
 
