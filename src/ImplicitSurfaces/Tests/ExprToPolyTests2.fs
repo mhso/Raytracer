@@ -14,87 +14,87 @@ module ExprToPolyTests2 =
 
     // case 1:
     let test01 = 
-      let actual = simplify (rewriteExpr (parseStr "e^0"))
+      let actual = (rewriteExpr << parseStr) "e^0"
       let expected = [[ANum 1.0]]
-      Assert.Equal actual expected "rewriteRule1: e^0 = 1"
+      Assert.Equal actual expected "rewriteExpr1: e^0 = 1"
 
     // case 2:
     let test02 =
-      let actual = simplify (rewriteExpr (parseStr "e^1"))
+      let actual = (rewriteExpr << parseStr) "e^1"
       let expected = [[AExponent ("e",1)]]
-      Assert.Equal actual expected "rewriteRule2: e^1 = e"
+      Assert.Equal actual expected "rewriteExpr2: e^1 = e"
 
     // case 3:
     let test03 =
-      let actual = simplify (rewriteExpr (parseStr "e^3"))
+      let actual = (rewriteExpr << parseStr) "e^3"
       let expected = [[AExponent ("e",1);AExponent ("e",1);AExponent ("e",1)]]
-      Assert.Equal actual expected "rewriteRule3: e^3 = e*e*e"
+      Assert.Equal actual expected "rewriteExpr3: e^3 = e*e*e"
 
     // case 4:
     let test04 = 
-      let actual = simplify (rewriteExpr (parseStr "e1*(e2 + e3)"))
+      let actual = (rewriteExpr << parseStr) "e1*(e2 + e3)"
       let expected = [[AExponent ("e2",1);AExponent ("e1",1)];[AExponent ("e3",1);AExponent ("e1",1)]]
-      Assert.Equal actual expected "rewriteRule4: e1*(e2+e3) = e2 * e1 + e3 * e1"
+      Assert.Equal actual expected "rewriteExpr4: e1*(e2+e3) = e2 * e1 + e3 * e1"
 
     // case 4:
     let test05 =
-      let actual = simplify (rewriteExpr (parseStr "(e2 + e3) * e1"))
+      let actual = (rewriteExpr << parseStr) "(e2 + e3) * e1"
       let expected = [[AExponent ("e1",1);AExponent ("e2",1)];[AExponent ("e1",1);AExponent ("e3",1)]]
-      Assert.Equal actual expected "rewriteRule4: Mult on right side"
+      Assert.Equal actual expected "rewriteExpr4: Mult on other side"
 
     // case 5:
     let test06 =
-      let actual = simplify (rewriteExpr (parseStr "e1 * (e2 - e3)"))
+      let actual = (rewriteExpr << parseStr) "e1 * (e2 - e3)"
       let expected = [[AExponent ("e2",1);AExponent ("e1",1)];[AExponent ("e3",1);ANum -1.0;AExponent ("e1",1)]]
-      Assert.Equal actual expected "rewriteRule5: e1 * (e2 - e3) = e1 * e2 - e1 * e3"
+      Assert.Equal actual expected "rewriteExpr5: e1 * (e2 - e3) = e1 * e2 - e1 * e3"
 
     // case 5:
     let test07 =
-      let actual = simplify (rewriteExpr (parseStr "(e2 - e3) * e1"))
+      let actual = (rewriteExpr << parseStr) "(e2 - e3) * e1"
       let expected = [[AExponent ("e1",1);AExponent ("e2",1)];[AExponent ("e1",1);AExponent ("e3",1);ANum -1.0]]
-      Assert.Equal actual expected "rewriteRule5: Mult on right side"
+      Assert.Equal actual expected "rewriteExpr5: Mult on other side"
 
     // case 6:
     let test08 =
-      let actual = simplify (rewriteExpr (parseStr "e1 * (e2 / (e3 + 1))"))
+      let actual = (rewriteExpr << parseStr) "e1 * (e2 / (e3 + 1))"
       let expected = [[AExponent("e2",1);AExponent("e1",1)]]
-      Assert.Equal actual expected "rewriteRule6: e1 * (e2 / (e3 + 1)) = e1 * e2"
+      Assert.Equal actual expected "rewriteExpr6: e1 * (e2 / (e3 + 1)) = e1 * e2"
 
     // case 7:
     let test09 =
-      let actual = simplify (rewriteExpr (parseStr "(e1 / e2) / e3"))
+      let actual = (rewriteExpr << parseStr) "(e1 / e2) / e3"
       let expected = [[AExponent("e1",1)]]
-      Assert.Equal actual expected "rewriteRule7: (e1 / e2) / e3 = e1"
+      Assert.Equal actual expected "rewriteExpr7: (e1 / e2) / e3 = e1"
 
     // case 8:
     let test10 = 
-      let actual = simplify (rewriteExpr (parseStr "e1 / (e2 / e3)"))
+      let actual = (rewriteExpr << parseStr)"e1 / (e2 / e3)"
       let expected = [[AExponent("e3",1);AExponent("e1",1)]]
-      Assert.Equal actual expected "rewriteRule8: e1 / (e2 / e3) = e1 * e3)"
+      Assert.Equal actual expected "rewriteExpr8: e1 / (e2 / e3) = e1 * e3)"
 
     // case 9:
     let test11 =
-      let actual = simplify (rewriteExpr (parseStr "e1 + (e2/e3)"))
+      let actual = (rewriteExpr << parseStr) "e1 + (e2/e3)"
       let expected = [[AExponent("e3",1);AExponent("e1",1)];[AExponent("e2",1)]]
-      Assert.Equal actual expected "rewriteRule9: e1 + (e2 / e3) = (e1 * e3 + e2)"
+      Assert.Equal actual expected "rewriteExpr9: e1 + (e2 / e3) = (e1 * e3 + e2)"
   
     // case 9:
     let test12 =
-      let actual = simplify (rewriteExpr (parseStr "(e2/e3) + e1"))
+      let actual = (rewriteExpr << parseStr) "(e2/e3) + e1"
       let expected = [[AExponent("e3",1);AExponent("e1",1)];[AExponent("e2",1)]]
-      Assert.Equal actual expected "rewriteRule9: Add on right side"
+      Assert.Equal actual expected "rewriteExpr9: Add on other side"
     
     // case 10:
     let test13 = 
-      let actual = simplify (rewriteExpr (parseStr "(e1 / e2) / (e3 / e4)"))
+      let actual = (rewriteExpr << parseStr) "(e1 / e2) / (e3 / e4)"
       let expected = [[AExponent("e4",1);AExponent("e1",1)]]
-      Assert.Equal actual expected "rewriteRule10: (e1 * e4) / (e2 * e3) = e1 * e4"
+      Assert.Equal actual expected "rewriteExpr10: (e1 * e4) / (e2 * e3) = e1 * e4"
 
     // case 11:
     let test14 =
-      let actual = simplify (rewriteExpr (parseStr "e_3 * e_3 * e_3"))
+      let actual = (rewriteExpr << parseStr) "e_3 * e_3 * e_3"
       let expected = [[AExponent("e",1)]]
-      Assert.Equal actual expected "rewriteRule11: (e_3 * e_3 * e_3) = e"
+      Assert.Equal actual expected "rewriteExpr11: (e_3 * e_3 * e_3) = e"
 
     test01
     test02
@@ -109,3 +109,4 @@ module ExprToPolyTests2 =
     test11
     test12
     test13
+    test14

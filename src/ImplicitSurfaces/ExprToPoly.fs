@@ -1,6 +1,5 @@
 namespace Tracer.ImplicitSurfaces
 
-open System.Xml.Linq
 module ExprToPoly =
 
   open Tracer.ImplicitSurfaces.ExprParse
@@ -26,7 +25,7 @@ module ExprToPoly =
     | FDiv(a,b)       -> FDiv(subst a (x,ex), subst b (x,ex))
     | FRoot(a,i)      -> FRoot(subst a (x,ex), i)
 
-  type atom = ANum of float | AExponent of string * int
+  type atom = ANum of float | AExponent of string * int | ARadical of simpleExpr * int
   and atomGroup = atom list  
   and simpleExpr = SE of atomGroup list
 
@@ -36,80 +35,64 @@ module ExprToPoly =
     | ANum c          -> string(c)
     | AExponent(s,1)  -> s
     | AExponent(s,n)  -> s+"^"+(string(n))
+    | _               -> ""
   let ppAtomGroup ag = String.concat "*" (List.map ppAtom ag)
   let ppSimpleExpr (SE ags) = String.concat "+" (List.map ppAtomGroup ags)
 
-  // xss is multiplied on all the ys's that are found. At least that's what I think is happening.
   let rec combine (xss:atomGroup list) = function
     | [] -> []
     | ys::yss -> List.map ((@) ys) xss @ combine xss yss
 
   // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
   let rec simplify = function
-  | FNum c            -> [[ANum c]]
-  | FVar s            -> [[AExponent(s,1)]]
-  | FRoot(e1,n)       -> failwith "shoot me now"
-  | FAdd(e1,FNum 0.0) -> simplify e1
-  | FAdd(FNum 0.0,e1) -> simplify e1
-  | FAdd(e1,e2)       -> simplify e1 @ simplify e2
-  | FMult(e1,e2)      -> combine (simplify e1) (simplify e2)
-  | FDiv(e1,e2)       -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same e1 * e2^-1 (because e2^-1 = 1 / e2)
-  | FExponent(_,0)    -> [[ANum 1.0]]
-  | FExponent(e1,1)   -> simplify e1
-  | FExponent(e1,n)   -> if n < 0 then 
+    | FNum c          -> [[ANum c]]
+    | FVar s          -> [[AExponent(s,1)]]
+    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
+    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
+    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
+    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
+    | FExponent(_,0)  -> simplify (FNum 1.0)
+    | FExponent(e1,1) -> simplify e1
+    | FExponent(e1,n) -> if n < 0 then 
                             match e1 with
-                            | FNum c  -> combine [[ANum (1./c)]] (simplify (FExponent(e1, n + 1)))
+                            | FNum c  -> combine (simplify (FNum (1./c))) (simplify (FExponent(e1, n + 1)))
                             | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
                                          else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
                             | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
                          else combine (simplify e1) (simplify (FExponent(e1, n-1)))
 
-  // the following two functions looks so much alike, that I think I maybe could be able to make one function, and apply different active patterns on them?
-  let rec containsDiv = function
-    | FVar _          -> false
-    | FNum _          -> false
-    | FDiv _          -> true
-    | FAdd(e1,e2)     -> containsDiv e1 || containsDiv e2
-    | FMult(e1,e2)    -> containsDiv e1 || containsDiv e2
-    | FExponent(e,_)  -> containsDiv e
-    | FRoot(e,_)      -> containsDiv e
+  let rec highestRoot (c:int) = function
+    | []      -> c
+    | ag::cr  -> 
+        highestRoot (List.fold (fun c x -> 
+          match x with
+          | ANum _          -> c
+          | AExponent _     -> c
+          | ARadical(_,n)   -> (max c n) ) c ag) cr
+                            
+  let rec containsRoots s =
+    highestRoot 0 s > 0
 
-  let rec containsRadicals = function
-    | FVar _          -> false
-    | FNum _          -> false
-    | FRoot _         -> true
-    | FDiv(e1,e2)     -> containsRadicals e1 || containsRadicals e2
-    | FAdd(e1,e2)     -> containsRadicals e1 || containsRadicals e2
-    | FMult(e1,e2)    -> containsRadicals e1 || containsRadicals e2
-    | FExponent(e,_)  -> containsRadicals e
-
-  let rec highestRoot c = function
-    | FVar _          -> c
-    | FNum _          -> c
-    | FRoot(e,n)      -> highestRoot (max c n) e
-    | FDiv(e1,e2)     -> let c =highestRoot c e1
-                         highestRoot c e2
-    | FAdd(e1,e2)     -> let c = highestRoot c e1
-                         highestRoot c e2
-    | FMult(e1,e2)    -> let c = highestRoot c e1
-                         highestRoot c e2
-    | FExponent(e,_)  -> highestRoot c e
-
-  let rec simplifyDiv e = 
+  let rec simplifyExpr e =
     let rec inner ex =
       match ex with
-      // case 6:
-      | FMult(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e2), inner e3)
-      | FMult(FDiv(e2, e3), e1) -> FDiv(FMult(inner e1, inner e2), inner e3)
-      // case 10
-      | FDiv(FDiv(e1, e2), FDiv(e3, e4)) -> FDiv(FMult(inner e1, inner e4), FMult(inner e2, inner e3))
-      // case 7:
-      | FDiv(FDiv(e1, e2), e3)  -> FDiv(inner e1, FMult (inner e2, inner e3))
-      // case 8:
-      | FDiv(e1, FDiv(e2, e3))  -> FDiv(FMult(inner e1, inner e3), inner e2)
-      // case 9:
-      | FAdd(e1, FDiv(e2, e3))  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
-      | FAdd(FDiv(e2, e3), e1)  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3)
+      // numbers
+      | FAdd(FNum c1, FNum c2)  -> FNum (c1 + c2)
+      | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
+      | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
+      | FExponent(FNum c, n)    -> FNum (c**(float n))
+      | FRoot(FNum c, n)        -> FNum (c**(1./(float n)))
+      // exponents
+      | FExponent(_,0)          -> FNum 1.0
+      | FExponent(e1,1)         -> simplifyExpr e1
+      // division cases
+      | FMult(e1, FDiv(e2, e3)) -> FDiv(FMult(inner e1, inner e2), inner e3) // case 6
+      | FMult(FDiv(e2, e3), e1) -> FDiv(FMult(inner e1, inner e2), inner e3) // case 6
+      | FDiv(FDiv(e1, e2), FDiv(e3, e4)) -> FDiv(FMult(inner e1, inner e4), FMult(inner e2, inner e3)) // case 10
+      | FDiv(FDiv(e1, e2), e3)  -> FDiv(inner e1, FMult (inner e2, inner e3)) // case 7
+      | FDiv(e1, FDiv(e2, e3))  -> FDiv(FMult(inner e1, inner e3), inner e2) // case 8
+      | FAdd(e1, FDiv(e2, e3))  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3) // case 9
+      | FAdd(FDiv(e2, e3), e1)  -> FDiv(FAdd(FMult(inner e1, inner e3), inner e2), inner e3) // case 9
       // all others, just go down recursively, with no changes at this level
       | FAdd(e1,e2)             -> FAdd(inner e1, inner e2)
       | FMult(e1, e2)           -> FMult(inner e1, inner e2)
@@ -119,68 +102,65 @@ module ExprToPoly =
       | _                       -> ex // FVar and FNum
     let rewritten = inner e
     if rewritten = e then e
-    else simplifyDiv rewritten
-  
-  let rec simplifyRadicals e =
-    let rec inner norad rad = function
-      | FAdd(e1,e2) ->
-          let norad, rad = inner norad rad e1
-          let norad, rad = inner norad rad e2
-          norad, rad
-      | ex  -> 
-          if containsRadicals ex then norad, FAdd(rad, ex)
-          else FAdd(norad,ex), rad
-    let (norad,rad) = inner (FNum 0.0) (FNum 0.0) e
-    if rad <> FNum 0.0 then 
-      let k = highestRoot 0 rad
-      // idea, call simplify on the norads, makes it easier to deal with
-      // for norad: create a function that flips positive terms to negative and vice versa (the ecquivalent of moving them from one side of the equation sign to the other)
-      // then put both rad and norad in exponent e, k (or combine (combine e e) e)
-      // simplify if possible, and for norad toggle again
-      // is that it?
-      e
-    else e
-    // first remove all roots where if they occur 
+    else simplifyExpr rewritten
 
-(* Not entirely sure about this one, maybe it is overkill
-  let rec firstSimplify = function
-    | FVar x          -> FVar x
-    | FNum c          -> FNum c
-    | FRoot(e1,n)     -> match e1 with
-                         | FNum c -> FNum (c**(1.0/(float n)))
-                         | _      -> FRoot (firstSimplify e1, n)
-    | FDiv(e1,e2)     -> FDiv(firstSimplify e1, firstSimplify e2)
-    | FAdd(e1,e2)     -> FAdd(firstSimplify e1,firstSimplify e2)
-    | FMult(e1,e2)    -> FMult(firstSimplify e1,firstSimplify e2)
-    | FExponent(e,n)  -> FExponent(firstSimplify e,n)
-*)
-  let rewriteExpr e =
-    // simplififying the expression into one big division of A/B, or if no division exists, just pass e along
-    let ex = if containsDiv e 
-             then let simpler = simplifyDiv e
-                  match simpler with
-                  | FDiv(keep,_)  -> keep
-                  | _             -> simpler
-             else e
-    // handle roots
-    if containsRadicals ex then simplifyRadicals ex
-    else ex
-  // containsRadicals (rewriteExpr (parseStr "1 + 2 + 3 + 4_2 + 5 + 6_1"))
-  let simplifyAtomGroup ag : atomGroup =
-      let mutable nums = 1.0
-      let mutable exps = Map.empty
-      for  a in ag do
+  let removeNRoots s =
+    let rec inner ag =
+      let mutable roots = Map.empty
+      let mutable freed = [[]]
+      let mutable rest = [[]]
+      for a in ag do
         match a with
-          | ANum n          -> nums <- n * nums
-          | AExponent(x,n)  -> 
-            match Map.tryFind x exps with
-              | Some v  -> exps <- Map.add x (n + v) exps
-              | None    -> exps <- Map.add x n exps
-      let expslist = [for KeyValue(k,v) in exps -> 
-                          if v = 0 then ANum 1.0
-                          else AExponent(k,v)]
-      if nums = 0.0 then []
-      else [ANum nums] @ expslist
+          | ANum _      -> rest <- combine [[a]] rest
+          | AExponent _ -> rest <- combine [[a]] rest
+          | ARadical((SE x),n)  ->
+            match Map.tryFind a roots with
+            | Some v  -> if n = (v + 1) 
+                         then freed <- combine x freed
+                              roots <- Map.remove a roots
+                         else roots <- Map.add a (v + 1) roots
+            | None    -> roots <- Map.add a 1 roots
+      for KeyValue(k,v) in roots do let remainingRoots = [for _ in 1 .. v -> [[k]]] |> List.fold (combine) [[]]
+                                    rest <- combine rest remainingRoots
+      combine rest freed
+    List.fold (fun acc x -> acc @ (inner x)) [] s
+
+  let rec simplifyRoots s =
+    let s' =  removeNRoots s // e_2 * e_2 will be e
+    let rec inner nr r = function
+      | []      -> nr, r
+      | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
+                     else inner (nr @ [ag]) r cr
+    let (noroots, roots) = inner [] [] s'
+    if roots <> [] then
+      let k = highestRoot 0 roots // first we find the highest root we want to get rid of
+      
+      // no roots term. Multiply by -1, then to the power of k, and then again multiply by -1
+      let nrTerm = combine [[ANum -1.0]] noroots
+      let nrTermMultiplied = [for _ in 1 .. k -> nrTerm] |> List.fold (combine) [[]]
+      let nrTermDone = combine [[ANum -1.0]] nrTermMultiplied
+      
+      let rtTerm = [for _ in 1 .. k -> roots] |> List.fold (combine) [[]]
+      let result = nrTermDone @ removeNRoots rtTerm
+
+      if containsRoots result then simplifyRoots result else result
+    else noroots
+
+  let simplifyAtomGroup ag : atomGroup =
+    let mutable nums = 1.0
+    let mutable exps = Map.empty
+    for a in ag do
+      match a with
+        | ANum n          -> nums <- n * nums
+        | AExponent(x,n)  -> 
+          match Map.tryFind x exps with
+            | Some v  -> exps <- Map.add x (n + v) exps
+            | None    -> exps <- Map.add x n exps
+    let expslist = [for KeyValue(k,v) in exps ->
+                        if v = 0 then ANum 1.0
+                        else AExponent(k,v)]
+    if nums = 0.0 then []
+    else [ANum nums] @ expslist
 
   let simplifySimpleExpr (SE ags) =
     let ags' = List.map simplifyAtomGroup ags
@@ -202,7 +182,14 @@ module ExprToPoly =
     if nums <> 0.0 then SE ([[ANum nums]] @ varslist)
     else SE varslist
 
-  let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (simplify e))
+  let rewriteExpr e =
+    let reduced =
+      match simplifyExpr e with
+      | FDiv(keep,_)  -> keep
+      | _             -> e
+    (simplifyRoots << simplify) reduced
+
+  let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
   type poly = P of Map<int,simpleExpr>
 
@@ -213,7 +200,7 @@ module ExprToPoly =
       prefix + postfix
     String.concat "+" (List.map pp (Map.toList p))
 
-  (* Collect atom groups into groups with respect to one variable v *)
+  // Collect atom groups into groups with respect to one variable v
   let splitAG v m = function
     | [] -> m
     | ag ->
@@ -237,19 +224,22 @@ module ExprToPoly =
   // same as (simpleExprToPoly (simplifySimpleExpr (exprToSimpleExpr e)) v)
   let exprToPoly e v = (exprToSimpleExpr >> simplifySimpleExpr >> simpleExprToPoly) e v
 
-  let solveSimpleExpr (SE agl) m : float =
+  // requires a map of all variables, mapped to float values
+  let rec solveSimpleExpr m s : float =
     let rec innerAG = function
-    | []     -> 1.0
-    | a :: r -> match a with
-                | ANum f         -> f * innerAG r
-                | AExponent(e,x) -> 
-                    let v = Map.find e m
-                    if x = 1 then v * innerAG r 
-                    else v**(float x) * innerAG r
-    let rec innerSE = function
-      | []      -> 0.0
-      | ag :: r -> (innerAG ag) + (innerSE r)
-    innerSE agl
+    | []   -> 1.0
+    | a::r -> match a with
+              | ANum c         -> c * innerAG r
+              | AExponent(e,x) -> 
+                  match Map.tryFind e m with
+                  | Some v -> if x = 1 then v * innerAG r
+                                else v**(float x) * innerAG r
+                  | None   -> failwith "solveSimpleExpr: variable not found in map"
+              | _ -> failwith "solveSimpleExpr: met a simpleExpr that shouldn't exist here"                
+    match s with
+    | SE ([])     -> 0.0
+    | SE (ag::cr) -> innerAG ag + solveSimpleExpr m (SE cr)
+                               
 
  (* Simple tests
 
@@ -271,7 +261,11 @@ module ExprToPoly =
 
   let (SE z) = exprToSimpleExpr x
   List.map simplifyAtomGroup z
-  ppPoly "" (exprToPoly x "") 
+  ppPoly "" (exprToPoly (parseStr "x^2 + x + x^3")"") 
+
+  ppPoly "" (exprToPoly (parseStr "x_2 + y_3") "")
+
+  ppPoly "" (exprToPoly (parseStr "3 * -3 * x - 4") "")  
 
   ppPoly "" (exprToPoly (parseStr "-x * (y - z)") "")
 
@@ -287,7 +281,7 @@ module ExprToPoly =
   ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + 1") "")
   ppPoly "" (exprToPoly (parseStr "x^2 + x^2 + 1x^2") "")
   ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + y^2") "")
-  ppPoly "" (exprToPoly (parseStr "x*x*y*x*y") "y")
+  ppPoly "" (exprToPoly (parseStr "x + x*x*y*x*y") "y")
   ppPoly "" (exprToPoly (parseStr "10 x * x * x + 2 x + 1") "")
   ppPoly "" (exprToPoly (parseStr " x * x * x + 2") "")
   ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + z^2 - 1") "")
