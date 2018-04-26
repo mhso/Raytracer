@@ -181,7 +181,10 @@ module KD_tree =
                 else Leaf(BBox(KDMaxXYZ, KDMinXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
-    
+
+    let rec searchKDLeaf node = failwith "Not Implemented"
+
+    let rec searchKDNode node = failwith "Not Implemented"
 
     let rec searchKDTree node ray t t' = failwith "Not Implemented"
 
@@ -196,10 +199,8 @@ module KD_tree =
                                                     | Some (t, t') -> searchKDTree L ray t t'
                                                     | None -> None
 
-    let rec searchKDLeaf node = failwith "Not Implemented"
 
-    let rec searchKDNode node = failwith "Not Implemented"
-
+                                                
     let rec KDHit leaf = failwith "Not Implemented"
 
     let BBox1 = ShapeBBox(Point(4.0, 4.0, 4.0),
