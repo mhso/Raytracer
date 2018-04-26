@@ -67,6 +67,36 @@ module Main =
     let res f = (f (-b) (sres)) / ares
     [res (+); res (-)]
 
+  let getVarMap (r:Ray) = 
+    Map.empty 
+      .Add("ox", r.GetOrigin.X)
+      .Add("oy", r.GetOrigin.Y)
+      .Add("oz", r.GetOrigin.Z)
+      .Add("dx", r.GetDirection.X)
+      .Add("dy", r.GetDirection.Y)
+      .Add("dz", r.GetDirection.Z)
+
+  let getFirstDegreeHF (P m) e : hf =
+    let aSimple = match Map.tryFind 1 m with
+                  | Some v -> v
+                  | None   -> SE []
+    let bSimple = match Map.tryFind 0 m with
+                  | Some v -> v
+                  | None   -> SE []
+    let dx = partial "x" e
+    let dy = partial "y" e
+    let dz = partial "z" e
+
+    let hitFunction (r:Ray) =
+      let m = getVarMap r
+      let a = solveSimpleExpr m aSimple
+      let b = solveSimpleExpr m bSimple
+      let t = (-b) / a
+      if t < 0.0 then None
+      else Some (t, derivative (r.PointAtTime t) dx dy dz)
+
+    hitFunction    
+
   let getSecondDegreeHF (P m) e = 
     let aSimple = match Map.tryFind 2 m with
                   | Some v -> v
@@ -82,13 +112,7 @@ module Main =
     let dz = partial "z" e
 
     let hitFunction (r:Ray) =
-      let m = Map.empty 
-                    .Add("ox", r.GetOrigin.X)
-                    .Add("oy", r.GetOrigin.Y)
-                    .Add("oz", r.GetOrigin.Z)
-                    .Add("dx", r.GetDirection.X)
-                    .Add("dy", r.GetDirection.Y)
-                    .Add("dz", r.GetDirection.Z)
+      let m = getVarMap r
       let a = solveSimpleExpr m aSimple
       let b = solveSimpleExpr m bSimple
       let c = solveSimpleExpr m cSimple
@@ -106,11 +130,10 @@ module Main =
   let mkImplicit (s:string) : hf =
     let exp = parseStr s
     let (P m) = (substWithRayVars >> exprToPoly) exp "t"
-    let order = getOrder m
-    if order = 2 then
-      getSecondDegreeHF (P m) exp
-    else
-      failwith "poly of higher degree than 2 is not supported yet"
+    match getOrder m with
+    | 1     -> getFirstDegreeHF (P m) exp
+    | 2     -> getSecondDegreeHF (P m) exp
+    | _     -> failwith "poly of higher degree than 2 is not supported yet"
 
 (*
   [<EntryPoint>]
