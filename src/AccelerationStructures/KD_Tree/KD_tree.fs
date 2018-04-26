@@ -14,14 +14,6 @@ module KD_tree =
     type BBox (maxXYZ:Point, minXYZ:Point) =
         member this.maxXYZ = maxXYZ
         member this.minXYZ = minXYZ  
-    
-    type KD (axis:int, splitValue:float, bBox:BBox, left:KD, right:KD, isLeaf:bool) = 
-        member this.axis = new int()
-        member this.splitValue = new float()
-        member this.bBox = bBox
-        //member this.left = new KD()
-        member this.right = right
-        member this.isLeaf = isLeaf
 
     type KDTree = Leaf of BBox * ShapeBBox list
                 | Node of int * float * BBox * KDTree * KDTree
@@ -242,7 +234,7 @@ module KD_tree =
                             let (first, second) = order((findDirectionFromA a ray), left, right)
                             if tHit <= t || tHit <= 0. then searchKDTree(second, ray, t, t', shapes)
                             else if tHit >= t' then searchKDTree(first, ray, t, t', shapes)
-                            else let value = searchKDTree(first, ray, t, tHit, shapes)// = Some HitPoint then Some HitPoint
+                            else let value = searchKDTree(first, ray, t, tHit, shapes)
                                  match value with
                                  | Some Hitpoint -> value
                                  | None -> searchKDTree(second, ray, tHit, t', shapes)
