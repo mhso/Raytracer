@@ -1,7 +1,7 @@
 ﻿namespace Tracer.Basics
 open Tracer.Sampling
 open System
-
+(*
 [<AbstractClass>]
 type AreaLight(surfaceMaterial: EmisiveMaterial, sampleCount: int, sampleSetCount: int) = 
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
@@ -99,3 +99,4 @@ type SphereAreaLight(surfaceMaterial: EmisiveMaterial, sphere: SphereShape, samp
         2. * Math.PI * sphere.Radius * sphere.Radius
     override this.FlushSample = 
         ignore sampleGenerator.Next
+*)

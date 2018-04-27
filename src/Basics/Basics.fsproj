@@ -56,10 +56,10 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Vector.fs" />
-    <Compile Include="Point.fs" />
     <Compile Include="Colour.fs" />
+    <Compile Include="Point.fs" />
+    <Compile Include="Ray.fs" />
     <Compile Include="Camera.fs" />
-    <Compile Include="Light.fs" />
     <Compile Include="Material.fs" />
     <Compile Include="AdvancedLight.fs" />
     <Compile Include="Scene.fs" />
