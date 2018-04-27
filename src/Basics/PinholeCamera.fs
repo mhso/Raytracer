@@ -3,7 +3,7 @@
 open System.Drawing
 open System
 
-type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
+type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
     let position = position
     let lookat = lookat
     let up = up
