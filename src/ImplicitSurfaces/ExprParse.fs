@@ -146,6 +146,32 @@ module ExprParse =
     | ([], result)  -> result
     | _             -> raise ParseErrorException
 
+  let rec reduceExpr e =
+    let rec inner = function
+      // first remove zero-terms
+      | FAdd(e1, FNum 0.0) -> inner e1
+      | FAdd(FNum 0.0, e1) -> inner e1
+      | FMult(FNum 0.0, _) -> FNum 0.0
+      | FMult(_, FNum 0.0) -> FNum 0.0
+      | FDiv(FNum 0.0, _)  -> FNum 0.0
+      | FDiv(_, FNum 0.0)  -> raise ParseErrorException
+      // some small simplifications with numbers
+      | FAdd(FNum c1, FNum c2)  -> FNum (c1 + c2)
+      | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
+      | FRoot(FNum c1, n)       -> FNum (c1**(1. / (float n)))
+      | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
+      | FExponent(FNum c1,n)    -> FNum (c1**(float n))
+      // all others should just continue recursively
+      | FRoot(e1,n)        -> FRoot (inner e1, n)
+      | FAdd(e1,e2)        -> FAdd (inner e1, inner e2)
+      | FMult(e1,e2)       -> FMult (inner e1, inner e2)
+      | FDiv(e1,e2)        -> FDiv (inner e1, inner e2)
+      | FExponent(e1,n)    -> FExponent (inner e1, n)
+      | ex                 -> ex // FVar FNum
+    let altered = inner e
+    if e = altered then e
+    else reduceExpr altered
+
   let parseStr s = (scan >> insertMult >> parse) s
 
   // requires a map of all the variables used in the expression, mapped to float values

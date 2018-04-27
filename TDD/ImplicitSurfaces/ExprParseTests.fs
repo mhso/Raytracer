@@ -3,10 +3,8 @@ module ExprParseTests
 open Assert
 open Tracer.ImplicitSurfaces.ExprParse
 
+// All these tests are based on, without shame, ones given in the Functional Programming, Spring 2018, course.
 let allTest = 
-  printfn "Doing ExprParseTests..."
-
-  // All these tests are copied, without shame, from ones given in the Functional Programming, Spring 2018, course.
 
   let testScan= 
     let testlist =

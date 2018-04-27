@@ -11,6 +11,7 @@ module Main =
     abstract hf : hf
   type baseShape =
     abstract mkShape : TexturedMaterial -> shape
+  type expr = ExprParse.expr
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -30,15 +31,18 @@ module Main =
     | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
-  let rec partial var = function // the follow rewrites are based on the chain rule
-    | FNum _          -> FNum 0.0 // case 1
-    | FVar x          -> if x <> var then FNum 0.0 // case 1
-                         else FNum 1.0 // case 2
-    | FAdd(e1, e2)    -> FAdd (partial var e1, partial var e2) // case 3
-    | FMult(e1, e2)   -> FAdd (FMult (partial var e1, e2), FMult (partial var e2, e1)) // case 4
-    | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, partial var e1), FMult (FNum -1.0, FMult (e1, partial var e2))), FExponent(e2,2)) // case 5
-    | FExponent(e1, n)-> FExponent(FMult (partial var e1, FMult (FNum (float n), e1)), n-1) // case 6
-    | FRoot(e1, n)    -> FDiv(partial var e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+  let rec partial var e =
+    let rec inner = function
+    // the follow rewrites are based on the chain rule
+      | FNum _          -> FNum 0.0 // case 1
+      | FVar x          -> if x <> var then FNum 0.0 // case 1
+                           else FNum 1.0 // case 2
+      | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
+      | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
+      | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
+      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
+      | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+    (inner >> reduceExpr) e
 
   // thou shall not be simplified!
   // returns a derivative vector, based on the partial derivatives for x, y, and z

@@ -21,4 +21,5 @@ module ExprParse =
   val parseStr : char seq -> expr
   val dotAST : expr -> string
 
+  val reduceExpr : expr -> expr
   val solveExpr : Map<string, float> -> expr -> float
