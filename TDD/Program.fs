@@ -15,9 +15,11 @@ let main argv =
     TransformationTest.allTest
     printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")
     ShapeTest.allTest
-    printfn ""
     printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
     SamplingTest.allTest
+    printfn "-=-=-=-=-=-=- ExprParse Test (Implicit Surfaces) -=-=-=-=-=-=-"
+    ExprParseTests.allTest
+
 
     printfn ""
     printfn "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
