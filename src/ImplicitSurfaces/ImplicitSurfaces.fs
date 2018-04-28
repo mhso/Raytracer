@@ -6,17 +6,12 @@ module Main =
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Tracer.Basics
 
-  type Vector = Tracer.Basics.Vector
-  type Point = Tracer.Basics.Point
-
-  type Ray(o: Point, d: Vector) = 
-    member this.GetOrigin = o
-    member this.GetDirection = d.Normalise
-    // Returns a point from a given time/length of the ray
-    member this.PointAtTime (t:float) = 
-        o + (t * d)
-
-  type hf = Ray -> (float * Vector) option
+  type hf = Ray -> (float * Vector * MatteMaterial) option
+  type shape =
+    abstract hf : hf
+  type baseShape =
+    abstract mkShape : TexturedMaterial -> shape
+  type expr = ExprParse.expr
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -36,15 +31,18 @@ module Main =
     | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
-  let rec partial var = function // the follow rewrites are based on the chain rule
-    | FNum _          -> FNum 0.0 // case 1
-    | FVar x          -> if x <> var then FNum 0.0 // case 1
-                         else FNum 1.0 // case 2
-    | FAdd(e1, e2)    -> FAdd (partial var e1, partial var e2) // case 3
-    | FMult(e1, e2)   -> FAdd (FMult (partial var e1, e2), FMult (partial var e2, e1)) // case 4
-    | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, partial var e1), FMult (FNum -1.0, FMult (e1, partial var e2))), FExponent(e2,2)) // case 5
-    | FExponent(e1, n)-> FExponent(FMult (partial var e1, FMult (FNum (float n), e1)), n-1) // case 6
-    | FRoot(e1, n)    -> FDiv(partial var e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+  let rec partial var e =
+    let rec inner = function
+    // the follow rewrites are based on the chain rule
+      | FNum _          -> FNum 0.0 // case 1
+      | FVar x          -> if x <> var then FNum 0.0 // case 1
+                           else FNum 1.0 // case 2
+      | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
+      | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
+      | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
+      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
+      | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+    (inner >> reduceExpr) e
 
   // thou shall not be simplified!
   // returns a derivative vector, based on the partial derivatives for x, y, and z
@@ -67,6 +65,36 @@ module Main =
     let res f = (f (-b) (sres)) / ares
     [res (+); res (-)]
 
+  let getVarMap (r:Ray) = 
+    Map.empty 
+      .Add("ox", r.GetOrigin.X)
+      .Add("oy", r.GetOrigin.Y)
+      .Add("oz", r.GetOrigin.Z)
+      .Add("dx", r.GetDirection.X)
+      .Add("dy", r.GetDirection.Y)
+      .Add("dz", r.GetDirection.Z)
+
+  let getFirstDegreeHF (P m) e : hf =
+    let aSimple = match Map.tryFind 1 m with
+                  | Some v -> v
+                  | None   -> SE []
+    let bSimple = match Map.tryFind 0 m with
+                  | Some v -> v
+                  | None   -> SE []
+    let dx = partial "x" e
+    let dy = partial "y" e
+    let dz = partial "z" e
+    let hitFunction (r:Ray) =
+      let m = getVarMap r
+      let a = solveSimpleExpr m aSimple
+      let b = solveSimpleExpr m bSimple
+      let t = (-b) / a
+      if t < 0.0 then None
+      else 
+        let c = new Colour(1.,1.,1.)
+        Some (t, derivative (r.PointAtTime t) dx dy dz, MatteMaterial(new Colour(1.,1.,1.)))
+    hitFunction
+
   let getSecondDegreeHF (P m) e = 
     let aSimple = match Map.tryFind 2 m with
                   | Some v -> v
@@ -80,15 +108,8 @@ module Main =
     let dx = partial "x" e
     let dy = partial "y" e
     let dz = partial "z" e
-
     let hitFunction (r:Ray) =
-      let m = Map.empty 
-                    .Add("ox", r.GetOrigin.X)
-                    .Add("oy", r.GetOrigin.Y)
-                    .Add("oz", r.GetOrigin.Z)
-                    .Add("dx", r.GetDirection.X)
-                    .Add("dy", r.GetDirection.Y)
-                    .Add("dz", r.GetDirection.Z)
+      let m = getVarMap r
       let a = solveSimpleExpr m aSimple
       let b = solveSimpleExpr m bSimple
       let c = solveSimpleExpr m cSimple
@@ -99,18 +120,23 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', derivative hp dx dy dz)
-
+          Some (t', derivative hp dx dy dz, MatteMaterial(Colour.Black))
     hitFunction
 
-  let mkImplicit (s:string) : hf =
-    let exp = parseStr s
-    let (P m) = (substWithRayVars >> exprToPoly) exp "t"
-    let order = getOrder m
-    if order = 2 then
-      getSecondDegreeHF (P m) exp
-    else
-      failwith "poly of higher degree than 2 is not supported yet"
+  let mkImplicit (s:string) : shape =
+    let exp = parseStr s // parsing the equation string to expression
+    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    let hitfunction =
+      match getOrder m with
+      | 1     -> getFirstDegreeHF (P m) exp
+      | 2     -> getSecondDegreeHF (P m) exp
+      | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let sh = { new shape with
+                member this.hf = hitfunction
+                }
+    sh
+
+                
 
 (*
   [<EntryPoint>]

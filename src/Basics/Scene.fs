@@ -115,25 +115,14 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         let total = float (camera.ResX * camera.ResY)
         let mutable currPct = 0
 
+        let loadingSymbols = [|"|"; "/"; "―"; "\\"; "|"; "/"; "―"; "\\"|]
+        let mutable loadingIndex = 0
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
                 let rayOrigin = vpc + (float(x)-camera.Width/2.) * pw * u + float(float(y)-camera.Height/2.)*ph*v
                 let rayDirection = (rayOrigin - camera.Position).Normalise
                 let ray = new Ray(camera.Position,rayDirection)
                 let colour = this.Cast ray
-                
-                (*
-                let pct = int((float (x*y)/total) * 100.0)
-
-                if (pct/5) > currPct then
-                    Console.Clear()
-                    printf "Progress: |"
-                    currPct <- pct/5
-                    let dots = String.replicate currPct "█"
-                    let white = String.replicate (20-currPct) "░"
-                    printf "%s" (dots + white)
-                    printf "%s"  ("| " + string pct + "%")*)
-        
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         

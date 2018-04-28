@@ -4,7 +4,6 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    //- CAMERA SETTINGS
     let position = Point(7.,0.,0.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
@@ -44,6 +43,7 @@ let main _ =
     let lights: Light list      = [lightAmbient; lightTop]
     let spheres: Shape list     = [sphereRed;spherePerfectYellow;sphereGreen]
     let scene                   = Scene(spheres, camera, lights)
+
 
     printfn "Rendering ..."
     ignore scene.Render

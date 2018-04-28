@@ -61,8 +61,13 @@
     <Compile Include="Assert.fs" />
     <Compile Include="TransformationTest.fs" />
     <Compile Include="BVH\BVHTest.fs" />
+    <Compile Include="ImplicitSurfaces\ExprParseTests.fs" />
+    <Compile Include="ImplicitSurfaces\ExprToPolyTests.fs" />
+    <Compile Include="ImplicitSurfaces\ExprToPolyTests2.fs" />
+    <Compile Include="ImplicitSurfaces\ImplicitSurfacesTests.fs" />
     <Compile Include="SamplingTest.fs" />
     <Compile Include="KDTest.fs" />
+    <Compile Include="ShapeTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +79,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
@@ -96,9 +102,19 @@
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\src\ImplicitSurfaces\ImplicitSurfaces.fsproj">
+      <Name>ImplicitSurfaces</Name>
+      <Project>{940a3706-dae3-4f52-87b8-d71f44641b0d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\src\Sampling\Sampling.fsproj">
       <Name>Sampling</Name>
       <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\src\Shapes\Shapes.fsproj">
+      <Name>Shapes</Name>
+      <Project>{d11dcb99-64dd-4ecd-a0d8-29b21e12ae72}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
