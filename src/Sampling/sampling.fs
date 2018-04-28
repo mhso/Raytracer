@@ -290,6 +290,46 @@ let mapToHemisphere (samples:(float * float) []) e =
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
 
+type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) = 
+    
+    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
+    let mutable currentSampleIndex = 0
+    let mutable currentSetIndex = 0
+    let mutable currentSample: (float * float) = (0.,0.)
+
+    member this.Next() = 
+        let sampleIndex = currentSetIndex % sampleSetCount
+        let sample = samples.[0].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
+        printfn "%i" sampleIndex
+        sample
+
+    member this.Current = 
+        currentSample
+
+type HemisphereSampleGenerator(sampleCount: int, sampleSetCount: int) = 
+        
+    let samples: (float * float * float) [][] = 
+        multiJittered sampleCount sampleSetCount
+        |> Array.map(fun s -> mapToHemisphere s 0.)
+
+    let mutable currentSampleIndex = 0
+    let mutable currentSetIndex = 0
+    let mutable currentSample: (float * float * float) = (0.,0.,0.)
+
+    member this.Next() = 
+        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let sampleIndex = currentSampleIndex % sampleCount
+        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
+        sample
+
+    member this.Current = 
+        currentSample
+
+
 [<EntryPoint>]
 let main argsv =
     if Array.isEmpty argsv then 
