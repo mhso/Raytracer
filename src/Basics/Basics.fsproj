@@ -60,7 +60,10 @@
     <Compile Include="Point.fs" />
     <Compile Include="Ray.fs" />
     <Compile Include="Camera.fs" />
-    <Compile Include="Material.fs" />
+    <Compile Include="Foundation.fs" />
+    <Compile Include="Materials.fs" />
+    <Compile Include="BasicLight.fs" />
+    <Compile Include="Shapes.fs" />
     <Compile Include="AdvancedLight.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />

@@ -297,18 +297,12 @@ type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], samp
     let mutable currentSetIndex = 0
     let mutable currentSample: (float * float) = (0.,0.)
 
-    member this.Next = 
-        let sample = samples.[currentSetIndex].[currentSampleIndex]
-        
-        if currentSampleIndex + 1 = sampleCount then
-            currentSampleIndex <- 0
-            if currentSetIndex + 1 = sampleSetCount then
-                currentSetIndex <- 0
-            else
-                currentSetIndex <- currentSetIndex + 1
-        else
-            currentSampleIndex <- currentSetIndex + 1
-
+    member this.Next() = 
+        let sampleIndex = currentSetIndex % sampleSetCount
+        let sample = samples.[0].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
+        printfn "%i" sampleIndex
         sample
 
     member this.Current = 
@@ -324,18 +318,12 @@ type HemisphereSampleGenerator(sampleCount: int, sampleSetCount: int) =
     let mutable currentSetIndex = 0
     let mutable currentSample: (float * float * float) = (0.,0.,0.)
 
-    member this.Next = 
-        let sample = samples.[currentSetIndex].[currentSampleIndex]
-        
-        if currentSampleIndex + 1 = sampleCount then
-            currentSampleIndex <- 0
-            if currentSetIndex + 1 = sampleSetCount then
-                currentSetIndex <- 0
-            else
-                currentSetIndex <- currentSetIndex + 1
-        else
-            currentSampleIndex <- currentSetIndex + 1
-
+    member this.Next() = 
+        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let sampleIndex = currentSampleIndex % sampleCount
+        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
         sample
 
     member this.Current = 

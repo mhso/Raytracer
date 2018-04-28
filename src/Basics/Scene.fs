@@ -23,7 +23,7 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
-            (Shape(), new HitPoint(ray))
+            (Shape.None, HitPoint(ray))
         else
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
@@ -41,7 +41,7 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
-            (Shape(), new HitPoint(ray))
+            (Shape.None, new HitPoint(ray))
         else
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
@@ -58,11 +58,24 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
             let normal = hitPoint.Normal
             lights 
                 |> List.fold (fun accColour light -> 
+                    let shadowColour = this.CastShadow hitPoint light
                     let colour = this.CastRecursively ray shape hitPoint light Colour.Black hitPoint.Material.Bounces hitPoint.Material.BounceMethod
-                    accColour + colour) (new Colour(0.,0.,0.))
+                    accColour + (colour - shadowColour)) (new Colour(0.,0.,0.))
         else
             // If we did not hit, return the background colour
             backgroundColour
+
+    // Returns the average shadow for a hitpoint and a light source
+    member this.CastShadow (hitPoint: HitPoint) (light: Light) = 
+        if light :? AmbientLight 
+            then Colour.Black
+        else
+            let shadowRays = light.GetShadowRay hitPoint
+            let isShadow ray = 
+                let (_, hp) = (this.GetFirstHitPoint ray)
+                if hp.DidHit then Colour.White else Colour.Black
+            let totalShadow = Array.fold (fun acc ray -> isShadow ray) Colour.Black shadowRays
+            (totalShadow / float(shadowRays.Length))
 
     // Will cast a ray recursively
     member this.CastRecursively 
@@ -108,6 +121,8 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                 let rayDirection = (rayOrigin - camera.Position).Normalise
                 let ray = new Ray(camera.Position,rayDirection)
                 let colour = this.Cast ray
+                
+                (*
                 let pct = int((float (x*y)/total) * 100.0)
 
                 if (pct/5) > currPct then
@@ -117,7 +132,7 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                     let dots = String.replicate currPct "█"
                     let white = String.replicate (20-currPct) "░"
                     printf "%s" (dots + white)
-                    printf "%s"  ("| " + string pct + "%")
+                    printf "%s"  ("| " + string pct + "%")*)
         
                 renderedImage.SetPixel(x, y, colour.ToColor)
 

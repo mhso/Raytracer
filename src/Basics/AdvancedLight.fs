@@ -1,25 +1,30 @@
 ﻿namespace Tracer.Basics
 open Tracer.Sampling
 open System
-(*
+
 [<AbstractClass>]
-type AreaLight(surfaceMaterial: EmisiveMaterial, sampleCount: int, sampleSetCount: int) = 
+type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCount: int) = 
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
 
     override this.GetColour point = 
         if this.SamplePointNormal point * (point - this.SamplePoint point).Normalise > 0. then
             surfaceMaterial.EmisiveRadience
         else
-            Colour.Black
+            surfaceMaterial.EmisiveRadience
 
     override this.GetDirectionFromPoint (point: Point) = 
-        (this.SamplePoint point - point).Normalise
-
+        let total = [for i=0 to sampleCount - 1 do yield (this.SamplePoint point - point).Normalise] |> List.sum
+        total / float(sampleCount)
     override this.GetShadowRay (hitPoint: HitPoint) = 
-        let normal:Vector = hitPoint.Normal
-        let shadowRayOrigin = hitPoint.Point + normal * 0.00001
-        let direction = (this.SamplePoint hitPoint.Point - shadowRayOrigin).Normalise
-        new Ray((shadowRayOrigin), direction)
+        let shadowRays = Array.create sampleCount Ray.None
+        for i=0 to sampleCount - 1 do 
+            let sp = this.SamplePoint hitPoint.Point
+            printfn "%A" sp
+            let normal:Vector = hitPoint.Normal
+            let shadowRayOrigin = sp + normal * 0.00001
+            let direction = (sp - shadowRayOrigin).Normalise
+            shadowRays.[i] <- Ray(shadowRayOrigin, direction)
+        shadowRays
 
     override this.GetGeometricFactor (point: Point) = 
         let d_sp_p = (point - this.SamplePoint point)
@@ -34,12 +39,12 @@ type AreaLight(surfaceMaterial: EmisiveMaterial, sampleCount: int, sampleSetCoun
     member this.SampleCount = sampleCount
     member this.SampleSetCount = sampleSetCount
 
-    abstract member FlushSample: unit
+    abstract member FlushSample: unit -> unit
     abstract member SamplePoint: Point -> Point
     abstract member SamplePointNormal: Point -> Vector
     abstract member Density: float
 
-type DiscAreaLight(surfaceMaterial: EmisiveMaterial, disc: Disc, sampleCount: int, sampleSetCount: int) = 
+type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
     let samplingAlgorithm sampleCount sampleSetCount = 
@@ -57,10 +62,10 @@ type DiscAreaLight(surfaceMaterial: EmisiveMaterial, disc: Disc, sampleCount: in
         disc.normal
     override this.Density = 
         Math.PI * disc.radius * disc.radius
-    override this.FlushSample = 
+    override this.FlushSample() = 
         ignore sampleGenerator.Next
 
-type RectangleAreaLight(surfaceMaterial: EmisiveMaterial, rect: Rectangle, sampleCount: int, sampleSetCount: int) = 
+type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
     let sampleGenerator = Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, sampleSetCount)
@@ -74,17 +79,16 @@ type RectangleAreaLight(surfaceMaterial: EmisiveMaterial, rect: Rectangle, sampl
         rect.normal
     override this.Density = 
         rect.width * rect.height
-    override this.FlushSample = 
+    override this.FlushSample() = 
         ignore sampleGenerator.Next
 
-type SphereAreaLight(surfaceMaterial: EmisiveMaterial, sphere: SphereShape, sampleCount: int, sampleSetCount: int) = 
+type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
     let sampleGenerator = Sampling.HemisphereSampleGenerator(sampleCount, sampleSetCount)
-    do ignore sampleGenerator.Next
 
     override this.SamplePoint point = 
-        let hem_sp = Point(sampleGenerator.Current)
+        let hem_sp = Point(sampleGenerator.Next())
         let d_c_p = (point - sphere.Origin).Normalise
         let up = new Vector(0., 1., 0.)
         let w = d_c_p.Normalise
@@ -97,6 +101,5 @@ type SphereAreaLight(surfaceMaterial: EmisiveMaterial, sphere: SphereShape, samp
         (point - sphere.Origin).Normalise
     override this.Density = 
         2. * Math.PI * sphere.Radius * sphere.Radius
-    override this.FlushSample = 
+    override this.FlushSample() = 
         ignore sampleGenerator.Next
-*)

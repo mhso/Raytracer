@@ -27,6 +27,7 @@ type Vector(x:float, y:float, z:float) =
         
     member this.Normalise = new Vector(x/this.Magnitude, y/this.Magnitude, z/this.Magnitude)
     member this.Round (d:int) = new Vector(System.Math.Round(x,d),System.Math.Round(y,d),System.Math.Round(z,d))
+    static member Zero = Vector(0.,0.,0.)
 
     // Operators
     static member ( ~- ) (v: Vector) = new Vector(-v.X,-v.Y,-v.Z)
