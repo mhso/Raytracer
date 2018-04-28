@@ -4,6 +4,7 @@ open Assert
 open Tracer.ImplicitSurfaces.ExprParse
 open Tracer.ImplicitSurfaces.ExprToPoly
 open Tracer.ImplicitSurfaces.Main
+open Tracer.Basics
 
 let allTest =
    
@@ -107,6 +108,30 @@ let allTest =
     let expected = "0" // 0 are still present in expr
     Assert.Equal (expected, actual, "derivativeRule7:with respect to different variable returns 0")
 
+  // testing the polynomial derivative function
+  let test15 =
+    let input = parseStr "4*x^2 + z*x^3 + 4*x^5*z^2"
+    let pol = exprToPoly input "z"
+    let actual = ppPoly "z" pol
+    let expected = "(4*x^2)+z(x^3)+z^2(4*x^5)"
+    let actualDerivative = ppPoly "z" (polyDerivative pol)
+    let expectedDerivative = "(x^3)+z(8*x^5)"
+    Assert.Equal (expected, actual, "polyDerivative: regular poly")
+    Assert.Equal (expectedDerivative, actualDerivative, "polyDerivative: changed to its derivative")
+ 
+  // simple tests on newton-raphson
+  let test16 =
+    let input = (exprToPoly << parseStr) "3x^2 - 3" "x"
+    let actual = newtonRaph input (Ray(Point(1.,1.,1.),Vector(1.,1.,1.))) 0.1
+    let expected = Some 1.0
+    Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 - 3 = 0, x = 1")
+
+  let test17 =
+    let input = (exprToPoly << parseStr) "3x^2" "x"
+    let actual = newtonRaph input (Ray(Point(1.,1.,1.),Vector(1.,1.,1.))) 0.1
+    let expected = None
+    Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 = 0, no possible x")
+
   // tests on exprtopoly for simple shape equations
   let test99 = 
       let input = (parseStr >> substWithRayVars) "x^2 + y^2 + z^2 - r^2"
@@ -131,6 +156,8 @@ let allTest =
   test12
   test13
   test14
+  test15
+  test16
   test99
 
 (* Test string
