@@ -2,8 +2,18 @@ namespace Tracer.ImplicitSurfaces
 
 module Main =
 
-  type Vector = Tracer.Basics.Vector
-  type Point = Tracer.Basics.Point
+  open Tracer.Basics
 
-  val mkImplicit : string -> (Point -> Vector -> (float * Vector))
+  type expr = ExprParse.expr
+  val partial : string -> expr -> expr
+  val substWithRayVars : expr -> expr
 
+  type hf = Ray -> (float * Vector * MatteMaterial) option
+
+  type shape =
+    abstract hf : hf
+
+  type baseShape =
+    abstract mkShape : TexturedMaterial -> shape
+
+  val mkImplicit : string -> shape
