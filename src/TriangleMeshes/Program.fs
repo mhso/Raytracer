@@ -5,8 +5,8 @@ open FParsec
 
 [<EntryPoint>]
 let main argv = 
-    let answer = PLYParser.parsePLY @"C:\Users\mathi\Documents\GIT-ITU\Working\raytracer\resources\ply\urn2.ply"
-    //laptop: C:\Users\mathi\Documents\GIT-ITU\Working\raytracer
+    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\bunny.ply"
+    //laptop: C:\Users\mathi\Documents\GIT-ITU\Working\raytracer\resources\ply\urn2.ply
     //Desktop: D:\Users\Mathias\Documents\GIT-ITU\SecondYearProject\raytracer\resources\ply\bunny.ply
     //printfn "%A" answer
     System.Console.ReadKey() |> ignore
