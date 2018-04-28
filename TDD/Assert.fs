@@ -17,5 +17,14 @@ type Assert() =
         else 
             Failed <- Failed + 1
             printfn "--------TEST FAILED!!! Assert true is false (%A) in %s" value name
+    static member EqualMany testlist f =
+        for (name, input, expected) in testlist do
+              let result = f input
+              if (expected = result) then 
+                  Passed <- Passed + 1
+                  printfn "--------Test Passed! %s" name
+              else 
+                  Failed <- Failed + 1
+                  printfn "--------TEST FAILED!!! Expected (%A) Actual (%A) in %s" expected result name
     static member AmountPassed = Passed
     static member AmountFailed = Failed

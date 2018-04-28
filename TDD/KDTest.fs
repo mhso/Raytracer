@@ -4,8 +4,8 @@ open Acceleration.KD_tree
 open Tracer.Basics
 open Assert
 let allTest = 
-    printfn("KD Test")
-    let KDBuild_Test = 
+    printfn "KD Test"
+    (*let KDBuild_Test = 
         let BBox1 = {maxXYZ = Point(4.0, 4.0, 4.0);
                  minXYZ = Point(3.0, 3.0, 3.0);
                  shape = 1}
@@ -153,3 +153,4 @@ let allTest =
         printfn "%A" result
        // Assert.Equal (actual,result,"KD-Build")
     KDBuild_Test
+    *)

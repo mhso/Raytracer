@@ -31,7 +31,7 @@ let main _ =
     let perfectReflection4 = new PerfectReflectionMaterial(1, blinnPhongSharpGreen, new Colour(1., 1., 1.), 1.)
     let glossyMaterial1 = new GlossyMaterial(2., Colour.White, rawMatte, 20, 30, 1, 2.)
     let niceShade = new MixedMaterial(rawMatte, phongShades, 0.5)
-    let earthMaterial = new TexturedMaterial(niceShade, @"C:\Users\mathi\Documents\GIT-ITU\Working\raytracer\resources\textures\earth.jpg")
+    let earthMaterial = new TexturedMaterial(niceShade,  @"..\..\..\..\resources\textures\earth.jpg")
     let perfectEarth = new CurryMaterial((fun a b -> a + b * 0.2),earthMaterial, perfectReflection)
     let purePerfect = PerfectReflectionMaterial(1, rawMatte, Colour.White, 1.)    
 

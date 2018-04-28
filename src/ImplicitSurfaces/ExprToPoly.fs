@@ -2,10 +2,10 @@ namespace Tracer.ImplicitSurfaces
 
 module ExprToPoly =
 
-  open Tracer.ImplicitSurfaces.ExprParse
-  
-  type expr = ExprParse.expr
+  open ExprParse
 
+  type expr = ExprParse.expr
+  
   let rec ppExpr = function
     | FNum c            -> string(c)
     | FVar s            -> s
@@ -156,6 +156,7 @@ module ExprToPoly =
           match Map.tryFind x exps with
             | Some v  -> exps <- Map.add x (n + v) exps
             | None    -> exps <- Map.add x n exps
+        | _ -> failwith "should not end here"
     let expslist = [for KeyValue(k,v) in exps ->
                         if v = 0 then ANum 1.0
                         else AExponent(k,v)]

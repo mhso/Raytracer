@@ -1,8 +1,4 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
-
-// Learn more about F# at http://fsharp.org
-open Assert
+﻿open Assert
 
 [<EntryPoint>]
 let main argv =
@@ -17,9 +13,16 @@ let main argv =
     TransformationTest.allTest
     printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")
     ShapeTest.allTest
-    printfn ""
     printfn "-=-=-=-=-=-=- Sampling Test -=-=-=-=-=-=-"
     SamplingTest.allTest
+    printfn "-=-=-=-=-=-=- ExprParse Test (Implicit Surfaces) -=-=-=-=-=-=-"
+    ExprParseTests.allTest
+    printfn "-=-=-=-=-=-=- ExprToPoly Test (Implicit Surfaces) -=-=-=-=-=-=-"
+    ExprToPolyTests.allTest
+    printfn "-=-=-=-=-=-=- ExprToPoly Test v2 (Implicit Surfaces) -=-=-=-=-=-=-"
+    ExprToPolyTests2.allTest
+    printfn "-=-=-=-=-=-=- Implicit Surfaces -=-=-=-=-=-=-"
+    ImplicitSurfacesTests.allTest
 
     printfn ""
     printfn "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
