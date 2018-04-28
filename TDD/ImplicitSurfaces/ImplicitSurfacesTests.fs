@@ -132,6 +132,13 @@ let allTest =
     let expected = None
     Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 = 0, no possible x")
 
+  // polynomial long division
+
+  // (2) % (2x + 4) = (x + 2)
+  // (x + 1) % (x^2 + 3x + 6) = (x + 2 + (4 / (x + 1)))
+  // (x + 4) % (x^2 + 5x +4) = x + 1
+  // pretty good here: https://youtu.be/FXgV9ySNusc?t=370
+
   // tests on exprtopoly for simple shape equations
   let test99 = 
       let input = (parseStr >> substWithRayVars) "x^2 + y^2 + z^2 - r^2"

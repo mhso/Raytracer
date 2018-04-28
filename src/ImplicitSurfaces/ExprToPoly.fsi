@@ -14,7 +14,10 @@ module ExprToPoly =
   val exprToSimpleExpr : expr -> simpleExpr
   val simplifySimpleExpr : simpleExpr -> simpleExpr
 
-  type poly = P of Map<int,simpleExpr>
+  type poly = 
+    | P of Map<int,simpleExpr>
+    static member ( % ) : poly * poly -> poly
+    
   val exprToPoly : expr -> string -> poly
   val ppPoly : string -> poly -> string
   val simpleExprToPoly : simpleExpr -> string -> poly

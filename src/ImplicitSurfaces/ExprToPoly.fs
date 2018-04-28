@@ -271,6 +271,13 @@ module ExprToPoly =
     | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
 
 
+  let polynomialLongDivision (p1:poly) (p2:poly) =
+    // TODO: implement 
+    p1
+
+  type poly with
+    static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
+
  (* Simple tests
 
   let x = parseStr "x^2 - x^2"
