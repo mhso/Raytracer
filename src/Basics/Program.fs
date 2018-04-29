@@ -37,10 +37,10 @@ let main _ =
     let VIEW_SAMPLES = 8
     let DISC_SAMPLES = 8
     //- CAMERA
-    let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    //let camera         = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 5., 3.,
-    //                      new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS), 
-    //                      new SampleGenerator(multiJittered, DISC_SAMPLES, CAM_SETS))
+    //let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    let camera         = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 5., 3.,
+                            new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS), 
+                            new SampleGenerator(multiJittered, DISC_SAMPLES, CAM_SETS))
     
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
