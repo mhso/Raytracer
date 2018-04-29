@@ -5,7 +5,7 @@ open FParsec
 
 [<EntryPoint>]
 let main argv = 
-    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\bunny.ply"
+    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\armadillo.ply"
     //laptop: C:\Users\mathi\Documents\GIT-ITU\Working\raytracer\resources\ply\urn2.ply
     //Desktop: D:\Users\Mathias\Documents\GIT-ITU\SecondYearProject\raytracer\resources\ply\bunny.ply
     //printfn "%A" answer

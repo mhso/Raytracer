@@ -102,8 +102,18 @@ let parsePLY (filepath:string) =
                     let listInt = parse listIntParser nextLine
                     faceArray.[i] <- listInt
                     nextLine <- sr.ReadLine()
-                printfn "...Parsing Done"
-            | _,true -> printfn ("BINARY START")
-            | _,_ -> printfn ("WRONG FORMAT")
+                
+            | _,true -> 
+                printfn ("BINARY START")
+                let br = new BinaryReader(sr.BaseStream)
+                while (not (sr.EndOfStream)) do 
+                    let str = br.ReadString
+                    printfn "%A" str
+                    
+                
 
+
+                
+            | _,_ -> printfn ("WRONG FORMAT")
+            printfn "...Parsing Done"
         | false -> parsing <- false
