@@ -5,6 +5,7 @@ open Tracer.Basics
 
 [<AbstractClass>]
 type Shape()=
+    abstract member getBoundingBox: Unit -> BBox
     abstract member hitFunction: Ray -> float option*Vector option*Material option
     // abstract member hitFunction: Ray -> (float * Vector * Texture) option
     // abstract member getUV: Point -> float * float
@@ -17,6 +18,18 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
     member this.tex = tex
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (min bottomLeft.X (min topLeft.X bottomRight.X)) - e
+        let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
+        let lz = (min bottomLeft.Z (min topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+
+        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) - e
+        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) - e
+        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
     //override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
     override this.hitFunction (r:Ray) = match r with
                                              |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -32,8 +45,20 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
 type Disc(center:Point, radius:float, tex:Material)=
     inherit Shape()
     member this.center = center
-    member this.radius = radius
+    member this.radius = radius // must not be a negative number
     member this.tex = tex
+    override this.getBoundingBox () =  //no point on the disc should be larger than the center point + the radius...
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - radius) - e
+        let lz = 0.0 - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + radius) + e
+        let hz = 0.0 + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
     (*
     override this.getTextureCoords (p:Point) = 
         let u = (p.X + radius)/(2.*radius)
@@ -63,6 +88,17 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (min a.X (min b.X c.X)) - e
+        let ly = (min a.Y (min b.Y c.Y)) - e
+        let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
+
+        let hx = (max a.X (max b.X c.X)) - e
+        let hy = (max a.Y (max b.Y c.Y)) - e
+        let hz = (max a.Z (max b.Z c.Z)) - e //might be redundant as Z should always equal 0
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     //this section of members, attempts to shorten and simplify some of the later functions, all
 
@@ -102,9 +138,20 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
 
 type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
-    member this.Origin = origin //perhaps both should be lower case
-    member this.Radius = radius
-    member this.Material = tex
+    member this.origin = origin
+    member this.radius = radius
+    member this.material = tex
+    override this.getBoundingBox () =  //no point on the sphere should be larger than the center point + the radius...
+        let e = 0.000001
+        let lx = (origin.X - radius) - e
+        let ly = (origin.Y - radius) - e
+        let lz = (origin.Z - radius) - e
+
+        let hx = (origin.X + radius) + e
+        let hy = (origin.Y + radius) + e
+        let hz = (origin.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
     
     member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
@@ -145,6 +192,17 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
     member this.radius = radius
     member this.height = height
     member this.tex = tex
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
+        let lz = (center.Z - radius) - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
+        let hz = (center.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
@@ -187,6 +245,17 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.cylinder = cylinder
     member this.top = top
     member this.bottom = bottom
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
+        let lz = (center.Z - radius) - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
+        let hz = (center.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     member this.getTextureCoords (p:Point) = //NotImplementedException()
                                                (0.0, 0.0)
@@ -206,6 +275,9 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.bottom = bottom
     member this.left = left
     member this.right = right
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
 
     member this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
         let width = high.X - low.X
@@ -249,6 +321,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
 type InfinitePlane(tex:Material) = 
     inherit Shape()
     member this.tex = tex
+    override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
     //override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
