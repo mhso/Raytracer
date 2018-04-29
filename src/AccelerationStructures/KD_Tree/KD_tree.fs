@@ -8,13 +8,54 @@ module KD_tree =
         member this.maxXYZ = maxXYZ
         member this.minXYZ = minXYZ
         member this.shape = shape
+        override this.GetHashCode() =
+            hash (maxXYZ, minXYZ, shape)
+        override this.Equals(x) = 
+            match x with
+            | :? ShapeBBox as box -> this.maxXYZ.Equals(box.maxXYZ) && 
+                                     this.minXYZ.Equals(box.minXYZ) && 
+                                     this.shape.Equals(box.shape)
+            | _ -> false
 
     type BBox (maxXYZ:Point, minXYZ:Point) =
         member this.maxXYZ = maxXYZ
-        member this.minXYZ = minXYZ  
+        member this.minXYZ = minXYZ
+        override this.GetHashCode() =
+            hash (maxXYZ, minXYZ)
+        override this.Equals(x) = 
+            match x with
+            | :? ShapeBBox as box -> this.maxXYZ.Equals(box.maxXYZ) && 
+                                     this.minXYZ.Equals(box.minXYZ)
+            | _ -> false
 
     type KDTree = Leaf of BBox * ShapeBBox list
                 | Node of int * float * BBox * KDTree * KDTree
+
+    [<AllowNullLiteral>]
+    type KDTree2(axis:int, splitValue:float, bBox:BBox, left:KDTree2, right:KDTree2, shapeList:list<ShapeBBox>) = 
+        member this.axis = axis
+        member this.splitValue = splitValue
+        member this.bBox = bBox
+        member this.left = left
+        member this.right = right
+        member this.shapeList = shapeList
+        new(axis:int, splitValue:float, bBox:BBox, left:KDTree2, right:KDTree2) = 
+            KDTree2(axis, splitValue, bBox, left, right, [])
+        new(bBox:BBox, shapes:list<ShapeBBox>) = 
+            KDTree2(3, -infinity, bBox, null, null, shapes)
+        override this.GetHashCode() =
+            hash (axis, splitValue, bBox, left, right, shapeList)
+        override this.Equals(x) =
+            match x with
+            | :? KDTree2 as tree -> tree.axis.Equals(axis) && 
+                                    tree.bBox.Equals(box) && 
+                                    tree.left.Equals(left) && 
+                                    tree.right.Equals(right) && 
+                                    tree.splitValue.Equals(splitValue)
+            | _ -> false
+    
+
+
 
     //Temporary Intersect-function. Use Alexanders when available.
     let intersect (box:BBox)(r:Ray) = 
