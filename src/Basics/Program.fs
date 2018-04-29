@@ -1,4 +1,5 @@
 ﻿open Tracer.Basics
+open Tracer.Sampling.Sampling
 open System.IO
 
 [<EntryPoint>]
@@ -27,12 +28,19 @@ let main _ =
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
 
     //- SHAPES
-    let sphereRed        = SphereShape(Point(0.,-1.,0.1), 0.5, matteRed)
-    let spherePerfectYellow     = SphereShape(Point(0.,0.,0.), 0.5, matteYellow)
-    let sphereGreen      = SphereShape(Point(0.,1.,-0.1), 0.5, matteGreen)
+    let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
+    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
+    let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
 
+    // Sample settings for camera (thin lens)
+    let CAM_SETS = 29
+    let VIEW_SAMPLES = 8
+    let DISC_SAMPLES = 8
     //- CAMERA
-    let camera         = Camera(position, lookat, up, zoom, width, height, resX, resY)
+    let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera         = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 5., 3.,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS), 
+    //                        new SampleGenerator(multiJittered, DISC_SAMPLES, CAM_SETS))
     
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))

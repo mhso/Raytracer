@@ -47,15 +47,11 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
 type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
-    let samplingAlgorithm sampleCount sampleSetCount = 
-        Sampling.multiJittered sampleCount sampleSetCount
-        |> Array.map(fun s -> Sampling.mapToDisc s)
-
-    let sampleGenerator = Sampling.SampleGenerator(samplingAlgorithm, sampleCount, sampleSetCount)
+    let sampleGenerator = Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, sampleSetCount)
     do ignore sampleGenerator.Next
 
     override this.SamplePoint point = 
-        let (x,y) = sampleGenerator.Current
+        let (x,y) = Sampling.mapToDisc sampleGenerator.Current
         let sp = Point(disc.center.X + x, disc.center.Y + y, disc.center.Z)
         Point(sp.X * disc.radius, sp.Y * disc.radius, sp.Z)
     override this.SamplePointNormal point = 
@@ -85,10 +81,10 @@ type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, samp
 type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
-    let sampleGenerator = Sampling.HemisphereSampleGenerator(sampleCount, sampleSetCount)
+    let sampleGenerator = Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, sampleSetCount)
 
     override this.SamplePoint point = 
-        let hem_sp = Point(sampleGenerator.Next())
+        let hem_sp = Point((Sampling.mapToHemisphere (sampleGenerator.Next()) 0.0))
         let d_c_p = (point - sphere.Origin).Normalise
         let up = new Vector(0., 1., 0.)
         let w = d_c_p.Normalise

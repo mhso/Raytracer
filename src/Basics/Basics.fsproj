@@ -59,12 +59,14 @@
     <Compile Include="Colour.fs" />
     <Compile Include="Point.fs" />
     <Compile Include="Ray.fs" />
-    <Compile Include="Camera.fs" />
     <Compile Include="Foundation.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
     <Compile Include="AdvancedLight.fs" />
+    <Compile Include="Camera.fs" />
+	<Compile Include="PinholeCamera.fs" />
+    <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="BBox.fs" />
