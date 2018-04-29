@@ -11,6 +11,7 @@ module Main =
     abstract hf : hf
   type baseShape =
     abstract mkShape : Material -> shape
+
   type expr = ExprParse.expr
   type poly = ExprToPoly.poly
   type Ray = Tracer.Basics.Ray
