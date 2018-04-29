@@ -9,8 +9,8 @@ module Main =
   type hf = Ray -> (float * Vector * MatteMaterial) option
   type shape =
     abstract hf : hf
-  type baseShape =
-    abstract mkShape : TexturedMaterial -> shape
+  (*type baseShape =
+    abstract mkShape : TexturedMaterial -> shape*)
   type expr = ExprParse.expr
 
   let substWithRayVars (e:expr) = 
