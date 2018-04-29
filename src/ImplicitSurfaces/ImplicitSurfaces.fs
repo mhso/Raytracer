@@ -9,9 +9,12 @@ module Main =
   type hf = Ray -> (float * Vector * MatteMaterial) option
   type shape =
     abstract hf : hf
-  (*type baseShape =
-    abstract mkShape : TexturedMaterial -> shape*)
+  type baseShape =
+    abstract mkShape : Material -> shape
+
   type expr = ExprParse.expr
+  type poly = ExprToPoly.poly
+  type Ray = Tracer.Basics.Ray
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -45,7 +48,7 @@ module Main =
     (inner >> reduceExpr) e
 
   // thou shall not be simplified!
-  // returns a derivative vector, based on the partial derivatives for x, y, and z
+  // returns a derivative vector, based on the initital shape equation, and with respect to x, y, and z from the hitpoint
   let derivative (p:Point) dx dy dz  =
     let m = Map.empty
               .Add("x",p.X)
@@ -86,8 +89,8 @@ module Main =
     let dz = partial "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSimpleExpr m aSimple
-      let b = solveSimpleExpr m bSimple
+      let a = solveSE m aSimple
+      let b = solveSE m bSimple
       let t = (-b) / a
       if t < 0.0 then None
       else 
@@ -110,9 +113,9 @@ module Main =
     let dz = partial "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSimpleExpr m aSimple
-      let b = solveSimpleExpr m bSimple
-      let c = solveSimpleExpr m cSimple
+      let a = solveSE m aSimple
+      let b = solveSE m bSimple
+      let c = solveSE m cSimple
       if discriminant a b c < 0.0 then None
       else
         let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
@@ -122,6 +125,36 @@ module Main =
           let hp = r.PointAtTime t'
           Some (t', derivative hp dx dy dz, MatteMaterial(Colour.Black))
     hitFunction
+
+
+  // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
+  let newtonRaphson f f' g =
+    let tolerance = 10.**(-7.) // 7 digit accuracy is desired
+    let epsilon = 10.**(-14.) // Don't want to divide by a number smaller than this
+    let maxIterations = 20 // Don't allow the iterations to continue indefinitely
+    let mutable foundSolution = false // Have not yet converged to a solution
+    let mutable x0 = g // the initial value/guess
+
+    for i in [1 .. maxIterations] do
+      let y = solveReducedPolyList x0 f
+      let y' = solveReducedPolyList x0 f'
+      if abs y' < epsilon then () // break
+      else
+        let x1 = x0 - (y / y')
+        if abs (x1 - x0) <= (tolerance * abs x1) then
+          foundSolution <- true
+          // break
+        else foundSolution <- foundSolution
+        x0 <- x1
+
+    if foundSolution then Some x0
+    else None
+
+  let newtonRaph p r g =
+    newtonRaphson
+      (reducePolyConstants p (getVarMap r) |> Map.toList)
+      ((polyDerivative >> reducePolyConstants) p (getVarMap r) |> Map.toList)
+      g
 
   let mkImplicit (s:string) : shape =
     let exp = parseStr s // parsing the equation string to expression
