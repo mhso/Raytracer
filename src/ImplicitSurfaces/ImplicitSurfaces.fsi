@@ -13,7 +13,7 @@ module Main =
   type shape =
     abstract hf : hf
 
-  type baseShape =
-    abstract mkShape : TexturedMaterial -> shape
+  (*type baseShape =
+    abstract mkShape : TexturedMaterial -> shape*)
 
   val mkImplicit : string -> shape
