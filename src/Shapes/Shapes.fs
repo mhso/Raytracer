@@ -5,6 +5,7 @@ open Tracer.Basics
 
 [<AbstractClass>]
 type Shape()=
+    abstract member isInside: Point -> bool
     abstract member getBoundingBox: Unit -> BBox
     abstract member hitFunction: Ray -> float option*Vector option*Material option
     // abstract member hitFunction: Ray -> (float * Vector * Texture) option
@@ -18,6 +19,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
     member this.tex = tex
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (min bottomLeft.X (min topLeft.X bottomRight.X)) - e
@@ -47,6 +49,7 @@ type Disc(center:Point, radius:float, tex:Material)=
     member this.center = center
     member this.radius = radius // must not be a negative number
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () =  //no point on the disc should be larger than the center point + the radius...
         let e = 0.000001
         let lx = (center.X - radius) - e
@@ -88,6 +91,7 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (min a.X (min b.X c.X)) - e
@@ -141,6 +145,9 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     member this.origin = origin
     member this.radius = radius
     member this.material = tex
+    override this.isInside (p:Point) =
+        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2.
+        if x < (radius**2.) then true else false
     override this.getBoundingBox () =  //no point on the sphere should be larger than the center point + the radius...
         let e = 0.000001
         let lx = (origin.X - radius) - e
@@ -192,6 +199,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
     member this.radius = radius
     member this.height = height
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (center.X - radius) - e
@@ -245,6 +253,11 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.cylinder = cylinder
     member this.top = top
     member this.bottom = bottom
+    override this.isInside (p:Point) = 
+        if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
+            if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
+            else false
+        else false
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (center.X - radius) - e
@@ -275,6 +288,14 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.bottom = bottom
     member this.left = left
     member this.right = right
+    override this.isInside (p:Point) =
+        if low.X <= p.X && p.X <= high.X then
+            if low.Y <= p.Y && p.Y <= high.Y then
+                if low.Z <= p.Z && p.Z <= high.Z then true
+                else false
+            else false
+        else false
+
     override this.getBoundingBox () = 
         let e = 0.000001
         BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
@@ -321,6 +342,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
 type InfinitePlane(tex:Material) = 
     inherit Shape()
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
     //override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
     override this.hitFunction (r:Ray) = 
