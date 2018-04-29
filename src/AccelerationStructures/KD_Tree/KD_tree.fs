@@ -199,7 +199,7 @@ module KD_tree =
             let YDistance = MaxY - MinY
             let ZDistance = MaxZ - MinZ
             let rec buildNode boxes (xVisited, yVisited, zVisited, axis) = 
-                let buildNodeX boxes axis = 
+                let buildNodeWithSpecifiedAxis boxes axis = 
                     printfn "Split %A" axis
                     if List.length boxes <= 1 then new KDTree(BBox(KDMaxXYZ, KDMinXYZ), boxes)
                     else
@@ -217,7 +217,7 @@ module KD_tree =
                     else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newSecond), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newFirst))
                     else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newFirst), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newSecond))
                     else new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newSecond), buildKDTree(newFirst))
-                if axis <= 2 then buildNodeX boxes axis
+                if axis <= 2 then buildNodeWithSpecifiedAxis boxes axis
                 else new KDTree(BBox(KDMaxXYZ, KDMinXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
