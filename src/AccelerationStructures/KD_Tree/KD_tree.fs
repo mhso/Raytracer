@@ -177,7 +177,7 @@ module KD_tree =
         match axis with
         | 0 -> point.X
         | 1 -> point.Y
-        | _ -> point.Z
+        | 2 -> point.Z
 
 
     let rec buildKDTree (boxes:list<ShapeBBox>) = 
