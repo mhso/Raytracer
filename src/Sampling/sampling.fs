@@ -265,30 +265,44 @@ let multiJittered n sn =
     loop (sn-1)
     createSampleSets sets
 
-let mapToDisc (sl:(float * float) []) =
-    let samples = [|for (x, y) in sl do yield (2.0*x-1.0, 2.0*y-1.0)|]
+let mapToDisc (x, y) =
+    let x, y = (2.0*x-1.0, 2.0*y-1.0)
     let PI_QUART = Math.PI/4.0
-    let mapPoints (x,y) =
-        let (r, theta) = 
-            match (x > -y, x > y) with
-                | true, true    -> (x, PI_QUART * (y/x))
-                | true, false   -> (y, PI_QUART * (2.0-x/y))
-                | false, false  -> (-x, PI_QUART * (4.0+y/x))
-                | false, true   -> (-y, PI_QUART * (6.0-x/y))
-        (r * Math.Cos(theta), r*Math.Sin(theta))
-    Array.map mapPoints samples
-
-let mapToHemisphere (samples:(float * float) []) e =
+    let (r, theta) = 
+        match (x > -y, x > y) with
+            | true, true    -> (x, PI_QUART * (y/x))
+            | true, false   -> (y, PI_QUART * (2.0-x/y))
+            | false, false  -> (-x, PI_QUART * (4.0+y/x))
+            | false, true   -> (-y, PI_QUART * (6.0-x/y))
+    (r * Math.Cos(theta), r*Math.Sin(theta))
+    
+let mapToHemisphere (x, y) e =
     let E_VAL = 1.0/(e+1.0)
-    let mapPoint (x,y) =
-        let phi = 2.0*Math.PI*x
-        let theta = Math.Acos((1.0-y)**E_VAL)
-        (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
-    Array.map mapPoint samples
+    let phi = 2.0*Math.PI*x
+    let theta = Math.Acos((1.0-y)**E_VAL)
+    (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
 
 (*for i in 0..1920/127 do
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
+
+type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
+    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
+
+    let mutable currentSampleIndex = 0
+    let mutable currentSetIndex = 0
+    let mutable currentSample: (float * float) = (0.,0.)
+
+    member this.Next() = 
+        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let sampleIndex = currentSampleIndex % sampleCount
+        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
+        sample
+
+    member this.Current = 
+        currentSample
 
 [<EntryPoint>]
 let main argsv =
@@ -309,9 +323,9 @@ let main argsv =
             | "multi"   -> (multiJittered amount sets).[0]
             | _ -> regular 4
     if argsv.Length > 3 then
-        if argsv.[3] = "disc" then drawDiscSamples (mapToDisc samples) fileName
+        if argsv.[3] = "disc" then drawDiscSamples (Array.map mapToDisc samples) fileName
         else if argsv.[3] = "sphere" then
             let e = if argsv.Length = 5 then float (Int32.Parse argsv.[4]) else 0.0
-            drawSphereSamples (mapToHemisphere samples e) fileName true
+            drawSphereSamples (Array.map (fun (x, y) -> (mapToHemisphere (x, y) e)) samples) fileName true
     else drawSamples samples method fileName
     0

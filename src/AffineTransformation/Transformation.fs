@@ -141,10 +141,6 @@ open System
         let transHitFunction (r:Ray) = 
             let transformedRay = transformRay r t
             let hitsOriginal = s.hitFunction transformedRay
-            match hitsOriginal.DidHit with
-            | true -> 
-                let normal = transformNormal (hitsOriginal.Normal) t
-                (Some (hitsOriginal.Time), Some (normal), Some (hitsOriginal.Material))
-            | false -> 
-                (None, None, None)
+            let normal = transformNormal (hitsOriginal.Normal) t
+            new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
         new TransformShape(transHitFunction)
