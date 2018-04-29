@@ -4,7 +4,6 @@ open Acceleration.KD_tree
 open Tracer.Basics
 open Assert
 let allTest = 
-    printfn("KD Test")
     let KDBuild_Test = 
         let BBox1 = new ShapeBBox(Point(4.0, 4.0, 4.0),
                           Point(3.0, 3.0, 3.0),
@@ -31,34 +30,34 @@ let allTest =
 
         let actual = 
             new KDTree
-              (0,1.0, Acceleration.KD_tree.BBox(Point(4.0, 4.0, 4.0), Point(-7.0, -7.0, -7.0)),
+              (0,1.0, BBox(Point(4.0, 4.0, 4.0), Point(-7.0, -7.0, -7.0)),
                new KDTree
-                 (0,2.0, Acceleration.KD_tree.BBox(Point(4.0, 4.0, 4.0), Point(-1.0, -1.0, -1.0)),
+                 (0,2.0, BBox(Point(4.0, 4.0, 4.0), Point(-1.0, -1.0, -1.0)),
                   new KDTree
-                    (0,3.0, Acceleration.KD_tree.BBox(Point(4.0, 4.0, 4.0), Point(2.0, 2.0, 2.0)),
+                    (0,3.0, BBox(Point(4.0, 4.0, 4.0), Point(2.0, 2.0, 2.0)),
                      new KDTree 
-                          (Acceleration.KD_tree.BBox(Point(4.0, 4.0, 4.0), Point(3.0, 3.0, 3.0)), 
+                          (BBox(Point(4.0, 4.0, 4.0), Point(3.0, 3.0, 3.0)), 
                           [Acceleration.KD_tree.ShapeBBox(Point(4.0, 4.0, 4.0),Point(3.0, 3.0, 3.0), 1)]),
                      new KDTree 
-                          (Acceleration.KD_tree.BBox(Point(3.0, 3.0, 3.0), Point(2.0, 2.0, 2.0)), 
+                          (BBox(Point(3.0, 3.0, 3.0), Point(2.0, 2.0, 2.0)), 
                           [Acceleration.KD_tree.ShapeBBox(Point(3.0, 3.0, 3.0),Point(2.0, 2.0, 2.0), 2)])),
                   new KDTree 
-                       (Acceleration.KD_tree.BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
+                       (BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
                        [Acceleration.KD_tree.ShapeBBox(Point(2.0, 2.0, 2.0),Point(-1.0, -1.0, -1.0), 3)])),
                new KDTree
-                 (0,0.0, Acceleration.KD_tree.BBox(Point(2.0, 2.0, 2.0), Point(-7.0, -7.0, -7.0)),
+                 (0,0.0, BBox(Point(2.0, 2.0, 2.0), Point(-7.0, -7.0, -7.0)),
                   new KDTree
-                    (Acceleration.KD_tree.BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
+                    (BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
                     [Acceleration.KD_tree.ShapeBBox(Point(1.0, 1.0, 1.0),Point(0.0, 0.0, 0.0), 4);
                      Acceleration.KD_tree.ShapeBBox(Point(2.0, 2.0, 2.0),Point(-1.0, -1.0, -1.0), 3)]),
                   new KDTree
-                    (0,-4.0, Acceleration.KD_tree.BBox(Point(2.0, 2.0, 2.0), Point(-7.0, -7.0, -7.0)),
+                    (0,-4.0, BBox(Point(2.0, 2.0, 2.0), Point(-7.0, -7.0, -7.0)),
                      new KDTree
-                       (Acceleration.KD_tree.BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
+                       (BBox(Point(2.0, 2.0, 2.0), Point(-1.0, -1.0, -1.0)),
                        [Acceleration.KD_tree.ShapeBBox(Point(0.0, 0.0, 0.0),Point(-1.0, -1.0, -1.0), 5); 
                         Acceleration.KD_tree.ShapeBBox(Point(2.0, 2.0, 2.0),Point(-1.0, -1.0, -1.0), 3)]),
                      new KDTree 
-                          (Acceleration.KD_tree.BBox(Point(-4.0, -4.0, -4.0), Point(-7.0, -7.0, -7.0)), 
+                          (BBox(Point(-4.0, -4.0, -4.0), Point(-7.0, -7.0, -7.0)), 
                           [Acceleration.KD_tree.ShapeBBox(Point(-4.0, -4.0, -4.0),Point(-7.0, -7.0, -7.0), 6)]))))
 
         let BBox11 = new ShapeBBox(Point(4.0, 4.0, 4.0),
