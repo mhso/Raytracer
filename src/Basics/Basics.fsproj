@@ -56,19 +56,22 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="Vector.fs" />
-    <Compile Include="Point.fs" />
     <Compile Include="Colour.fs" />
+    <Compile Include="Point.fs" />
+    <Compile Include="Ray.fs" />
+    <Compile Include="Foundation.fs" />
+    <Compile Include="Materials.fs" />
+    <Compile Include="BasicLight.fs" />
+    <Compile Include="Shapes.fs" />
+    <Compile Include="AdvancedLight.fs" />
     <Compile Include="Camera.fs" />
-    <Compile Include="PinholeCamera.fs" />
-    <Compile Include="HitPoint.fs" />
-    <Compile Include="Light.fs" />
-    <Compile Include="Material.fs" />
+	<Compile Include="PinholeCamera.fs" />
+    <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="BBox.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
