@@ -11,6 +11,8 @@ type Shape()=
     // abstract member hitFunction: Ray -> (float * Vector * Texture) option
     // abstract member getUV: Point -> float * float
 
+
+
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     inherit Shape()
     member this.bottomLeft = bottomLeft
@@ -350,6 +352,64 @@ type InfinitePlane(tex:Material) =
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
                                                 let p = r.PointAtTime t
                                                 (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None) //(p.X), (p.Y)
+
+
+type CSGOperator = Union | Intersection | Subtraction | Grouping
+
+type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
+    inherit Shape()
+    member this.s1 = s1
+    member this.s2 = s2
+    member this.op = op
+    override this.isInside (p:Point) = match op with
+                                        |Union -> if s1.isInside p || s2.isInside p then true
+                                                  else false
+                                        |Intersection -> failwith "not implemented yet"
+                                        |Subtraction -> failwith "not implemented yet"
+                                        |Grouping -> failwith "not implemented yet"
+
+    override this.getBoundingBox () = failwith "not implemented yet"
+
+    member this.unionHitFunctionInside (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = match s1Hit with //i could likely make this more efficient
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity //extract time from the hit (or infinity if miss)
+        let s2Time = match s2Hit with
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity
+
+        //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
+        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
+                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                 else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+        else if s1.isInside (r.PointAtTime s2Time) then 
+                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                 else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+
+    member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
+                                           |false -> 
+                                                let s1Hit = s1.hitFunction r
+                                                let s2Hit = s2.hitFunction r
+                                                let s1Time = match s1Hit with //i could likely make this more efficient
+                                                             |(t,_,_) -> if t.IsSome then t.Value else infinity
+                                                let s2Time = match s2Hit with
+                                                             |(t,_,_) -> if t.IsSome then t.Value else infinity
+                                                if s1Time <= s2Time then s1Hit else s2Hit
+                                            |true -> this.unionHitFunctionInside r
+                                                
+
+
+    override this.hitFunction (r:Ray) = match op with
+                                        |Union -> this.unionHitFunction r
+                                        |Intersection -> failwith "not implemented yet"
+                                        |Subtraction -> failwith "not implemented yet"
+                                        |Grouping -> failwith "not implemented yet"
+
+    
+
+
+    //static member (u) (s1:Shape, s2:Shape) = new CSG(s1, s2)
+
 
 
 
