@@ -31,47 +31,6 @@ let parseBool parser str =
 
 let WhiteSpace = pstring " "
 
-let parseHeader (sr:StreamReader) = 
-    let mutable nextLine = sr.ReadLine()
-    let isComment (s:string) = parseBool (pstring "comment" .>> (anyString (s.Length-7))) s
-    while (isComment nextLine) do 
-        nextLine <- sr.ReadLine()
-    let arraySizeParser = pstring "element vertex " >>. pint32
-    let arraySize = parse arraySizeParser nextLine
-    let triangleArray = Array.zeroCreate arraySize
-    let isEndOfHeader s = parseBool (pstring "end_header") s
-    let vertexPosition : int array = Array.zeroCreate 9
-    let readPropertyParser = 
-        let mutable i = 1
-        nextLine <- sr.ReadLine()
-        let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
-        while (startWithProperty nextLine) do
-            let endChars = nextLine.Substring(nextLine.Length-2)
-            match endChars with
-                | " x" -> vertexPosition.[0] <- i
-                | " y" -> vertexPosition.[1] <- i
-                | " z" -> vertexPosition.[2] <- i
-                | "nx" -> vertexPosition.[3] <- i
-                | "ny" -> vertexPosition.[4] <- i
-                | "nz" -> vertexPosition.[5] <- i
-                | " u" -> vertexPosition.[6] <- i
-                | " v" -> vertexPosition.[7] <- i
-                | _ -> vertexPosition.[8] <- i
-            nextLine <- sr.ReadLine()
-            i <- i + 1
-    readPropertyParser
-    let faceLength = parse (pstring "element face " >>. pint32) nextLine
-    let faceArray = Array.zeroCreate faceLength
-    nextLine <- sr.ReadLine()
-    while (not (isEndOfHeader nextLine)) do
-        nextLine <- sr.ReadLine()
-    nextLine <- sr.ReadLine()
-    (triangleArray, faceArray, vertexPosition)
-
-let first (a:Vertex[],b:int list[],c:int array) = a
-let second (a:Vertex[],b:int list[],c:int array) = b
-let third (a:Vertex[],b:int list[],c:int array) = c
-
 let parsePLY (filepath:string) = 
     let sr = new StreamReader(filepath)
     let mutable parsing = true
@@ -81,55 +40,62 @@ let parsePLY (filepath:string) =
         match result with
         | true -> 
             printfn "Started Parsing..."
+
             nextLine <- sr.ReadLine()
-            let isAscii = parseBool (pstring "format ascii 1.0") (nextLine)
-            let formatBoolean = many ((pstring "format binary_little_endian 1.0") <|> (pstring "format binary_big_endian 1.0"))
-            let isBoolean = parseBool (formatBoolean) (nextLine)
+
+            let isAscii = parseBool (pstring "format ascii " .>> pfloat) (nextLine)
+            let formatBoolean = (pstring "format binary_little_endian " .>> pfloat) 
+            let isBigEndian = parseBool (pstring "format binary_big_endian " .>> pfloat) nextLine
+            let isBoolean = (parseBool (formatBoolean) (nextLine)) || isBigEndian
+            
+
+            if (not (isBoolean) && not isAscii) then failwith ("Parsing Error: TAMPERED PLY FILE")
+
+            nextLine <- sr.ReadLine()
+            let arraySizeParser = pstring "element vertex " >>. pint32
+            let isArraySize s = parseBool arraySizeParser s
+            while (not (isArraySize nextLine)) do
+                nextLine <- sr.ReadLine()
+
+            let arraySize = parse arraySizeParser nextLine
+            let triangleArray = Array.zeroCreate arraySize
+            let isEndOfHeader s = parseBool (pstring "end_header") s
+            let vertexPosition : int array = Array.zeroCreate 9
+            let readPropertyParser = 
+                let mutable i = 1
+                nextLine <- sr.ReadLine()
+                let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
+                while (startWithProperty nextLine) do
+                    let endChars = nextLine.Substring(nextLine.Length-2)
+                    match endChars with
+                        | " x" -> vertexPosition.[0] <- i
+                        | " y" -> vertexPosition.[1] <- i
+                        | " z" -> vertexPosition.[2] <- i
+                        | "nx" -> vertexPosition.[3] <- i
+                        | "ny" -> vertexPosition.[4] <- i
+                        | "nz" -> vertexPosition.[5] <- i
+                        | " u" -> vertexPosition.[6] <- i
+                        | " v" -> vertexPosition.[7] <- i
+                        | _ -> vertexPosition.[8] <- i
+                    nextLine <- sr.ReadLine()
+                    i <- i + 1
+            readPropertyParser
+
+            let faceLength = parse (pstring "element face " >>. pint32) nextLine
+            let faceArray = Array.zeroCreate faceLength
+            nextLine <- sr.ReadLine()
+            while (not (isEndOfHeader nextLine)) do
+                nextLine <- sr.ReadLine()
+            nextLine <- sr.ReadLine()
+
             match isAscii,isBoolean with
             | true,_ -> 
-                //let header = (parseHeader (sr))
-                //let triangleArray = first(header)
-                //let faceArray = second(header)
-                //let vertexPosition = third(header)
-                nextLine <- sr.ReadLine()
-                let isComment (s:string) = parseBool (pstring "comment" .>> (anyString (s.Length-7))) s
-                while (isComment nextLine) do 
-                    nextLine <- sr.ReadLine()
-                let arraySizeParser = pstring "element vertex " >>. pint32
-                let arraySize = parse arraySizeParser nextLine
-                let triangleArray = Array.zeroCreate arraySize
-                let isEndOfHeader s = parseBool (pstring "end_header") s
-                let vertexPosition : int array = Array.zeroCreate 9
-                let readPropertyParser = 
-                    let mutable i = 1
-                    nextLine <- sr.ReadLine()
-                    let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
-                    while (startWithProperty nextLine) do
-                        let endChars = nextLine.Substring(nextLine.Length-2)
-                        match endChars with
-                            | " x" -> vertexPosition.[0] <- i
-                            | " y" -> vertexPosition.[1] <- i
-                            | " z" -> vertexPosition.[2] <- i
-                            | "nx" -> vertexPosition.[3] <- i
-                            | "ny" -> vertexPosition.[4] <- i
-                            | "nz" -> vertexPosition.[5] <- i
-                            | " u" -> vertexPosition.[6] <- i
-                            | " v" -> vertexPosition.[7] <- i
-                            | _ -> vertexPosition.[8] <- i
-                        nextLine <- sr.ReadLine()
-                        i <- i + 1
-                readPropertyParser
-                let faceLength = parse (pstring "element face " >>. pint32) nextLine
-                let faceArray = Array.zeroCreate faceLength
-                nextLine <- sr.ReadLine()
-                while (not (isEndOfHeader nextLine)) do
-                    nextLine <- sr.ReadLine()
-                nextLine <- sr.ReadLine()
                 for i in 0..triangleArray.Length-1 do
                     nextLine <- nextLine.Substring(0,nextLine.Length-1)
                     let listFloatParser = (sepBy pfloat WhiteSpace)
                     let listFloat = parse listFloatParser nextLine
-                    let checkArrayIsWithinPLYFile ((a:float list),(b:int array),c) = if (b.[c] = 0) then None else Some a.[b.[c]-1]
+                    let checkArrayIsWithinPLYFile ((a:float list),(b:int array),c) = 
+                        if (b.[c] = 0) then None else Some a.[b.[c]-1]
 
                     let x = checkArrayIsWithinPLYFile(listFloat,vertexPosition,0)
                     let y = checkArrayIsWithinPLYFile(listFloat,vertexPosition,1)
@@ -148,21 +114,25 @@ let parsePLY (filepath:string) =
                     let listInt = parse listIntParser nextLine
                     faceArray.[i] <- listInt
                     nextLine <- sr.ReadLine()
-                
             | _,true -> 
                 printfn ("BINARY START")
                 let br = new BinaryReader(sr.BaseStream)
-                let buffer : byte[] = Array.zeroCreate(4)
-                br.Read(buffer,0,4)
-                let float = BitConverter.ToSingle(buffer, 0)
-                while (not (sr.EndOfStream)) do 
-                    let str = br.ReadString
-                    printfn "%A" str
-                    
+                for i in 0..(triangleArray.Length-1) do 
+                    let xBuffer : byte[] = Array.zeroCreate(4)
+                    let yBuffer : byte[] = Array.zeroCreate(4)
+                    let zBuffer : byte[] = Array.zeroCreate(4)
+                    br.Read(xBuffer,0,4)
+                    br.Read(yBuffer,0,4)
+                    br.Read(zBuffer,0,4)
+                    if(isBigEndian) then 
+                        Array.Reverse(xBuffer)
+                        Array.Reverse(yBuffer)
+                        Array.Reverse(zBuffer)
+                    let x = BitConverter.ToSingle(xBuffer, 0)
+                    let y = BitConverter.ToSingle(yBuffer, 0)
+                    let z = BitConverter.ToSingle(zBuffer, 0)
+                    triangleArray.[i] <- new Vertex(Some (float x), Some (float y), Some (float z), None, None, None,None,None)
                 
-
-
-                
-            | _,_ -> printfn ("WRONG FORMAT")
+            | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
             printfn "...Parsing Done"
         | false -> parsing <- false
