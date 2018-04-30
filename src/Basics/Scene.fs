@@ -23,22 +23,40 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
 
         let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
         let mutable loadingIndex = 0
+        Console.WriteLine("                                                    
+
+
+
+
+
+
+
+                           ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
+                           ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
+                           ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
+                           ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
+                           ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
+                           ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
+                               ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
+                               ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
+                               ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
+                                                       ░                                        
+                                                                                                ")
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
                 let pct = int((float (x*y)/total) * 100.0)
 
                 // Progress bar!!!
                 if pct > currPct then 
-                    Console.Clear()
-                    printf "%s" ("Rendering: " + loadingSymbols.[loadingIndex] + " |")
                     currPct <- pct
-                    let dots = String.replicate (currPct/2) "█"
-                    let white = String.replicate (50-(currPct/2)) "░"
+
+                    let dots = String.replicate (currPct/2 + 1) "█"
+                    let white = String.replicate (49-(currPct/2)) "░"
                     loadingIndex <- loadingIndex + 1
                     if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
-                    printf "%s" (dots + white)
-                    printf "%s"  ("| " + string pct + "%")
-                
+
+                    Console.Write("\r                                {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%");
+                    
                 let ray = camera.CreateRay x y
                 let colour = camera.Cast ray backgroundColour shapes lights
                 renderedImage.SetPixel(x, y, colour.ToColor)
