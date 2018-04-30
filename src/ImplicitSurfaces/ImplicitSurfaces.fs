@@ -59,6 +59,12 @@ module Main =
     let z = solveExpr m dz
     Vector(x, y, z)
 
+  
+  let polyLongDivision p =
+    let p' = polyDerivative p
+    
+    p'
+
   let discriminant (a:float) (b:float) (c:float) =
     b**2.0 - 4.0 * a * c
 

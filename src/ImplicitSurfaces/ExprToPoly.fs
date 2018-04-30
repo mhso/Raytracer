@@ -232,12 +232,13 @@ module ExprToPoly =
     | t::cr -> 
         match t with
         | (0,_)       -> inner m' cr
-        | (n,(SE s))  -> let updated = 
-                            Map.add
-                              (n-1) 
-                              (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
-                              m'
-                         inner updated cr
+        | (n,(SE s))  -> 
+              let updated = 
+                Map.add
+                  (n-1) 
+                  (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
+                  m'
+              inner updated cr
     P (inner Map.empty (Map.toList m))
 
   let rec solveAG m = function
