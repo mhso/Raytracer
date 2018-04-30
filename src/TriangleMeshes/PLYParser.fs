@@ -2,6 +2,7 @@
 
 open FParsec
 open System.IO
+open System
 
 type UserState = unit
 type Parser<'t> = Parser<'t,UserState>
@@ -30,6 +31,47 @@ let parseBool parser str =
 
 let WhiteSpace = pstring " "
 
+let parseHeader (sr:StreamReader) = 
+    let mutable nextLine = sr.ReadLine()
+    let isComment (s:string) = parseBool (pstring "comment" .>> (anyString (s.Length-7))) s
+    while (isComment nextLine) do 
+        nextLine <- sr.ReadLine()
+    let arraySizeParser = pstring "element vertex " >>. pint32
+    let arraySize = parse arraySizeParser nextLine
+    let triangleArray = Array.zeroCreate arraySize
+    let isEndOfHeader s = parseBool (pstring "end_header") s
+    let vertexPosition : int array = Array.zeroCreate 9
+    let readPropertyParser = 
+        let mutable i = 1
+        nextLine <- sr.ReadLine()
+        let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
+        while (startWithProperty nextLine) do
+            let endChars = nextLine.Substring(nextLine.Length-2)
+            match endChars with
+                | " x" -> vertexPosition.[0] <- i
+                | " y" -> vertexPosition.[1] <- i
+                | " z" -> vertexPosition.[2] <- i
+                | "nx" -> vertexPosition.[3] <- i
+                | "ny" -> vertexPosition.[4] <- i
+                | "nz" -> vertexPosition.[5] <- i
+                | " u" -> vertexPosition.[6] <- i
+                | " v" -> vertexPosition.[7] <- i
+                | _ -> vertexPosition.[8] <- i
+            nextLine <- sr.ReadLine()
+            i <- i + 1
+    readPropertyParser
+    let faceLength = parse (pstring "element face " >>. pint32) nextLine
+    let faceArray = Array.zeroCreate faceLength
+    nextLine <- sr.ReadLine()
+    while (not (isEndOfHeader nextLine)) do
+        nextLine <- sr.ReadLine()
+    nextLine <- sr.ReadLine()
+    (triangleArray, faceArray, vertexPosition)
+
+let first (a:Vertex[],b:int list[],c:int array) = a
+let second (a:Vertex[],b:int list[],c:int array) = b
+let third (a:Vertex[],b:int list[],c:int array) = c
+
 let parsePLY (filepath:string) = 
     let sr = new StreamReader(filepath)
     let mutable parsing = true
@@ -45,6 +87,10 @@ let parsePLY (filepath:string) =
             let isBoolean = parseBool (formatBoolean) (nextLine)
             match isAscii,isBoolean with
             | true,_ -> 
+                //let header = (parseHeader (sr))
+                //let triangleArray = first(header)
+                //let faceArray = second(header)
+                //let vertexPosition = third(header)
                 nextLine <- sr.ReadLine()
                 let isComment (s:string) = parseBool (pstring "comment" .>> (anyString (s.Length-7))) s
                 while (isComment nextLine) do 
@@ -106,6 +152,9 @@ let parsePLY (filepath:string) =
             | _,true -> 
                 printfn ("BINARY START")
                 let br = new BinaryReader(sr.BaseStream)
+                let buffer : byte[] = Array.zeroCreate(4)
+                br.Read(buffer,0,4)
+                let float = BitConverter.ToSingle(buffer, 0)
                 while (not (sr.EndOfStream)) do 
                     let str = br.ReadString
                     printfn "%A" str
