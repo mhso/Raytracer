@@ -3,6 +3,7 @@
 open FParsec
 open System.IO
 open System
+open Tracer.Basics
 
 type UserState = unit
 type Parser<'t> = Parser<'t,UserState>
@@ -31,6 +32,9 @@ let parseBool parser str =
 
 let WhiteSpace = pstring " "
 
+let mutable triangleArray = Array.zeroCreate(1)
+let mutable faceArray = Array.zeroCreate(1)
+
 let findVertexFromArray floatsList posArray= 
     let checkArrayIsWithinPLYFile ((a:float list),(b:int array),c) = 
         if (b.[c] = 0) then None else Some a.[b.[c]-1]
@@ -55,7 +59,7 @@ let parsePLY (filepath:string) =
         match result with
 
         | true -> 
-            printfn "Started Parsing..."
+            //printfn "Started Parsing..."
 
             nextLine <- sr.ReadLine()
 
@@ -74,7 +78,7 @@ let parsePLY (filepath:string) =
                 nextLine <- sr.ReadLine()
 
             let arraySize = parse arraySizeParser nextLine
-            let triangleArray = Array.zeroCreate arraySize
+            triangleArray <- Array.zeroCreate arraySize
             let isEndOfHeader s = parseBool (pstring "end_header") s
             let vertexPosition : int array = Array.zeroCreate 9
             let readPropertyParser = 
@@ -97,7 +101,7 @@ let parsePLY (filepath:string) =
             readPropertyParser
 
             let faceLength = parse (pstring "element face " >>. pint32) nextLine
-            let faceArray = Array.zeroCreate faceLength
+            faceArray <- Array.zeroCreate faceLength
             nextLine <- sr.ReadLine()
             while (not (isEndOfHeader nextLine)) do
                 nextLine <- sr.ReadLine()
@@ -136,5 +140,36 @@ let parsePLY (filepath:string) =
                     br.Read(length, 0,13)
                     faceArray.[j] <- [BitConverter.ToInt32(length,0); BitConverter.ToInt32(length,1);BitConverter.ToInt32(length,5);BitConverter.ToInt32(length,9)]
             | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
-            printfn "...Parsing Done"
+            //printfn "...Parsing Done"
         | false -> parsing <- false
+
+let drawTriangles (filepath:string)= 
+    let test = parsePLY filepath
+    let material = MatteMaterial(Colour.Red)
+    let ar = Array.zeroCreate(faceArray.Length)
+    for i in 0..faceArray.Length-1 do 
+        let v1 = triangleArray.[faceArray.[i].[1]]
+        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
+        
+        let v2 = triangleArray.[faceArray.[i].[2]]
+        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
+        let v3 = triangleArray.[faceArray.[i].[3]]
+        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
+        printfn "%A ! %A ! %A" p1 p2 p3
+        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
+    ar
+
+let drawNumberOfTriangles (filepath:string) n= 
+    let test = parsePLY filepath
+    let material = MatteMaterial(Colour.Red)
+    let ar = Array.zeroCreate(n)
+    for i in 0..n-1 do 
+        let v1 = triangleArray.[faceArray.[i].[1]]
+        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
+        
+        let v2 = triangleArray.[faceArray.[i].[2]]
+        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
+        let v3 = triangleArray.[faceArray.[i].[3]]
+        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
+        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
+    ar
