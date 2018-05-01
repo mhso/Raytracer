@@ -274,14 +274,16 @@ module ExprToPoly =
 
   // assuming p2 is of lower order
   // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
-  let polynomialLongDivision (P m1) (P m2) : Map<int, simpleExpr> * (simpleExpr * simpleExpr) option =
-    let pl1 = Map.toList m1 |> List.sortByDescending (fun (x,_) -> x)
-    let pl2 = Map.toList m2 |> List.sortByDescending (fun (x,_) -> x)
-    // TODO: implement 
-    m1, None
+  let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
+    let (divExp, divConst) = p1.[0]
+    let rec inner tail = function
+      | []          -> tail
+      | (n,c)::rest  -> let toAdd = (n-divExp, c / divConst)
+                        // do more stuff
+  
 
-  type poly with
-    static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
+  //type poly with
+   // static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
 
  (* Simple tests
 

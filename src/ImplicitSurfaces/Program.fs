@@ -13,7 +13,7 @@ module Program =
   [<EntryPoint>]
   let main _ = 
 
-    let position = Point(7.,-7.0,0.1)
+    let position = Point(17.,0.0,1.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -22,7 +22,6 @@ module Program =
     let resX = 1920
     let resY = 1080
     
-    //- MATERIALS
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
     let matteGreen = MatteMaterial(Colour.Green)
@@ -41,11 +40,11 @@ module Program =
 
     //- SHAPES
     //let sphere1 = SphereShape (Point(0.,0.,0.), 0.5, perfectRed)
-    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) perfectRed
+    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) phongShades
     //let sphere2 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (4.3**2.0)))) matteYellow
     //let sphere3 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (5.3**2.0)))) matteRed
 
-    let plane = mkShape (mkImplicit "z") perfectYellow
+    let plane = mkShape (mkImplicit "z") matteGreen
     //let plane = InfinitePlane matteBlue
 
     let low = new Point(0., 0., 0.)
@@ -58,7 +57,7 @@ module Program =
     let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
     let GlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 5.)
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
-    let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
+    //let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 1
@@ -78,7 +77,7 @@ module Program =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphere1; plane; box]//; sphere2; sphere3]
+    let spheres: Shape list     = [sphere1; plane]//; sphere2; sphere3]
     let scene                   = Scene(spheres, camera, lights)
 
     scene.Render |> ignore
