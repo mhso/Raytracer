@@ -155,7 +155,6 @@ let drawTriangles (filepath:string)=
         let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
-        printfn "%A ! %A ! %A" p1 p2 p3
         ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
     ar
 

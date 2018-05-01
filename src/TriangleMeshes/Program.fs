@@ -6,8 +6,8 @@ open Tracer.Basics
 
 [<EntryPoint>]
 let main argv = 
-    //let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\head1.ply"
-    let position = Point(7.,0.,0.)
+    //let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\happy.ply"
+    let position = Point(20.,5.,5.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -57,9 +57,9 @@ let main argv =
     let p1 = Point(1.,0.,0.)
     let p2 = Point(0.,4.,0.)
     let p3 = Point(0.,0.,2.)
-    let spheres: Shape list     = ((PLYParser.drawNumberOfTriangles  @"..\..\..\..\resources\ply\urn2.ply" 500) |> Array.toList)
+    let spheres: Shape list     = ((PLYParser.drawTriangles  @"..\..\..\..\resources\ply\test.ply") |> Array.toList)
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render
-    
+    //System.Console.ReadKey() |> ignore
     0
