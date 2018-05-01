@@ -26,21 +26,28 @@ let main _ =
     let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
     let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
+    let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
+    
+    let sL = SphereShape(Point(0., 0., 0.), 1., matteRed)
+    let sC = SphereShape(Point(-4., 0., 0.), 1., glossyWhite)
+    let sR = SphereShape(Point(-8., 0., -3.), 1., matteGreen)
+    let plane = InfinitePlane(glossyWhite)
 
-    // Sample settings for camera (thin lens)
-    let CAM_SETS = 29
-    let VIEW_SAMPLES = 8
-    let DISC_SAMPLES = 8
+    //- THIN LENS SAMPLE SETTINGS
+    let CAM_SETS = 1
+    let VIEW_SAMPLES = 16
+    let LENS_SAMPLES = 16
+
     //- CAMERA
-    let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    //let camera         = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 5., 3.,
-    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS), 
-    //                        new SampleGenerator(multiJittered, DISC_SAMPLES, CAM_SETS))
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 6.0, 4.0,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
@@ -49,12 +56,9 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphereRed;spherePerfectYellow;sphereGreen]
+    let spheres: Shape list     = [sL;sC;sR;plane]
     let scene                   = Scene(spheres, camera, lights)
 
-
-    printfn "Rendering ..."
     ignore scene.Render
-    printfn "Finished!"
-
+    
     0
