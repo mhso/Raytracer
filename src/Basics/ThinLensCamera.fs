@@ -21,13 +21,14 @@ type ThinLensCamera
     default this.CreateRay x y =
         // Create Ray, setup direction and origin.
         let qx, qy = viewSamples.Next() // Sample unit square for center point.
-        let squarePoint = new Point(qx, qy, -zoom)
+        let qx = (float(x)-qx) * base.Pw
+        let qy = float(float(y)-qy) * base.Ph
         let px, py = (f * qx)/zoom, (f * qy)/zoom
         let lx, ly = lensSamples.Next() // Sample unit disc with respect to r.
         let lx = lx * r
         let ly = ly * r
 
-        (* Not sure if we need this?
+        (*Not sure if we need this?
         let rayOrigin = base.Vpc + (float(x)-this.Width/2.) * base.Pw * base.U + float(float(y)-base.Height/2.)*base.Ph*base.V
         let rayDirection = (rayOrigin - base.Position).Normalise
         let ray = new Ray(base.Position,rayDirection)*)
