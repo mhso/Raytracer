@@ -355,6 +355,11 @@ type TransformShape (hitFunction) =
     default this.hitFunction(r: Ray) = hitFunction r
 
 
+
+///////////////////////////////////
+////CONSTRUCTIVE SOLID GEOMETRY////
+///////////////////////////////////
+
 type CSGOperator = Union | Intersection | Subtraction | Grouping
 
 type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
@@ -372,7 +377,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
     override this.getBoundingBox () = failwith "not implemented yet"
 
-    //Union
+    ////UNION////
     member this.unionHitFunctionInside (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
@@ -396,7 +401,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                 if s1Time <= s2Time then s1Hit else s2Hit
                                             |true -> this.unionHitFunctionInside r
                                                
-    //Intersection
+    ////INTERSECTION////
     member this.intersectionHitFunction (r:Ray) = 
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
@@ -410,10 +415,10 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
              else this.intersectionHitFunction (new Ray((r.PointAtTime s2Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
 
 
-    //Seperation
+    ////SUBTRACTION////
 
 
-    //Grouping
+    ////GROUPING////
 
 
 
