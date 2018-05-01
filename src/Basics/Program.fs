@@ -33,29 +33,30 @@ let main _ =
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
     
-    let sL = SphereShape(Point(0., 0.25, 0.), 0.25, matteRed)
-    let sC = SphereShape(Point(0., 0., 2.), 0.5, emissive)
-    let sR = SphereShape(Point(0., 0., -2.), 1., matteRed)
+    let sL = SphereShape(Point(0., 0., 0.), 0.25, matteRed)
+    let sC = SphereShape(Point(0., -2., 0.), 0.5, emissive)
+    let sR = SphereShape(Point(0., 2., 0.), 1., matteRed)
 
     //- THIN LENS SAMPLE SETTINGS
-    let CAM_SETS = 29
-    let VIEW_SAMPLES = 8
-    let DISC_SAMPLES = 8
+    let CAM_SETS = 1
+    let VIEW_SAMPLES = 16
+    let LENS_SAMPLES = 16
 
     //- CAMERA
-    let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+  
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
-    let lightRight      = PointLight(Colour.White, 1., Point(0., 0., 30.))
+    let lightRight      = PointLight(Colour.White, 1., Point(0., 30., 0.))
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightSphere    = SphereAreaLight(emissive, sC, 200, 10)
+    let lightSphere    = SphereAreaLight(emissive, sC, 263, 1)
     let plane = InfinitePlane(matteWhite)
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightSphere; ]
-    let spheres: Shape list     = [sL;sR;sC]
+    let lights: Light list      = [lightSphere; lightAmbient]
+    let spheres: Shape list     = [sL;sC;sR]
+
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render
