@@ -1,5 +1,7 @@
 ﻿module RegularGrids
 
+open System
+
 let clamp (x:float,b:float) =
     match x with
     | x when x<0. -> 0.
@@ -8,7 +10,7 @@ let clamp (x:float,b:float) =
 
 let calcEdgeLength (wx:float) (wy:float) (wz:float) (n:float) : float = System.Math.Pow (((wx*wy*wz)/n),(1./3.))
 
-let calcAxisCell (m:float) (w:float) (s:float) : float = ((m*w)/s)+1.
+let calcAxisCell (m:float) (w:float) (s:float) : float = System.Math.Floor ((m*w)/s)+1.
 
 let calcAxisCells (wx:float) (wy:float) (wz:float) (m:float) (n:float) = 
     let s =  calcEdgeLength wx wy wz n
