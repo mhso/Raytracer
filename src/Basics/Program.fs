@@ -5,7 +5,7 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(7.,2.,2.)
+    let position = Point(7.,1.,1.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -39,10 +39,10 @@ let main _ =
 
     let cylinderOrigin = new Point(0., 0., 0.)
     let radius = 0.5
-    let height = 2.
+    let cylinderHeight = 2.
     let Material = new MatteMaterial(new Colour(0., 0., 1.))
     let MaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
-    let cylinder = new HollowCylinder(cylinderOrigin, radius, height, Material)
+    let cylinder = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, Material)
 
     let sphereOrigin = new Point(0., 0., 0.)
     let sphereRadius = 1.
@@ -84,7 +84,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let csgShape = CSG(sphere, box, Intersection)
+    let csgShape = CSG(sphere, box, Union)
 
     let shapes : Shape list = [csgShape]
 
