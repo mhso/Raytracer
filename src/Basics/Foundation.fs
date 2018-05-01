@@ -81,7 +81,7 @@ and AmbientLight(colour: Colour, intensity: float) =
 
 //- SHAPE
 and [<AbstractClass>] Shape() =
-    abstract member hitFunction: Ray -> HitPoint
+    abstract member hitFunction : Ray -> HitPoint
     static member None = BlankShape() :> Shape
 
 and BlankShape() = 

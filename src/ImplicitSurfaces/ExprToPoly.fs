@@ -169,10 +169,11 @@ module ExprToPoly =
     let mutable vars = Map.empty
     List.iter (fun x ->
       match x with
-      | [ANum n]      -> nums <- n + nums // Add atom groups with only constants together.
-      | ANum n::cr    -> match Map.tryFind cr vars with
-                          | Some v  -> vars <- Map.add cr (v + n) vars
-                          | None    -> vars <- Map.add cr n vars
+      | [ANum n]   -> nums <- n + nums // Add atom groups with only constants together.
+      | ANum n::cr -> 
+            match Map.tryFind cr vars with
+            | Some v  -> vars <- Map.add cr (v + n) vars
+            | None    -> vars <- Map.add cr n vars
       | []            -> nums <- 0.0 
       | _             -> failwith "simplifySimpleExpr: unmatched clause" // should never get here                   
     ) ags'
@@ -268,13 +269,16 @@ module ExprToPoly =
   
   let rec solveReducedPolyList x = function
     | []        -> 0.0
-    | (0,c)::cr  -> c + solveReducedPolyList x cr 
+    | (0,c)::cr -> c + solveReducedPolyList x cr 
     | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
 
-
-  let polynomialLongDivision (p1:poly) (p2:poly) =
+  // assuming p2 is of lower order
+  // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
+  let polynomialLongDivision (P m1) (P m2) : Map<int, simpleExpr> * (simpleExpr * simpleExpr) option =
+    let pl1 = Map.toList m1 |> List.sortByDescending (fun (x,_) -> x)
+    let pl2 = Map.toList m2 |> List.sortByDescending (fun (x,_) -> x)
     // TODO: implement 
-    p1
+    m1, None
 
   type poly with
     static member ( % ) (p1, p2) = polynomialLongDivision p1 p2

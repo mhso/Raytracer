@@ -61,10 +61,10 @@
     <Compile Include="ExprToPoly.fs" />
     <Compile Include="ImplicitSurfaces.fsi" />
     <Compile Include="ImplicitSurfaces.fs" />
-    <Compile Include="SimpleTracer.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -86,6 +86,11 @@
     <ProjectReference Include="..\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Shapes\Shapes.fsproj">
+      <Name>Shapes</Name>
+      <Project>{d11dcb99-64dd-4ecd-a0d8-29b21e12ae72}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
