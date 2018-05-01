@@ -106,9 +106,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
     inherit Material()
     
     let random = new Random()
-    let hemispheres = 
-        Sampling.multiJittered sampleCount setCount
-        |> Array.map (fun a -> Sampling.mapToHemisphere a sharpness)
+    let samplingGenerator = new Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, setCount)
 
     // Will reflect a ray along a hemisphere
     default this.Bounces = bounces
@@ -118,8 +116,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
         let rays = Array.create sampleCount Ray.None
 
         for i = 0 to sampleCount-1 do
-            let hemisphere = hemispheres.[random.Next(0, hemispheres.Length - 1)]
-            let sp = new Point(hemisphere.[random.Next(0, hemisphere.Length - 1)])
+            let sp = new Point(Sampling.mapToHemisphere (samplingGenerator.Next()) sharpness)
             let m = direction + 2. * (normal * -direction) * normal
             let up = new Vector(0., 1., 0.)
             let w = m.Normalise

@@ -1,4 +1,5 @@
 ﻿open Tracer.Basics
+open Tracer.Sampling.Sampling
 open System.IO
 
 [<EntryPoint>]
@@ -25,14 +26,24 @@ let main _ =
     let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
     let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
+    let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
-    let sphereRed        = SphereShape(Point(0.,-1.,0.1), 0.5, matteRed)
-    let spherePerfectYellow     = SphereShape(Point(0.,0.,0.), 0.5, matteYellow)
-    let sphereGreen      = SphereShape(Point(0.,1.,-0.1), 0.5, matteGreen)
+    let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
+    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
+    let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
+    
+    let sL = SphereShape(Point(0., 0., -2.), 1., matteRed)
+    let sC = SphereShape(Point(0., 0., 0.), 1., matteRed)
+    let sR = SphereShape(Point(0., 0., 2.), 1., matteRed)
+
+    //- THIN LENS SAMPLE SETTINGS
+    let CAM_SETS = 29
+    let VIEW_SAMPLES = 8
+    let DISC_SAMPLES = 8
 
     //- CAMERA
-    let camera         = Camera(position, lookat, up, zoom, width, height, resX, resY)
+    let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
     
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
@@ -41,12 +52,9 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphereRed;spherePerfectYellow;sphereGreen]
+    let spheres: Shape list     = [sL;sC;sR]
     let scene                   = Scene(spheres, camera, lights)
 
-
-    printfn "Rendering ..."
     ignore scene.Render
-    printfn "Finished!"
-
+    
     0
