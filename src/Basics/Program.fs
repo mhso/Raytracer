@@ -5,14 +5,14 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(7.,0.,0.)
-    let lookat = Point(0.,0.,0.)
+    let position = Point(70.,0.,7.)
+    let lookat = Point(0.,0.,6.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 1920.
-    let height = 1080.
-    let resX = 1920
-    let resY = 1080
+    let width = 500.
+    let height = 350.
+    let resX = 500
+    let resY = 350
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -26,16 +26,16 @@ let main _ =
     let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
     let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
-    let emissive = EmissiveMaterial(Colour.White, 1.)
+    let emissive = EmissiveMaterial(Colour.White, 5.)
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
     
-    let sL = SphereShape(Point(0., 0., 0.), 0.25, matteRed)
-    let sC = SphereShape(Point(0., -2., 0.), 0.5, emissive)
-    let sR = SphereShape(Point(0., 2., 0.), 1., matteRed)
+    let sL = SphereShape(Point(0., -4., 0.), 0.25, matteRed)
+    let sC = SphereShape(Point(-6., 0., 10.), 0.01, emissive)
+    let sR = SphereShape(Point(0., 0., 5.), 4., matteGreen)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 1
@@ -47,15 +47,15 @@ let main _ =
   
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
-    let lightRight      = PointLight(Colour.White, 1., Point(0., 30., 0.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,0.,1.))
+    let lightRight      = PointLight(Colour.White, 1., Point(0., -30., 0.))
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightSphere    = SphereAreaLight(emissive, sC, 263, 1)
+    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     let plane = InfinitePlane(matteWhite)
 
     //- FINAL
-    let lights: Light list      = [lightSphere; lightAmbient]
-    let spheres: Shape list     = [sL;sC;sR]
+    let lights: Light list      = [lightAmbient; lightSphere]
+    let spheres: Shape list     = [plane; sR; sC]
 
     let scene                   = Scene(spheres, camera, lights)
 

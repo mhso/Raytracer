@@ -26,9 +26,10 @@ type MatteMaterial(colour:Colour) =
 
         // Determine the colour
         if n * ld > 0. then
-            let friction    = (kd * cd) / Math.PI           
+            let friction    = (kd * cd) / Math.PI     
+            let volume      = (light.GetGeometricFactor hitPoint.Point / light.GetProbabilityDensity)
             let direction   = lc * (n * ld)                 
-            friction * direction
+            friction * volume * direction
         else
             Colour.Black
 
