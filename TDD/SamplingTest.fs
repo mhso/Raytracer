@@ -100,7 +100,7 @@ let allTest =
 
     let mapToDisc_SamplesAreInCorrectQuadrants =
         let samples = (multiJittered 2 1).[0]
-        let toDisc = mapToDisc samples
+        let toDisc = Array.map mapToDisc samples
         let validArr = [|(true, true);(false, false);(true, false);(false, true)|]
         let result = Array.forall (fun (b1, b2) -> 
             Array.exists (fun (x, y) -> b1 = (x < 0.0) && b2 = (y < 0.0)) toDisc) validArr
@@ -108,7 +108,7 @@ let allTest =
 
     let mapToDisc_SamplesAreInValidRange =
         let samples = (multiJittered 16 1).[0]
-        let toDisc = mapToDisc samples
+        let toDisc = Array.map mapToDisc samples
         let result = Array.forall (fun (x, y) -> 
                                             x > -0.9 && y > -0.9 || 
                                             x < 0.9 && y < 0.9 ||

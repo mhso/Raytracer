@@ -2,10 +2,10 @@ namespace Tracer.ImplicitSurfaces
 
 module ExprToPoly =
 
-  open Tracer.ImplicitSurfaces.ExprParse
-  
-  type expr = ExprParse.expr
+  open ExprParse
 
+  type expr = ExprParse.expr
+  
   let rec ppExpr = function
     | FNum c            -> string(c)
     | FVar s            -> s
@@ -156,6 +156,7 @@ module ExprToPoly =
           match Map.tryFind x exps with
             | Some v  -> exps <- Map.add x (n + v) exps
             | None    -> exps <- Map.add x n exps
+        | _ -> failwith "should not end here"
     let expslist = [for KeyValue(k,v) in exps ->
                         if v = 0 then ANum 1.0
                         else AExponent(k,v)]
@@ -224,22 +225,58 @@ module ExprToPoly =
   // same as (simpleExprToPoly (simplifySimpleExpr (exprToSimpleExpr e)) v)
   let exprToPoly e v = (exprToSimpleExpr >> simplifySimpleExpr >> simpleExprToPoly) e v
 
-  // requires a map of all variables, mapped to float values
-  let rec solveSimpleExpr m s : float =
-    let rec innerAG = function
+  // derivative of a polynomial, with respect to t
+  let polyDerivative (P m) = 
+    let rec inner m' = function
+    | []    -> m'
+    | t::cr -> 
+        match t with
+        | (0,_)       -> inner m' cr
+        | (n,(SE s))  -> let updated = 
+                            Map.add
+                              (n-1) 
+                              (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
+                              m'
+                         inner updated cr
+    P (inner Map.empty (Map.toList m))
+
+  let rec solveAG m = function
     | []   -> 1.0
-    | a::r -> match a with
-              | ANum c         -> c * innerAG r
-              | AExponent(e,x) -> 
-                  match Map.tryFind e m with
-                  | Some v -> if x = 1 then v * innerAG r
-                                else v**(float x) * innerAG r
-                  | None   -> failwith "solveSimpleExpr: variable not found in map"
-              | _ -> failwith "solveSimpleExpr: met a simpleExpr that shouldn't exist here"                
-    match s with
+    | a::r -> 
+        match a with
+        | ANum c         -> c * solveAG m r
+        | AExponent(e,x) -> 
+            match Map.tryFind e m with
+            | Some v -> if x = 1 then v * solveAG m r
+                          else v**(float x) * solveAG m r
+            | None   -> failwith "solveAG: variable not found in map"
+        | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
+
+  // requires a map of all variables, mapped to float values
+  let rec solveSE m = function  
     | SE ([])     -> 0.0
-    | SE (ag::cr) -> innerAG ag + solveSimpleExpr m (SE cr)
-                               
+    | SE (ag::cr) -> solveAG m ag + solveSE m (SE cr)
+
+  // only works if all the inner variables are known
+  // returns a map of <int,float> where int is the power of the unknown, and float is the constant
+  let reducePolyConstants (P m) vars =
+    let mutable reduced = Map.empty
+    for KeyValue (n,s) in m do
+      reduced <- Map.add n (solveSE vars s) reduced 
+    reduced
+  
+  let rec solveReducedPolyList x = function
+    | []        -> 0.0
+    | (0,c)::cr  -> c + solveReducedPolyList x cr 
+    | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
+
+
+  let polynomialLongDivision (p1:poly) (p2:poly) =
+    // TODO: implement 
+    p1
+
+  type poly with
+    static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
 
  (* Simple tests
 

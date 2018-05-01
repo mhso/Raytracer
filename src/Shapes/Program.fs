@@ -21,14 +21,12 @@ let main _ =
     let height = 2.
     let Material = new MatteMaterial(new Colour(0., 0., 1.))
     let MaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
-    let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
     let cylinder = new HollowCylinder(cylinderOrigin, radius, height, Material)
 
     let sphereOrigin = new Point(0., 0., 0.)
     let sphereRadius = 1.
     let sphereMaterial = new MatteMaterial(new Colour(1., 1., 0.))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
-    let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
     let sphere = new SphereShape(sphereOrigin, sphereRadius, sphereMaterial)
 
     let low = new Point(0., 0., 0.)
@@ -40,7 +38,6 @@ let main _ =
     let boxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.))
     let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
-    let sphereMaterialBlinnPhong = new BlinnPhongMaterial(0.1, new Colour(1., 1., 1.), 20., new Colour(0., 0., 1.))
     let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
 
     let planeMaterial = new MatteMaterial(new Colour(0., 1., 1.))
@@ -73,14 +70,14 @@ let main _ =
     let lightIntensity = 1.
     let lightColour = new Colour(1.,1.,1.)
 
-    let camera = new Camera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera = new Camera(position, lookat, up, zoom, width, height, resX, resY)
     let light = new PointLight(lightColour, lightIntensity, lightPosition)
     let light2 = new PointLight(lightColour, lightIntensity, new Point(20.,0.,0.))
     let ambientLight = new AmbientLight(lightColour, 0.1)
-    let scene = new SceneShapes(shapes, camera, [light2])
+    //let scene = new SceneShapes(shapes, camera, [light2])
     
     printfn "Rendering ..."
-    ignore scene.Render
+    //ignore scene.Render
     printfn "Finished!"
 
     0
