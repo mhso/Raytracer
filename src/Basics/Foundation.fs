@@ -81,9 +81,14 @@ and AmbientLight(colour: Colour, intensity: float) =
 
 //- SHAPE
 and [<AbstractClass>] Shape() =
-    abstract member hitFunction : Ray -> HitPoint
+    abstract member isInside: Point -> bool
+    abstract member getBoundingBox: unit -> BBox
+    abstract member hitFunction: Ray -> HitPoint
     static member None = BlankShape() :> Shape
 
 and BlankShape() = 
     inherit Shape()
+    override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
+    override this.getBoundingBox () = failwith "cannot get bounding box for a blank shape"
     default this.hitFunction r = HitPoint(r)
+    

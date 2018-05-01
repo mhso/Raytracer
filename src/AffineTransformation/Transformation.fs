@@ -143,4 +143,4 @@ open System
             let hitsOriginal = s.hitFunction transformedRay
             let normal = transformNormal (hitsOriginal.Normal) t
             new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
-        new TransformShape(transHitFunction)
+        new TransformShape(transHitFunction) :> Shape

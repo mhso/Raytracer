@@ -181,7 +181,10 @@ module Main =
                       | None        -> hitPoint (r)
                       | Some (t,v)  -> hitPoint (r,  t, v, m)
                     { new shape() with
-                        member this.hitFunction r = newhf r }
+                        member this.hitFunction r = newhf r
+                        member this.getBoundingBox () = failwith "I hate this"
+                        member this.isInside p = failwith "I hate this"
+                        }
                }
     bsh
 
