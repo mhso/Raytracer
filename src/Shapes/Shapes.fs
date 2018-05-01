@@ -364,12 +364,14 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     override this.isInside (p:Point) = match op with
                                         |Union -> if s1.isInside p || s2.isInside p then true
                                                   else false
-                                        |Intersection -> failwith "not implemented yet"
+                                        |Intersection -> if s1.isInside p && s2.isInside p then true
+                                                         else false
                                         |Subtraction -> failwith "not implemented yet"
                                         |Grouping -> failwith "not implemented yet"
 
     override this.getBoundingBox () = failwith "not implemented yet"
 
+    //Union
     member this.unionHitFunctionInside (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
@@ -383,8 +385,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                     this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
                                  else s1Hit //if the hit, is not inside s2, we have found the hitpoint
         else if s1.isInside (r.PointAtTime s2Time) then 
-                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                 else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+                this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
@@ -396,12 +398,33 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                              |(t,_,_) -> if t.IsSome then t.Value else infinity
                                                 if s1Time <= s2Time then s1Hit else s2Hit
                                             |true -> this.unionHitFunctionInside r
-                                                
+                                               
+    //Intersection
+    member this.intersectionHitFunction (r:Ray) = 
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = match s1Hit with //i could likely make this more efficient
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity //extract time from the hit (or infinity if miss)
+        let s2Time = match s2Hit with
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity
+        
+        //check if the hitpoint for the smallest time, is inside the other shape, if it is, return that hitpoint, else fire a new ray
+        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then s1Hit
+                                 else this.intersectionHitFunction (new Ray((r.PointAtTime s1Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+        else if s1.isInside (r.PointAtTime s2Time) then s1Hit
+             else this.intersectionHitFunction (new Ray((r.PointAtTime s2Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+
+
+    //Seperation
+
+
+    //Grouping
+
 
 
     override this.hitFunction (r:Ray) = match op with
                                         |Union -> this.unionHitFunction r
-                                        |Intersection -> failwith "not implemented yet"
+                                        |Intersection -> this.intersectionHitFunction r
                                         |Subtraction -> failwith "not implemented yet"
                                         |Grouping -> failwith "not implemented yet"
 
