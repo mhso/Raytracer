@@ -5,7 +5,7 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(7.,0.,0.)
+    let position = Point(7.,1.,1.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -37,6 +37,57 @@ let main _ =
     let sC = SphereShape(Point(-4., 0., 0.), 1., glossyWhite)
     let sR = SphereShape(Point(-8., 0., -3.), 1., matteGreen)
     let plane = InfinitePlane(glossyWhite)
+
+    let cylinderOrigin = new Point(0., 0., 0.)
+    let radius = 0.5
+    let cylinderHeight = 2.
+    let Material = new MatteMaterial(new Colour(0., 0., 1.))
+    let MaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let cylinder = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, Material)
+
+    let sphereOrigin = new Point(0., 0., 0.)
+    let sphereRadius = 1.
+    let sphereMat = new MatteMaterial(new Colour(1., 1., 0.))
+    let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 0., 1.), 10., new Colour(0., 0., 1.))
+    let GlossySphereMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 10.)
+    let sphere = new SphereShape(sphereOrigin, sphereRadius, sphereMat)
+
+    let low = new Point(0., 0., 0.)
+    let high = new Point(1., 1., 1.)
+    let boxMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let boxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.))
+    let boxMaterial3 = new MatteMaterial(new Colour(1., 0., 1.))
+    let boxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.))
+    let boxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.))
+    let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
+    let GlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 5.)
+    let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
+
+    let planeMaterial = new MatteMaterial(new Colour(0., 1., 0.4))
+    let GlossyPlaneMat = GlossyMaterial(5., Colour.Blue, matteWhite, 10, 1, 1, 5.)
+    let infinitePlane = InfinitePlane(planeMaterial)
+
+    let bLeft = new Point(0., 0., 0.)
+    let tLeft = new Point(0., 1., 0.)
+    let bRight = new Point(1., 0., 0.)
+    let rectangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let rectangle = Rectangle(bLeft, tLeft, bRight, rectangleMaterial) 
+
+    let discCenter = new Point(0., 0., 0.)
+    let discRadius = 1.
+    let discMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let disc = Disc(discCenter, discRadius, discMaterial)
+
+    let a = new Point(0., 0., 0.)
+    let b = new Point(0., 1., 0.)
+    let c = new Point(1., 0., 0.)
+    let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let triangle = Triangle(a, b, c, triangleMaterial)
+
+    let csgShape = CSG(sphere, box, Union)
+
+    let shapes : Shape list = [csgShape]
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 1
