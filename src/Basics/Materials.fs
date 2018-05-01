@@ -148,7 +148,4 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     default this.BounceMethod hitPoint = [||]
     default this.AmbientColour shape hitPoint = emisiveRadience
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
-        if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then
-            emisiveRadience
-        else
-            Colour.Black
+        emisiveRadience

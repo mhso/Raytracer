@@ -7,24 +7,36 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
 
     override this.GetColour point = 
-        if this.SamplePointNormal point * (point - this.SamplePoint point).Normalise > 0. then
-            surfaceMaterial.EmisiveRadience
-        else
-            surfaceMaterial.EmisiveRadience
+        let x = [for i in [0..sampleCount] 
+                    do 
+                        let sp = this.SamplePoint point
+                        let n = this.SamplePointNormal sp
+                        let colour = 
+                            if n * (point - sp).Normalise > 0. then
+                                surfaceMaterial.EmisiveRadience
+                            else
+                                Colour.Black
+                        yield colour
+            ] 
+           
+        let total = x |> List.fold (fun acc c -> acc + c) Colour.Black
+        total / float(sampleCount)
 
     override this.GetDirectionFromPoint (point: Point) = 
         let total = [for i=0 to sampleCount - 1 do yield (this.SamplePoint point - point).Normalise] |> List.sum
         total / float(sampleCount)
     override this.GetShadowRay (hitPoint: HitPoint) = 
-        let shadowRays = Array.create sampleCount Ray.None
-        for i=0 to sampleCount - 1 do 
-            let sp = this.SamplePoint hitPoint.Point
-            printfn "%A" sp
-            let normal:Vector = hitPoint.Normal
-            let shadowRayOrigin = sp + normal * 0.00001
-            let direction = (sp - shadowRayOrigin).Normalise
-            shadowRays.[i] <- Ray(shadowRayOrigin, direction)
-        shadowRays
+        if hitPoint.Material :? EmissiveMaterial then
+            [||]
+        else
+            let shadowRays = Array.create sampleCount Ray.None
+            for i=0 to sampleCount-1 do 
+                let point = this.SamplePoint hitPoint.Point
+                let normal:Vector = hitPoint.Normal
+                let shadowRayOrigin = hitPoint.Point + normal * 0.00001
+                let direction = (point - shadowRayOrigin).Normalise
+                shadowRays.[i] <- Ray(shadowRayOrigin, direction)
+            shadowRays |> Array.filter (fun a -> not (Object.ReferenceEquals(a, Ray.None)))
 
     override this.GetGeometricFactor (point: Point) = 
         let d_sp_p = (point - this.SamplePoint point)
@@ -91,7 +103,7 @@ type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sam
         let v = (up % w).Normalise
         let u = w % v
         let v = hem_sp.OrthonormalTransform (u, v, w)
-        Point(v.X, v.Y, v.Z)
+        Point(sphere.Origin.X + v.X * sphere.Radius, sphere.Origin.Y + v.Y * sphere.Radius, sphere.Origin.Z + v.Z * sphere.Radius)
 
     override this.SamplePointNormal point = 
         (point - sphere.Origin).Normalise

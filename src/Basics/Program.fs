@@ -33,9 +33,9 @@ let main _ =
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
     
-    let sL = SphereShape(Point(0., 0., -2.), 1., matteRed)
-    let sC = SphereShape(Point(0., 0., 0.), 1., matteRed)
-    let sR = SphereShape(Point(0., 0., 2.), 1., matteRed)
+    let sL = SphereShape(Point(0., 0.25, 0.), 0.25, matteRed)
+    let sC = SphereShape(Point(0., 0., 2.), 0.5, emissive)
+    let sR = SphereShape(Point(0., 0., -2.), 1., matteRed)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 29
@@ -48,11 +48,14 @@ let main _ =
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
+    let lightRight      = PointLight(Colour.White, 1., Point(0., 0., 30.))
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    let lightSphere    = SphereAreaLight(emissive, sC, 200, 10)
+    let plane = InfinitePlane(matteWhite)
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sL;sC;sR]
+    let lights: Light list      = [lightAmbient; lightSphere; ]
+    let spheres: Shape list     = [sL;sR;sC]
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render

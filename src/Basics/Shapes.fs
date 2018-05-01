@@ -98,7 +98,6 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             let s = (r.GetOrigin - origin)
             let rayDir = r.GetDirection.Normalise
             let sv = s * rayDir
-            let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             if t1 < 0. && t2 < 0. then HitPoint(r)
             elif t1 < t2 then HitPoint(r, t1, this.NormalAtPoint (r.PointAtTime t1), tex)
