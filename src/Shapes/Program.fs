@@ -6,7 +6,7 @@ open Tracer.Basics
 let main _ = 
     
     //- CAMERA SETTINGS
-    let position = new Point(5.,5.,5.)
+    let position = new Point(7.,0.,0.)
     let lookat = new Point(0.,0.,0.)
     let up = new Vector(0.,1.,0.)
     let zoom = 1.
@@ -62,7 +62,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let shapes : Shape list = [infinitePlane]
+    let shapes : Shape list = [box]
 
 
     //- LIGHT SETTINGS
