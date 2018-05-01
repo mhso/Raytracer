@@ -173,6 +173,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     
     member this.NormalAtPoint (p:Point):Vector = 
         (p - origin).Normalise
+
     member this.GetDiscriminant (ray:Ray) = 
         let s = (ray.GetOrigin - origin)
         let rayDir = ray.GetDirection.Normalise
@@ -290,6 +291,7 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.bottom = bottom
     member this.left = left
     member this.right = right
+
     override this.isInside (p:Point) =
         if low.X <= p.X && p.X <= high.X then
             if low.Y <= p.Y && p.Y <= high.Y then
