@@ -273,6 +273,31 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
                   |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
                                                                                             else this.determineHitPoint r t1
 
+    module Transform =
+        let transformRay (r : Ray) t = 
+        let o = pointToMatrix r.GetOrigin
+        let d = vectorToMatrix r.GetDirection
+        let invT = getInvMatrix t
+        let originMatrix = Matrix.multi (invT, o)
+        let directionMatrix = Matrix.multi (invT, d)
+        let origin = matrixToPoint originMatrix
+        let direction = matrixToVector directionMatrix
+        new Ray(origin, direction)
+
+        let transformNormal (v:Vector) (t: Transformation)= 
+        let vector = v
+        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
+        tVector
+
+        let transform (s : Shape) (t:Transformation) =    
+            let transHitFunction (r:Ray) = 
+                let transformedRay = transformRay r t
+                let hitsOriginal = s.hitFunction transformedRay
+                let normal = transformNormal (hitsOriginal.Normal) t
+                new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
+            new TransformShape(transHitFunction)
+        
+
 type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
     inherit Shape()
     member this.center = center
@@ -301,7 +326,6 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
 
     member this.getTextureCoords (p:Point) = //NotImplementedException()
                                                (0.0, 0.0)
-
     default this.hitFunction (r:Ray) = HitPoint(r)
     //affine transformation is needed for moving the disks
 
