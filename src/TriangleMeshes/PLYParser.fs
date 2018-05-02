@@ -30,6 +30,26 @@ let parseBool parser str =
     | Success(_) ->  true
     | Failure (_) ->  false
 
+let typeParser str = 
+    match str with
+    | "char" -> 1
+    | "uchar" -> 1
+    | "int8" -> 1
+    | "uint8" -> 1
+    | "short" -> 2
+    | "int16" -> 2
+    | "ushort" -> 2
+    | "uint16" -> 2
+    | "int" -> 3
+    | "int32" -> 3
+    | "uint" -> 3
+    | "uint32" -> 3
+    | "float" -> 4
+    | "float32" -> 4
+    | "double" -> 5
+    | "float64" -> 5
+    | _ -> 0
+
 let WhiteSpace = pstring " "
 
 let mutable triangleArray = Array.zeroCreate(1)
@@ -55,6 +75,7 @@ let parsePLY (filepath:string) =
     if (not sr.EndOfStream) then
         let mutable nextLine = sr.ReadLine()
         let mutable numberOfProperty = 1
+        let mutable propertyList = []
         let result = parseBool (pstring "ply") (nextLine)
         match result with
 
@@ -85,17 +106,19 @@ let parsePLY (filepath:string) =
                 nextLine <- sr.ReadLine()
                 let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
                 while (startWithProperty nextLine) do
-                    let endChars = nextLine.Substring(nextLine.Length-2)
-                    match endChars with
-                        | " x" -> vertexPosition.[0] <- numberOfProperty
-                        | " y" -> vertexPosition.[1] <- numberOfProperty
-                        | " z" -> vertexPosition.[2] <- numberOfProperty
+                    let test = nextLine.Split [|' '|]
+                    match test.[2] with
+                        | "x" -> vertexPosition.[0] <- numberOfProperty
+                        | "y" -> vertexPosition.[1] <- numberOfProperty
+                        | "z" -> vertexPosition.[2] <- numberOfProperty
                         | "nx" -> vertexPosition.[3] <- numberOfProperty
                         | "ny" -> vertexPosition.[4] <- numberOfProperty
                         | "nz" -> vertexPosition.[5] <- numberOfProperty
-                        | " u" -> vertexPosition.[6] <- numberOfProperty
-                        | " v" -> vertexPosition.[7] <- numberOfProperty
+                        | "u" -> vertexPosition.[6] <- numberOfProperty
+                        | "v" -> vertexPosition.[7] <- numberOfProperty
                         | _ -> vertexPosition.[8] <- numberOfProperty
+                    let typeVal = typeParser test.[1]
+                    propertyList <- List.append propertyList [typeVal]
                     nextLine <- sr.ReadLine()
                     numberOfProperty <- numberOfProperty + 1
             readPropertyParser
@@ -104,6 +127,7 @@ let parsePLY (filepath:string) =
             faceArray <- Array.zeroCreate faceLength
             nextLine <- sr.ReadLine()
             while (not (isEndOfHeader nextLine)) do
+                let parseListProps = pstring "property list " >>. (anyString (nextLine.Length-28)) .>> pstring "vertex_indices"
                 nextLine <- sr.ReadLine()
             nextLine <- sr.ReadLine()
 
@@ -125,24 +149,45 @@ let parsePLY (filepath:string) =
             | _,true -> 
                 printfn ("BINARY START")
                 let br = new BinaryReader(sr.BaseStream)
-
-                printfn "%A" vertexPosition
                 //Parsing Vertices
                 for j in 0..(triangleArray.Length-1) do 
                     let vertexProps = Array.zeroCreate(numberOfProperty)
-                    for k in 1..numberOfProperty do
-                        let buffer : byte[] = Array.zeroCreate(4)
-                        br.Read(buffer,0,4)
-                        if(isBigEndian) then
-                            Array.Reverse(buffer)
-                        let f = BitConverter.ToSingle(buffer, 0)
-                        vertexProps.[k-1] <- (float (f))
-
-                    
-
+                    for k in 0..(propertyList.Length-1) do
+                        let f = 
+                            match propertyList.[k] with
+                            | 1 -> 
+                                let buffer : byte[] = Array.zeroCreate(1)
+                                br.Read(buffer,0,1)
+                                if(isBigEndian) then
+                                    Array.Reverse(buffer)
+                                (float buffer.[0])
+                            | 2 -> 
+                                let buffer : byte[] = Array.zeroCreate(2)
+                                br.Read(buffer,0,2)
+                                if(isBigEndian) then
+                                    Array.Reverse(buffer)
+                                (float (BitConverter.ToInt16 (buffer, 0)))
+                            | 3 -> 
+                                let buffer : byte[] = Array.zeroCreate(4)
+                                br.Read(buffer,0,4)
+                                if(isBigEndian) then
+                                    Array.Reverse(buffer)
+                                (float (BitConverter.ToInt32 (buffer, 0)))
+                            | 4 -> 
+                                let buffer : byte[] = Array.zeroCreate(4)
+                                br.Read(buffer,0,4)
+                                if(isBigEndian) then
+                                    Array.Reverse(buffer)
+                                (float (BitConverter.ToSingle (buffer, 0)))
+                            | 5 -> 
+                                let buffer : byte[] = Array.zeroCreate(8)
+                                br.Read(buffer,0,8)
+                                if(isBigEndian) then
+                                    Array.Reverse(buffer)
+                                (float (BitConverter.ToDouble (buffer, 0)))
+                            | _ -> 0.0
+                        vertexProps.[k] <- f
                     triangleArray.[j] <- findVertexFromArray (vertexProps |> Array.toList) vertexPosition
-                    //if (j > 454900) then printfn "%A" triangleArray.[j].x.Value
-
                 //Parsing Triangles
                 let dump : byte[] = Array.zeroCreate(11)
                 br.Read(dump,0,11)
@@ -161,9 +206,8 @@ let parsePLY (filepath:string) =
 
                         let faceId = BitConverter.ToInt32(faceIdBuffer,0)
                         numbers.[k+1] <- (int faceId)
-                    //printfn "%A" numbers
+                    printfn "%A" numbers
                     faceArray.[j] <- (Array.toList numbers)
-                    //faceArray.[j] <- [BitConverter.ToInt32(length,0); BitConverter.ToInt32(length,1);BitConverter.ToInt32(length,5);BitConverter.ToInt32(length,9)]
             | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
             printfn "...Parsing Done"
         | false -> parsing <- false
