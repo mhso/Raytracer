@@ -3,8 +3,20 @@
 open Tracer.Basics
 open Tracer.BVH
 open Assert
+open Transformation
+
 let allTest = 
 
+    let create shapeAndBBoxArr =
+        let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
+        let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
+        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
+        let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
+
+        let shapeArr [fig1; fig2; fig4; fig4]
+        for i (0..shapeArr.lenght)
+        let bboxArr []
+    
     let bBox01 = {  lowXYZ = Point(1., 0.6, -1.);
                     highXYZ = Point(6., 9., -8.9);
                     }
