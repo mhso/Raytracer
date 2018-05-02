@@ -22,7 +22,7 @@ type Colour (r:float, g:float, b:float)=
     override this.ToString() = 
         "["+r.ToString()+","+g.ToString()+","+b.ToString()+"]"
     member this.Scale (s:float) = 
-        if s < 0.0 then raise ColourException
+        if s < 0.0 then Colour.White
         else new Colour(r*s,g*s,b*s)
     member this.Merge (w: float) (c: Colour) =
         let w' = 1.0 - w

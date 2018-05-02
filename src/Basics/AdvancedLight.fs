@@ -7,17 +7,15 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
 
     override this.GetColour point = 
-        let x = [for i in [0..sampleCount] 
-                    do 
-                        let sp = this.SamplePoint point
-                        let n = this.SamplePointNormal sp
-                        let colour = 
-                            if n * (point - sp).Normalise > 0. then
-                                surfaceMaterial.EmisiveRadience
-                            else
-                                Colour.Black
-                        yield colour
-            ] 
+        let x = 
+            [for i in [0..sampleCount] do 
+                let sp = this.SamplePoint point
+                let n = this.SamplePointNormal sp
+                yield 
+                    if n * (point - sp).Normalise > 0. then
+                        surfaceMaterial.EmisiveRadience
+                    else
+                        Colour.Black] 
            
         let total = x |> List.fold (fun acc c -> acc + c) Colour.Black
         total / float(sampleCount)
@@ -32,10 +30,9 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
         else
             let shadowRays = Array.create sampleCount Ray.None
             for i=0 to sampleCount-1 do 
-                let point = this.SamplePoint hitPoint.Point
-                let normal:Vector = hitPoint.Normal
-                let shadowRayOrigin = hitPoint.Point + normal * 0.00001
-                let direction = (point - shadowRayOrigin).Normalise
+                let sp = this.SamplePoint hitPoint.Point
+                let shadowRayOrigin = hitPoint.Point + hitPoint.Normal * 0.00001
+                let direction = (sp - shadowRayOrigin).Normalise
                 shadowRays.[i] <- Ray(shadowRayOrigin, direction)
             shadowRays
 
@@ -60,11 +57,11 @@ type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: i
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
     let sampleGenerator = Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, sampleSetCount)
-    do ignore sampleGenerator.Next
 
     override this.SamplePoint point = 
-        let (x,y) = Sampling.mapToDisc sampleGenerator.Current
-        Point(disc.center.X + x * disc.radius, disc.center.Y + y * disc.radius, disc.center.Z)
+        let sp = sampleGenerator.Next()
+        let (x,y) = Sampling.mapToDisc sp
+        Point(x * disc.radius, y * disc.radius, disc.center.Z)
     override this.SamplePointNormal point = 
         disc.normal
     override this.Density = 
@@ -76,11 +73,10 @@ type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, samp
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
     let sampleGenerator = Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, sampleSetCount)
-    do ignore sampleGenerator.Next
 
     override this.SamplePoint point = 
-        let (x,y) = sampleGenerator.Current
-        Point(rect.bottomleft.X + x * rect.width, rect.bottomleft.Y + y * rect.height, rect.bottomleft.Z)
+        let (x,y) = sampleGenerator.Next()
+        Point(x * rect.width, y * rect.height, 0.)
     override this.SamplePointNormal point = 
         rect.normal
     override this.Density = 
