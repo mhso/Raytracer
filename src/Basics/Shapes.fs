@@ -1,6 +1,11 @@
 ﻿namespace Tracer.Basics
 open System
 
+type TransformShape (hitFunction) =
+    inherit Shape()
+    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
+    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
+    default this.hitFunction(r: Ray) = hitFunction r
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     inherit Shape()
     member this.bottomleft = bottomLeft
@@ -273,29 +278,29 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
                   |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
                                                                                             else this.determineHitPoint r t1
 
-    module Transform =
-        let transformRay (r : Ray) t = 
-        let o = pointToMatrix r.GetOrigin
-        let d = vectorToMatrix r.GetDirection
-        let invT = getInvMatrix t
-        let originMatrix = Matrix.multi (invT, o)
-        let directionMatrix = Matrix.multi (invT, d)
-        let origin = matrixToPoint originMatrix
-        let direction = matrixToVector directionMatrix
+module Transform =
+    let transformRay (r : Ray) t = 
+        let o = Transformation.pointToMatrix r.GetOrigin
+        let d = Transformation.vectorToMatrix r.GetDirection
+        let invT = Transformation.getInvMatrix t
+        let originMatrix = Transformation.Matrix.multi (invT, o)
+        let directionMatrix = Transformation.Matrix.multi (invT, d)
+        let origin = Transformation.matrixToPoint originMatrix
+        let direction = Transformation.matrixToVector directionMatrix
         new Ray(origin, direction)
 
-        let transformNormal (v:Vector) (t: Transformation)= 
+    let transformNormal (v:Vector) (t: Transformation.Transformation)= 
         let vector = v
-        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
+        let tVector = Transformation.matrixToVector (Transformation.Matrix.multi ((Transformation.transpose (Transformation.getInvMatrix (t))),(Transformation.vectorToMatrix vector)))
         tVector
 
-        let transform (s : Shape) (t:Transformation) =    
-            let transHitFunction (r:Ray) = 
-                let transformedRay = transformRay r t
-                let hitsOriginal = s.hitFunction transformedRay
-                let normal = transformNormal (hitsOriginal.Normal) t
-                new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
-            new TransformShape(transHitFunction)
+    let transform (s : Shape) (t:Transformation.Transformation) =    
+        let transHitFunction (r:Ray) = 
+            let transformedRay = transformRay r t
+            let hitsOriginal = s.hitFunction transformedRay
+            let normal = transformNormal (hitsOriginal.Normal) t
+            new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
+        new TransformShape(transHitFunction) :> Shape
         
 
 type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
@@ -401,11 +406,7 @@ type InfinitePlane(tex:Material) =
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         if r.GetDirection.Z <> 0.0 && t > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, 1.0), tex) else HitPoint(r)
 
-type TransformShape (hitFunction) =
-    inherit Shape()
-    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
-    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
-    default this.hitFunction(r: Ray) = hitFunction r
+
 
 
 
