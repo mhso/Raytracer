@@ -5,7 +5,7 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(7.,1.,1.)
+    let position = Point(7.,-2.,-2.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -63,10 +63,24 @@ let main _ =
     let GlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 5.)
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
+    //let box = new Box(low, high, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat)
 
-    let planeMaterial = new MatteMaterial(new Colour(0., 1., 0.4))
+    let vlow = new Point(0., 0., 0.)
+    let vhigh = new Point(2., 2., 2.)
+    let vboxMaterial = new MatteMaterial(new Colour(0., 1., 1.))
+    let vboxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.))
+    let vboxMaterial3 = new MatteMaterial(new Colour(1., 0., 1.))
+    let vboxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.))
+    let vboxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.))
+    let vboxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
+    let vGlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 5.)
+    let vsphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let vbox = new Box(vlow, vhigh, vboxMaterial, vboxMaterial2, vboxMaterial3, vboxMaterial4, vboxMaterial5, vboxMaterial6)
+    //let box = new Box(low, high, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat)
+
+    let planeMat = new MatteMaterial(new Colour(0., 1., 0.4))
     let GlossyPlaneMat = GlossyMaterial(5., Colour.Blue, matteWhite, 10, 1, 1, 5.)
-    let infinitePlane = InfinitePlane(planeMaterial)
+    let infinitePlane = InfinitePlane(GlossyPlaneMat)
 
     let bLeft = new Point(0., 0., 0.)
     let tLeft = new Point(0., 1., 0.)
@@ -85,7 +99,7 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let csgShape = CSG(sphere, box, Union)
+    let csgShape = CSG(sphere, box, Intersection)
 
     let shapes : Shape list = [csgShape]
 
@@ -108,7 +122,7 @@ let main _ =
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
     let spheres: Shape list     = [sL;sC;sR;plane]
-    let scene                   = Scene(spheres, camera, lights)
+    let scene                   = Scene(shapes, camera, lights)
 
     ignore scene.Render
     

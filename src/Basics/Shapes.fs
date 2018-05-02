@@ -170,14 +170,42 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
         let v = 1.0-(theta / Math.PI)
         (u, v)
 
-    member this.GetDiscriminant (ray:Ray) = 
-        let s = (ray.GetOrigin - origin)
-        let rayDir = ray.GetDirection.Normalise
+    member this.determineHitPoint (r:Ray) (t:float) = 
+        let p = r.PointAtTime t
+        HitPoint(r, t, p.ToVector.Normalise, tex)
+
+    member this.GetDiscriminant (r:Ray) = 
+        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
+        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
+        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
+        let D = (b**2.)-4.*a*c 
+        D
+        (*
+        let s = (r.GetOrigin - origin)
+        let rayDir = r.GetDirection.Normalise
         let sv = s * rayDir
         let ss = s * s
         sv*sv - ss + radius * radius
+        *)
 
     override this.hitFunction (r:Ray) = 
+        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
+        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
+        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
+        let D = (b**2.)-4.*a*c 
+        let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
+        let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+        match D with
+        |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
+        |(D) when D < 0.0 -> HitPoint(r)
+        |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
+                                                                                            else this.determineHitPoint r t1
+
+        (*
         let D = this.GetDiscriminant r
         if D < 0. then HitPoint(r)
         else
@@ -189,6 +217,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             if t1 < 0. && t2 < 0. then HitPoint(r)
             else if t1 < t2 then HitPoint(r, t1, this.NormalAtPoint (r.PointAtTime t1), tex) //this.getTextureCoords (r.PointAtTime t1))
             else HitPoint(r, t2, this.NormalAtPoint (r.PointAtTime t2), tex) //this.getTextureCoords (r.PointAtTime t2))
+            *)
 
 
 
@@ -329,12 +358,12 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
                                                          else HitPoint(r, t, Vector(0.0, 0.0, 1.0), front)
             else
                 match (tx', ty', tz') with
-                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then HitPoint(r, t, Vector(1.0, 0.0, 0.0), right) //when tx' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(-1.0, 0.0, 0.0), left)
-                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then HitPoint(r, t, Vector(0.0, 1.0, 0.0), top) //when ty' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(0.0, -1.0, 0.0), bottom)
-                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, 1.0), front) //when tz' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(0.0, 0.0, -1.0), back)
+                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then HitPoint(r, t', Vector(1.0, 0.0, 0.0), right) //when tx' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(-1.0, 0.0, 0.0), left)
+                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then HitPoint(r, t', Vector(0.0, 1.0, 0.0), top) //when ty' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(0.0, -1.0, 0.0), bottom)
+                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then HitPoint(r, t', Vector(0.0, 0.0, 1.0), front) //when tz' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(0.0, 0.0, -1.0), back)
         else HitPoint(r)
         
 
@@ -384,6 +413,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
+        //i continue no matter what 
+
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
         if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
                                     this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
@@ -408,12 +439,39 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
         
+        
+        match (s1Time, s2Time) with
+        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+        |(s1T, s2T) when s1T = infinity -> if s1.isInside (r.PointAtTime s2T) then s2Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s2T = infinity -> if s2.isInside (r.PointAtTime s1T) then s1Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let PointAtTime = r.PointAtTime s1T
+                                           let newOrigin = (r.PointAtTime s1T).Move moveVector
+                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) -> 
+                    if s1T <= s2T then if s2.isInside (r.PointAtTime s1T) then s1Hit
+                                       else 
+                                       let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                       let newOrigin = (r.PointAtTime s1T).Move moveVector
+                                       this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+                    else if s1.isInside (r.PointAtTime s2T) then s2Hit
+                         else 
+                            let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                            let newOrigin = (r.PointAtTime s2T).Move moveVector
+                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+        
+        (*
         //check if the hitpoint for the smallest time, is inside the other shape, if it is, return that hitpoint, else fire a new ray
         if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then s1Hit
                                  else this.intersectionHitFunction (new Ray((r.PointAtTime s1Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
-        else if s1.isInside (r.PointAtTime s2Time) then s1Hit
+        else if s1.isInside (r.PointAtTime s2Time) then s2Hit
              else this.intersectionHitFunction (new Ray((r.PointAtTime s2Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
-
+        *)
 
     ////SUBTRACTION////
 
