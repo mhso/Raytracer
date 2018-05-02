@@ -125,22 +125,47 @@ let parsePLY (filepath:string) =
             | _,true -> 
                 printfn ("BINARY START")
                 let br = new BinaryReader(sr.BaseStream)
+
+                printfn "%A" vertexPosition
+                //Parsing Vertices
                 for j in 0..(triangleArray.Length-1) do 
-                    let vertexProps = Array.zeroCreate(numberOfProperty-1)
-                    for k in 0..numberOfProperty-2 do
+                    let vertexProps = Array.zeroCreate(numberOfProperty)
+                    for k in 1..numberOfProperty do
                         let buffer : byte[] = Array.zeroCreate(4)
                         br.Read(buffer,0,4)
                         if(isBigEndian) then
                             Array.Reverse(buffer)
                         let f = BitConverter.ToSingle(buffer, 0)
-                        vertexProps.[k] <- (float (f))
+                        vertexProps.[k-1] <- (float (f))
+
+                    
+
                     triangleArray.[j] <- findVertexFromArray (vertexProps |> Array.toList) vertexPosition
-                for j in 0..(faceArray.Length-1) do 
-                    let length : byte[] = Array.zeroCreate(13)
-                    br.Read(length, 0,13)
-                    faceArray.[j] <- [BitConverter.ToInt32(length,0); BitConverter.ToInt32(length,1);BitConverter.ToInt32(length,5);BitConverter.ToInt32(length,9)]
+                    //if (j > 454900) then printfn "%A" triangleArray.[j].x.Value
+
+                //Parsing Triangles
+                let dump : byte[] = Array.zeroCreate(11)
+                br.Read(dump,0,11)
+                for j in 0..faceArray.Length-1 do 
+                    let lengthBuffer : byte[] = Array.zeroCreate(1)
+                    br.Read(lengthBuffer, 0,1)
+                    let numbers = Array.zeroCreate(4)
+
+                    numbers.[0] <- (int lengthBuffer.[0])
+
+                    for k in 0..2 do 
+                        let faceIdBuffer : byte[] = Array.zeroCreate(4)
+                        br.Read(faceIdBuffer, 0, 4)
+
+                        if(isBigEndian) then Array.Reverse(faceIdBuffer)
+
+                        let faceId = BitConverter.ToInt32(faceIdBuffer,0)
+                        numbers.[k+1] <- (int faceId)
+                    //printfn "%A" numbers
+                    faceArray.[j] <- (Array.toList numbers)
+                    //faceArray.[j] <- [BitConverter.ToInt32(length,0); BitConverter.ToInt32(length,1);BitConverter.ToInt32(length,5);BitConverter.ToInt32(length,9)]
             | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
-            //printfn "...Parsing Done"
+            printfn "...Parsing Done"
         | false -> parsing <- false
 
 let drawTriangles (filepath:string)= 
