@@ -9,8 +9,8 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     let w = (position - lookat).Normalise
     let hfov = Math.PI/3.5
     let vfov = hfov * float(resY)/float(resX)
-    let u = up % w
-    let v = w % u
+    let v = up % w
+    let u = -(w % v)
     let pw = 2.0 * tan(float(hfov/2.0))/float(resX)
     let ph = 2.0 * tan(float(vfov/2.0))/float(resY)
     let vpc = position - w
@@ -33,7 +33,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.Direction = 
         (lookat - position).Normalise
 
-    abstract member CreateRay : int -> int -> Ray
+    abstract member CreateRays : int -> int -> Ray list
 
     member this.Cast ray bgColor (shapes : Shape list) (lights : Light list) =
         // Get the hitpoint
