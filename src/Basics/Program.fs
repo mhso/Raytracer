@@ -28,6 +28,7 @@ let main _ =
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
     let emissive = EmissiveMaterial(Colour.White, 10000.)
 
+    (*
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
@@ -113,6 +114,7 @@ let main _ =
     let csgShape3 = CSG(box, csgShape2, Intersection)
 
     let shapes : Shape list = [box]
+    *)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
@@ -133,16 +135,16 @@ let main _ =
     let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
-    let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
-    let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
-    let plane          = InfinitePlane(matteWhite)
+    //let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
+    //let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
+    //let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
+    //let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sL;sC;sR;plane]
-    let scene                   = Scene(shapes, camera, lights)
+    //let spheres: Shape list     = [sL;sC;sR;plane]
+    //let scene                   = Scene(shapes, camera, lights)
 
-    ignore scene.Render
+    //ignore scene.Render
     
     0
