@@ -2,6 +2,7 @@
 
 module Program =
 
+  open System.Drawing
   open Tracer.Basics
   open Tracer.ImplicitSurfaces.Main
 
@@ -11,15 +12,23 @@ module Program =
   [<EntryPoint>]
   let main _ = 
 
-    let position = Point(0., 0., 10.)
+    let position = Point(0., 0., 4.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 1920
-    let resY = 1080
+    let resX = 640
+    let resY = 640
     let width = 2.
-    let height = (float resY / float resX) * width
-    
+    let height = 2.
+    //let height = (float resY / float resX) * width
+
+    let mkScene' s c =
+      let light = DirectionalLight (Colour.White, 0.5, Vector(4.0, 2.0, 4.0))
+      let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
+      let ambientLight = AmbientLight(Colour.White, 0.1)
+      let (lights:Light list) = [light; light2; ambientLight]
+      Scene (s, c, lights)
+
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
     let matteGreen = MatteMaterial(Colour.Green)
@@ -38,10 +47,25 @@ module Program =
 
     let mkShape (bs:baseShape) m = bs.toShape m
 
+    let sphere1 (r : float) =
+      let aqua = Colour (Color.Aqua)
+      let white = Colour (Color.White)
+      let s = [mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white))
+               ]
+      let camera = PinholeCamera (Point(0.0, 0.0,4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
+      mkScene' s camera
+
+    let sc = sphere1 1.
+    sc.Render |> ignore
+
     //- SHAPES
-    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) matteRed
-    //let sphere2 = mkShape (mkImplicit ("(x-2)^2 + (y+1)^2 + (z-1)^2 - " + (string (2.0**2.0)))) phongRed
-    //let sphere3 = mkShape (mkImplicit ("(x+3)^2 + (y-3)^2 + (z+2)^2 - " + (string (4.0**2.0)))) phongGreen
+    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) phongYellow
+    let sphere2 = mkShape (mkImplicit ("(x - 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) phongRed
+    let sphere3 = mkShape (mkImplicit ("(x + 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) phongGreen
+    let sphere4 = mkShape (mkImplicit ("(x)^2 + (y - 3)^2 + z^2 - " + (string (1.0**2.0)))) matteWhite
+    let sphere5 = mkShape (mkImplicit ("(x)^2 + (y + 3)^2 + z^2 - " + (string (1.0**2.0)))) matteYellow
 
     let plane = mkShape (mkImplicit "z") matteWhite
 
@@ -75,9 +99,9 @@ module Program =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphere1]
-    let scene                   = Scene(spheres, camera, lights)
+    let spheres: Shape list     = [sphere1; sphere2; sphere3; sphere4;sphere5]
+    let scene                   = Scene (spheres, camera, lights)
 
-    scene.Render |> ignore
+    //scene.Render |> ignore
 
     0
