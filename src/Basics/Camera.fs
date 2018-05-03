@@ -8,15 +8,17 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
     let v = up % w
-    let u = w % v
-    let pw = width / (float resX)
-    let ph = height / (float resY)
+    let u = -(w % v)
+    let pw = width/float resX
+    let ph = height/float resY
+    let viewOffset = position - w
 
     member this.W = w
     member this.U = u
     member this.V = v
     member this.Pw = pw
     member this.Ph = ph
+    member this.ViewOffset = viewOffset
     member this.Position = position
     member this.Lookat = lookat
     member this.Up = up

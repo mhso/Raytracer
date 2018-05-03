@@ -12,7 +12,7 @@ module Program =
   [<EntryPoint>]
   let main _ = 
 
-    let position = Point(0., 0., 4.)
+    let position = Point(1., 1., 4.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -51,10 +51,12 @@ module Program =
       let aqua = Colour (Color.Aqua)
       let white = Colour (Color.White)
       let s = [mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.2, aqua, 0.7, white));
-               //mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
-               //mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white))
+               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+               //mkShape (mkImplicit "y") matteYellow
+               mkShape (implicitPlane "y") phongGreen
                ]
-      let camera = PinholeCamera (Point(0.0, 0.0,4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
+      let camera = PinholeCamera (Point(0.0, 2.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
       mkScene' s camera
 
     let sc = sphere1 1.

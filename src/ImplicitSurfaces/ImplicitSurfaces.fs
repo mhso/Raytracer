@@ -189,7 +189,38 @@ module Main =
                }
     bsh
 
-                
+  let implicitPlane (s:string) : baseShape =
+    let exp = parseStr s // parsing the equation string to expression
+    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    let hitfunction =
+      match getOrder m with
+      | 1     -> getFirstDegreeHF (P m) exp
+      | 2     -> getSecondDegreeHF (P m) exp
+      | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let checker x z =
+        let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
+        if (int (abs' x) + int (abs' z)) % 2 = 0
+        then MatteMaterial(Colour.Red)
+        else MatteMaterial(Colour.Green)
+    let bsh = { new baseShape() with
+                  member this.toShape m = 
+                    let newhf r =
+                      match hitfunction r with
+                      | None        -> hitPoint (r)
+                      | Some (t,v)  -> 
+                          let hp = hitPoint (r, t, v, m)
+                          let x = hp.Point.X
+                          let z = hp.Point.Z
+                          hitPoint (r, t, v, checker x z)
+                    { new shape() with
+                        member this.hitFunction r = newhf r
+                        member this.getBoundingBox () = failwith "I hate this"
+                        member this.isInside p = failwith "I hate this"
+                        member this.getTextureCoords hp = (1.,1.) // or none, or idk
+                    }
+               }
+    bsh
+
 
 (*
   [<EntryPoint>]
