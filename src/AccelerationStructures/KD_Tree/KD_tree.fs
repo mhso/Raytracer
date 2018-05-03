@@ -191,12 +191,10 @@ module KD_tree =
         match boxes with
         | []    -> failwith "There are no shapes to build a tree with!"
         | boxes -> 
-            let newBoxesX = boxes        //All the 8 lines below is all set up for the longest-axis check
-            let (MaxX, MinX) = findMaxMin newBoxesX 0
-            let newBoxesY = boxes 
-            let (MaxY, MinY) = findMaxMin newBoxesY 1
-            let newBoxesZ = boxes
-            let (MaxZ, MinZ) = findMaxMin newBoxesZ 2
+            let (MaxX, MinX) = findMaxMin boxes 0
+            let (MaxY, MinY) = findMaxMin boxes 1
+            let (MaxZ, MinZ) = findMaxMin boxes 2
+            printfn "Max: %A, Min: %A" MaxX MinX
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             let XDistance = MaxX - MinX
@@ -205,7 +203,7 @@ module KD_tree =
             let rec buildNode boxes (xVisited, yVisited, zVisited, axis) = 
                 let buildNodeWithSpecifiedAxis boxes axis = 
                     //printfn "Split %A" axis
-                    if List.length boxes <= 1 then new KDTree(BBox(KDMaxXYZ, KDMinXYZ), boxes)
+                    if List.length boxes <= 1 then new KDTree(BBox(KDMinXYZ, KDMaxXYZ), boxes)
                     else
                     let oldBoxes = boxes
                     let SortedBoxes = qsort boxes axis
@@ -217,12 +215,12 @@ module KD_tree =
                     let secondLength = float(List.length second)
                     let newFirst = first @ (List.filter(fun n -> (findPointAxis(n.lowPoint) axis) < splitValue) second)
                     if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then new KDTree(BBox(KDMaxXYZ, KDMinXYZ),oldBoxes)
-                    else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newSecond), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newFirst))
-                    else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newFirst), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newSecond))
-                    else new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newSecond), createKDTreeFromList(newFirst))
+                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then new KDTree(BBox(KDMinXYZ, KDMaxXYZ),oldBoxes)
+                    else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newSecond), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newFirst))
+                    else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newSecond))
+                    else new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newSecond), createKDTreeFromList(newFirst))
                 if axis <= 2 then buildNodeWithSpecifiedAxis boxes axis
-                else new KDTree(BBox(KDMaxXYZ, KDMinXYZ),boxes)
+                else new KDTree(BBox(KDMinXYZ, KDMaxXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
     let buildKDTree (shapes:array<Shape>) = 
@@ -304,9 +302,10 @@ module KD_tree =
 
     let traverseKDTree (tree:KDTree) (ray:Ray) (shapes:array<Shape>) = 
         let value = tree.bBox.intersect ray
+        //printfn "%A + %A" tree.bBox.highPoint tree.bBox.lowPoint
         match value with
         | Some (t, t') -> 
-            //printfn "hits almost"
+            printfn "hits almost"
             searchKDTree (tree, ray, t, t', shapes)
         | None -> //printfn "No Hit!"
                   HitPoint (ray)
