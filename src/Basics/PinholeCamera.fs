@@ -5,9 +5,9 @@ type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, u
     member this.RenderFilepath = "background.bmp"
 
     default this.CreateRays x y =
-        let px = base.Pw * ((float x - float resX/2.0) + 0.5)
-        let py = base.Ph * ((float y - float resY/2.0) + 0.5)
-        let p = new Point(px, py, -zoom)
-        let direction = (px * base.V) + (py * base.U) - (zoom * base.W)
+        let px = this.Pw * ((float x - float resX/2.0) + 0.5)
+        let py = this.Ph * ((float y - float resY/2.0) + 0.5)
+        let p = new Point(px, py, zoom)
+        let direction = (px * this.V) + (py * this.U) - (zoom * this.W)
 
-        [new Ray(base.Position, direction)]
+        [new Ray(this.Position, direction.Normalise)]
