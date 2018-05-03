@@ -6,16 +6,21 @@ open Assert
 
 let allTest = 
 
-    //let create shapeAndBBoxArr =
-    //    let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
-    //    let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
-    //    let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
-    //    let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
+    let createShapeAndBBoxArr =
+        let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
+        let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
+        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
+        let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
 
-    //    let shapeArr [fig1; fig2; fig4; fig4]
-    //    //for i in (0..shapeArr.lenght) do
-    //    let bboxArr []
-    
+        let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
+        let bboxArr : BBox[] = Array.zeroCreate (shapeArr.Length)
+        //printfn "shapeArr.Length: %i" shapeArr.Length
+        //printfn "bboxArr.Length: %i" bboxArr.Length
+        for i in 0..shapeArr.Length-1 do
+            bboxArr.[i] <- shapeArr.[i].getBoundingBox()
+        //let bboxArr : BBox[] = [for i in 0..ShapeArr.Lenght do shapeArr.[i].getBoundingBox]
+        shapeArr, bboxArr
+
     let bBox01 = BBox (Point(1., 0.6, -1.), Point(6., 9., -8.9))
     let bBox02 = BBox (Point(7., 3., -8.4), Point(12., 7., -16.6))
     let bBox03 = BBox (Point(8., 10., -8.9), Point(11.4, 13.5, -15.7))
@@ -73,54 +78,8 @@ let allTest =
 // ----------------------------- TEST BEGIN -----------------------------
 
     let testBuildBVHTree = 
-        let tree = buildBVHTree (testBVHDataInputSmall)
-        // trees
+        let tree = buildBVHTree testBVHDataInputSmall
         //printfn "BVH Tree:\n %O" tree
-        //let expected = 
-        //        (Node
-        //                (Node
-        //                    (Leaf [5],Node (Leaf [4],Leaf [2],{lowXYZ = Point(2.,2.,3.);
-        //                                                    highXYZ = Point(4.,4.,3.);},1),
-        //                    {lowXYZ = Point(-1.,-1.,3.);
-        //                    highXYZ = Point(4.,4.,2.);},1),
-        //                Node
-        //                    (Leaf [3],Node (Leaf [1],Leaf [0],{lowXYZ = Point(2.,2.,3.);
-        //                                                    highXYZ = Point(4.,4.,3.);},1),
-        //                    {lowXYZ = Point(-1.,-1.,3.);
-        //                    highXYZ = Point(4.,4.,2.);},1),{lowXYZ = Point(-7.,-7.,3.);
-        //                                            highXYZ = Point(4.,4.,-5.);},1))
-        //let expected2 = 
-        //                (Node
-        //                    (Leaf [0],Node (Leaf [1],Leaf [2],{lowXYZ = Point(1.,0.6,-1.); highXYZ = Point(12.,9.,-16.6);},1),
-        //                    {lowXYZ = Point(1.,0.6,-1.);
-        //                    highXYZ = Point(12.,13.5,-16.6);},1))
-
-        //let expectedSmall = 
-        //        (Node
-        //            (Node
-        //            (Leaf [5],Node (Leaf [4],Leaf [2],{lowXYZ = Point(2.,2.,3.); highXYZ = Point(4.,4.,3.);},1),
-        //                {lowXYZ = Point(-1.,-1.,3.);
-        //                highXYZ = Point(4.,4.,2.);},1),
-        //                Node
-        //                    (Leaf [3],
-        //                        Node (Leaf [1],Leaf [0],{lowXYZ = Point(2.,2.,3.); highXYZ = Point(4.,4.,3.);},1),
-        //                    {lowXYZ = Point(-1.,-1.,3.); highXYZ = Point(4.,4.,2.);},1),
-        //                    {
-        //                        lowXYZ = Point(-7.,-7.,3.);
-        //                        highXYZ = Point(4.,4.,-5.);},1))
-        //let expectedSmall = 
-        //    (Node
-        //          (Node
-        //             (Leaf ([0], BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
-        //                            Leaf ([1], 
-        //                                BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
-        //                                BBox (Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1)),
-        //           Node
-        //             (Leaf ([2], BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
-        //                            Leaf ([3],
-        //                                BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
-        //                                BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),
-        //                                BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
 
         let expectedSmall = 
             (Node
@@ -131,14 +90,17 @@ let allTest =
                      (Leaf ([2],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([3],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
                       BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
 
-        let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
+        //let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
 
         Assert.Equal (expectedSmall,tree,"testBuildBVHTree")
     testBuildBVHTree
 
 // ----------------------------- TEST BEGIN -----------------------------
-    //let testTraverse (testBVHDataInputSmall) = 
-    //    let tree = buildBVHTree (testBVHDataInputSmall)
-    //    let ray = Ray(Point(0.0,0.0,0.0), Vector(1.,2.,3.))
-    //    let shapes = [Shape()] 
-    //    let result = traverse tree ray shapes infinity
+    let testTraverse = 
+        let tree = buildBVHTree (testBVHDataInputSmall)
+        let ray = Ray(Point(0.0,0.0,0.0), Vector(1.,2.,3.))
+        let shapeArr, bboxArr = createShapeAndBBoxArr
+        let result = traverse tree ray shapeArr infinity
+        let expected = Some (SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White)):>Shape)
+        Assert.Equal (expected,result,"testTraverse")
+    testTraverse

@@ -89,7 +89,7 @@ module BVH =
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
                 
-                printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
+                //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
                 //printfn "Add new inner Nodes... Lists lenght: "
                 //printfn "intIndexes.Length: %i " intIndexes.Length
                 //printfn "boxArr.Length: %i " boxArr.Length
