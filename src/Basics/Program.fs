@@ -5,7 +5,7 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(7.,-2.,-2.)
+    let position = Point(7.,-4.,-4.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -99,9 +99,20 @@ let main _ =
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.))
     let triangle = Triangle(a, b, c, triangleMaterial)
 
-    let csgShape = CSG(sphere, box, Intersection)
+    let solidOrigin = new Point(0., 0., 0.)
+    let solidRadius = 0.5
+    let solidHeight = 2.
+    let solidMaterial = new MatteMaterial(new Colour(0., 0.3, 0.8))
+    let solidMaterial2 = new MatteMaterial(new Colour(0.5, 0., 1.))
+    let solidMaterial3 = new MatteMaterial(new Colour(0., 0.5, 1.))
+    let solidMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
+    let solidCylinder = SolidCylinder(solidOrigin, solidRadius, solidHeight, solidMaterial, solidMaterial2, solidMaterial3)
 
-    let shapes : Shape list = [csgShape]
+    let csgShape = CSG(sphere, box, Intersection)
+    let csgShape2 = CSG(csgShape, solidCylinder, Union)
+    let csgShape3 = CSG(box, csgShape2, Intersection)
+
+    let shapes : Shape list = [csgShape3]
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 1
