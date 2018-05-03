@@ -6,7 +6,7 @@ open Tracer.Basics
 
 [<EntryPoint>]
 let main argv = 
-    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\head1.ply"
+    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\armadillo.ply"
     //let position = Point(20.,5.,5.)
     //let lookat = Point(0.,0.,0.)
     //let up = Vector(0.,1.,0.)
