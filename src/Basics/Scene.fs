@@ -43,17 +43,23 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
 
-        let colours = Array2D.zeroCreate camera.ResY camera.ResX
+        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
+
+        let createRay x y (cam:Camera) =
+          let px = cam.Pw * ((float x - float cam.ResX/2.0) + 0.5)
+          let py = cam.Ph * ((float y - float cam.ResY/2.0) + 0.5)
+          let direction = (px * cam.V) + (py * cam.U) - (cam.Zoom * cam.W)
+          Ray(cam.Position, direction)
 
         Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
             let cols = List.map (fun ray -> (camera.Cast ray backgroundColour shapes lights)) rays
-            let colour = (List.fold (+) Colour.Black cols)/float colours.Length
-            colours.[y,x] <- colour) |> ignore
+            let colour = (List.fold (+) Colour.Black cols)/float cols.Length
+            bmColourArray.[y,x] <- colour) |> ignore
 
         for y in 0 .. camera.ResY - 1 do
           for x in 0 .. camera.ResX - 1 do
-            renderedImage.SetPixel(x, y, colours.[y,x].ToColor)
+            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
         (*
         for x in 0..camera.ResX-1 do
