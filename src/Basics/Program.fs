@@ -5,7 +5,7 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(0.,0.,5.)
+    let position = Point(0.,1.,5.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -36,9 +36,16 @@ let main _ =
     let sL = SphereShape(Point(-1., 0., -1.), 1., matteRed)
     let sC = SphereShape(Point(0., 0., 0.), 1., matteYellow)
     let sR = SphereShape(Point(1., 0., 1.), 1., matteGreen)
-    let sTop = SphereShape(Point(0., 0., 15.), 5., matteWhite)
+
+    // Rectangles for testing Thin Lens.
+    let thinBoxL = Box(Point(-4., -1., -5.), Point(-2., 2., -4.), matteRed, matteRed, matteBlue, matteBlue, matteBlue, matteBlue)
+    let thinBoxC = Box(Point(-1., -1., -3.), Point(1., 2., -2.), matteYellow, matteYellow, matteBlue, matteBlue, matteBlue, matteBlue)
+    let thinBoxR = Box(Point(2., -1., -1.), Point(4., 2., 0.), matteGreen, matteGreen, matteBlue, matteBlue, matteBlue, matteBlue)
+
+    let sTop = SphereShape(Point(0., 0., 10.), 5., matteWhite)
     let discC = Disc(Point(0., 0., 0.), 4., emissive)
     let rectC = Rectangle(Point(-4., -4., 0.), Point(-4., 4., 0.), Point(4., -4., 0.), emissive)
+    let plane = InfinitePlane(matteBlue)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
@@ -46,10 +53,10 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 1.0, 5.0,
-                            new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-                            new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.5, 7.0,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(0.,0.,7.))
@@ -62,14 +69,13 @@ let main _ =
     let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
     let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
-    let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightFront]
-    let spheres: Shape list     = [sL;sC;sR]
+    let spheres: Shape list     = [thinBoxC;thinBoxL;thinBoxR;plane]
 
     let scene                   = Scene(spheres, camera, lights)
 
-    ignore scene.Render
+    ignore scene.RenderParallel
     
     0
