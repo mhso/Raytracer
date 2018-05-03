@@ -3,50 +3,29 @@
 open Tracer.Basics
 open Tracer.BVH
 open Assert
-open Transformation
 
 let allTest = 
 
-    let create shapeAndBBoxArr =
-        let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
-        let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
-        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
-        let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
+    //let create shapeAndBBoxArr =
+    //    let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
+    //    let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
+    //    let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
+    //    let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
 
-        let shapeArr [fig1; fig2; fig4; fig4]
-        for i (0..shapeArr.lenght)
-        let bboxArr []
+    //    let shapeArr [fig1; fig2; fig4; fig4]
+    //    //for i in (0..shapeArr.lenght) do
+    //    let bboxArr []
     
-    let bBox01 = {  lowXYZ = Point(1., 0.6, -1.);
-                    highXYZ = Point(6., 9., -8.9);
-                    }
-    let bBox02 = {  lowXYZ = Point(7., 3., -8.4);
-                    highXYZ = Point(12., 7., -16.6);
-                    }
-    let bBox03 = {  lowXYZ = Point(8., 10., -8.9);
-                    highXYZ = Point(11.4, 13.5, -15.7);
-                    }
-    let bBox04 = {  lowXYZ = Point(3.5, 10., -4.8);
-                    highXYZ = Point(5., 11.5, -7.3);
-                    }
-    let bBox05 = {  lowXYZ = Point(3.0, y = 3.0, z = 3.0);
-                    highXYZ = Point(4.0, y = 4.0, z = 4.0);
-                    }
-    let bBox06 = {  lowXYZ = Point(2.0, y = 2.0, z = 2.0);
-                    highXYZ = Point(3.0, y = 3.0, z = 3.0);
-                    }
-    let bBox07 = {  lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
-                    highXYZ = Point(2.0, y = 2.0, z = 2.0);
-                    }
-    let bBox08 = {  highXYZ = Point(1.0, y = 1.0, z = 1.0);
-                    lowXYZ = Point(0.0, y = 0.0, z = 0.0);
-                    }
-    let bBox09 = {  lowXYZ = Point(-1.0, y = -1.0, z = -1.0);
-                    highXYZ = Point(0.0, y = 0.0, z = 0.0);
-                    }
-    let bBox10 = {  lowXYZ = Point(-7.0, y = -7.0, z = -7.0);
-                    highXYZ = Point(-4.0, y = -5.0, z = -5.0);
-                    }
+    let bBox01 = BBox (Point(1., 0.6, -1.), Point(6., 9., -8.9))
+    let bBox02 = BBox (Point(7., 3., -8.4), Point(12., 7., -16.6))
+    let bBox03 = BBox (Point(8., 10., -8.9), Point(11.4, 13.5, -15.7))
+    let bBox04 = BBox (Point(3.5, 10., -4.8), Point(5., 11.5, -7.3))
+    let bBox05 = BBox (Point(3.0, y = 3.0, z = 3.0), Point(4.0, y = 4.0, z = 4.0))
+    let bBox06 = BBox (Point(2.0, y = 2.0, z = 2.0), Point(3.0, y = 3.0, z = 3.0))
+    let bBox07 = BBox (Point(-1.0, y = -1.0, z = -1.0), Point(2.0, y = 2.0, z = 2.0))
+    let bBox08 = BBox (Point(1.0, y = 1.0, z = 1.0), Point(0.0, y = 0.0, z = 0.0))
+    let bBox09 = BBox (Point(-1.0, y = -1.0, z = -1.0), Point(0.0, y = 0.0, z = 0.0))
+    let bBox10 = BBox (Point(-7.0, y = -7.0, z = -7.0), Point(-4.0, y = -5.0, z = -5.0))
 
     let testBBoxDataInput = List.toArray [bBox01; bBox02; bBox03]
     let testBVHDataInputSmall = List.toArray [bBox01; bBox02; bBox03; bBox04]
@@ -129,26 +108,30 @@ let allTest =
         //                    {
         //                        lowXYZ = Point(-7.,-7.,3.);
         //                        highXYZ = Point(4.,4.,-5.);},1))
+        //let expectedSmall = 
+        //    (Node
+        //          (Node
+        //             (Leaf ([0], BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
+        //                            Leaf ([1], 
+        //                                BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
+        //                                BBox (Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1)),
+        //           Node
+        //             (Leaf ([2], BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9)),
+        //                            Leaf ([3],
+        //                                BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
+        //                                BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),
+        //                                BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
+
         let expectedSmall = 
             (Node
                   (Node
-                     (Leaf ([0],{lowXYZ = Point(1.,0.6,-1.);
-                                 highXYZ = Point(6.,9.,-8.9);}),
-                                    Leaf ([1],{lowXYZ = Point(1.,0.6,-1.);
-                                    highXYZ = Point(6.,9.,-8.9);}),
-                                    {lowXYZ = Point(1.,0.6,-1.);
-                                    highXYZ = Point(12.,9.,-16.6);},1),
+                     (Leaf ([0],BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([1],BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
+                      BBox (Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),
                    Node
-                     (Leaf ([2],{lowXYZ = Point(1.,0.6,-1.);
-                                 highXYZ = Point(6.,9.,-8.9);}),
-                                    Leaf ([3],{lowXYZ = Point(1.,0.6,-1.);
-                                    highXYZ = Point(6.,9.,-8.9);}),
-                                    {lowXYZ = Point(1.,0.6,-1.);
-                                    highXYZ = Point(12.,9.,-16.6);},1),
-                                    {lowXYZ = Point(1.,0.6,-1.);
-                                    highXYZ = Point(12.,13.5,-16.6);},1))
+                     (Leaf ([2],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([3],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
+                      BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
 
-        //let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
+        let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
 
         Assert.Equal (expectedSmall,tree,"testBuildBVHTree")
     testBuildBVHTree
