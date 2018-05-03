@@ -37,19 +37,12 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                                                        ░                                        
                                                                                                 ")
         
-        
         let timer = System.Diagnostics.Stopwatch.StartNew()
-        
+
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
 
         let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
-
-        let createRay x y (cam:Camera) =
-          let px = cam.Pw * ((float x - float cam.ResX/2.0) + 0.5)
-          let py = cam.Ph * ((float y - float cam.ResY/2.0) + 0.5)
-          let direction = (px * cam.V) + (py * cam.U) - (cam.Zoom * cam.W)
-          Ray(cam.Position, direction)
 
         Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
@@ -65,20 +58,23 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
                 let pct = int((float (x*y)/total) * 100.0)
+
                 // Progress bar!!!
                 if pct > currPct then 
                     currPct <- pct
+
                     let dots = String.replicate (currPct/2 + 1) "█"
                     let white = String.replicate (49-(currPct/2)) "░"
                     loadingIndex <- loadingIndex + 1
                     if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
+
                     Console.Write("\r                                {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%");
                     
-                let ray = camera.CreateRay x y
-                let colour = camera.Cast ray backgroundColour shapes lights
-                renderedImage.SetPixel(x, y, colour.ToColor)
+                let rays = camera.CreateRays x y
+                let colours = List.map (fun ray -> (camera.Cast ray backgroundColour shapes lights)) rays
+                let colour = (List.fold (+) Colour.Black colours)/float colours.Length
+                renderedImage.SetPixel(x, y, colour.ToColor)*)
                 
-*)
         // Save image
         renderedImage.Save(camera.RenderFilepath)
         
