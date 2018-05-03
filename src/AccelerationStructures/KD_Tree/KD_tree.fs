@@ -175,9 +175,12 @@ module KD_tree =
 
     let findPointAxis (point:Point) axis = 
         match axis with
-        | 0 -> point.X
-        | 1 -> point.Y
-        | 2 -> point.Z
+        | 0 -> printfn "Split X"
+               point.X
+        | 1 -> printfn "Split Y"
+               point.Y
+        | 2 -> printfn "Split Z"
+               point.Z
 
 
     let rec createKDTreeFromList (boxes:list<ShapeBBox>) = 
@@ -227,6 +230,7 @@ module KD_tree =
             let id = Array.findIndex (fun n -> n = shape) shapes
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
             shapeBoxList <- newShapeBox::shapeBoxList
+        printfn "KD-build Initialized..."
         createKDTreeFromList shapeBoxList
 
     let findRayDirectionFromA (a:int) (r:Ray) =
@@ -242,15 +246,15 @@ module KD_tree =
         | 2 -> r.GetOrigin.Z
 
     let closestHit (shapeBoxes:list<ShapeBBox>)(ray:Ray)(shapes:array<Shape>) =
-        let mutable closestShape = None
+        let mutable closestHit = None
         let mutable closestDist = infinity
         for shapeRef in shapeBoxes do
             let hit = shapes.[shapeRef.shape].hitFunction ray
             let dist = hit.Time
             if dist < closestDist then
                 closestDist <- dist
-                closestShape <- Some shapes.[shapeRef.shape]
-        closestShape
+                closestHit <- Some hit
+        closestHit
     
     let order (d:float, left:KDTree, right:KDTree) =
         if d > 0. then (left, right)
@@ -260,27 +264,39 @@ module KD_tree =
 
 
     let rec searchKDTree ((tree:KDTree), (ray:Ray), (t:float), (t':float), (shapes:array<Shape>)) = 
-        if tree.isLeaf then let searchKDLeaf (tree:KDTree) (ray:Ray) (t':float) (shapes:array<Shape>) = 
-                                let shape = closestHit tree.shapeList ray shapes
-                                match shape with 
-                                | Some shape -> if (shape.hitFunction ray).Time < t' then shape.hitFunction ray
-                                                else HitPoint ray
-                                | None -> HitPoint ray
-                            searchKDLeaf tree ray t' shapes
-        else let rec searchKDNode (tree:KDTree) (ray:Ray) (t:float) (t':float) (shapes:array<Shape>) = 
+        if tree.isLeaf then 
+            let searchKDLeaf (tree:KDTree) (ray:Ray) (t':float) (shapes:array<Shape>) = 
+                let hitPoint = closestHit tree.shapeList ray shapes
+                match hitPoint with 
+                | Some hit -> if hit.Time < t' then printfn "Hit!"
+                                                    hit
+                              else printfn "No Hit!"
+                                   HitPoint ray
+                | None -> printfn "No Hit!"
+                          HitPoint ray
+            searchKDLeaf tree ray t' shapes
+        else 
+             let rec searchKDNode (tree:KDTree) (ray:Ray) (t:float) (t':float) (shapes:array<Shape>) = 
                  let a = tree.axis
-                 if (findRayDirectionFromA a ray) = 0. then
-                     if (findRayOriginFromA a ray) <= tree.splitValue then searchKDTree(tree.left, ray, t, t', shapes)
-                     else searchKDTree(tree.right, ray, t, t', shapes)
+                 if (findRayDirectionFromA a ray) = 0.0 then
+                     if (findRayOriginFromA a ray) <= tree.splitValue then 
+                        searchKDTree(tree.left, ray, t, t', shapes)
+                     else 
+                        searchKDTree(tree.right, ray, t, t', shapes)
                  else
                      let tHit = (tree.splitValue - (findRayOriginFromA a ray)) / (findRayDirectionFromA a ray)
                      let (first, second) = order((findRayDirectionFromA a ray), tree.left, tree.right)
-                     if tHit <= t || tHit <= 0. then searchKDTree(second, ray, t, t', shapes)
-                     else if tHit >= t' then searchKDTree(first, ray, t, t', shapes)
-                     else let value = searchKDTree(first, ray, t, tHit, shapes)
-                          match value.DidHit with
-                          | true -> value
-                          | false -> searchKDTree(second, ray, tHit, t', shapes)
+                     if tHit <= t || tHit <= 0.0 then 
+                        searchKDTree(second, ray, t, t', shapes)
+                     else 
+                        if tHit >= t' then 
+                            searchKDTree(first, ray, t, t', shapes)
+                        else 
+                            let value = searchKDTree(first, ray, t, tHit, shapes)
+                            match value.DidHit with
+                            | true -> printfn "Hit!"
+                                      value
+                            | false -> searchKDTree(second, ray, tHit, t', shapes)
              searchKDNode tree ray t t' shapes
                             
 
@@ -288,4 +304,5 @@ module KD_tree =
         let value = tree.bBox.intersect ray
         match value with
         | Some (t, t') -> searchKDTree (tree, ray, t, t', shapes)
-        | None -> HitPoint (ray)
+        | None -> printfn "No Hit!"
+                  HitPoint (ray)
