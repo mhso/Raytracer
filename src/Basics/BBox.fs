@@ -3,6 +3,15 @@
 type BBox(lowPoint:Point, highPoint:Point) =
     member this.lowPoint = lowPoint
     member this.highPoint = highPoint
+    override this.ToString() =
+            "BBox(Max: "+lowPoint.ToString()+", Min: "+highPoint.ToString()+")"
+    override this.GetHashCode() =
+        hash (lowPoint, highPoint)
+    override this.Equals(x) = 
+        match x with
+        | :? BBox as box -> this.highPoint = box.highPoint && 
+                                    this.lowPoint = box.lowPoint
+        | _ -> false
     member this.intersect (r:Ray) =
         let tx = if r.GetDirection.X >= 0.0 then (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X else (highPoint.X - r.GetOrigin.X)/r.GetDirection.X
         let tx' = if r.GetDirection.X >= 0.0 then (highPoint.X - r.GetOrigin.X)/r.GetDirection.X else (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X
