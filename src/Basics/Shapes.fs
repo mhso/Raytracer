@@ -42,6 +42,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
                 if (px > 0.0 && px < this.width) && (py > 0.0 && py < this.height) 
                 then HitPoint(r, t, this.normal, tex) else HitPoint(r)
 
+    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
                                                         
 type Disc(center:Point, radius:float, tex:Material)=
@@ -84,7 +85,7 @@ type Disc(center:Point, radius:float, tex:Material)=
                             HitPoint(r, t, this.normal, tex) 
                     else HitPoint(r)
                     
-    
+    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
 
 
@@ -144,6 +145,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
                             then HitPoint(r, z, (this.u % this.v).Normalise, mat) else HitPoint(r) //why mat instead of texture
                             
+    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
 type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
@@ -169,7 +171,8 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     member this.NormalAtPoint (p:Point) = 
         (p - origin).Normalise
 
-    member this.getTextureCoords (p:Point) = 
+    override this.getTextureCoords hitPoint =
+        let p = hitPoint.Point
         let n = (this.NormalAtPoint p)
         let theta = Math.Acos n.Y
         let phiNot = Math.Atan2(n.X, n.Z)
@@ -220,7 +223,6 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             let s = (r.GetOrigin - origin)
             let rayDir = r.GetDirection.Normalise
             let sv = s * rayDir
-            let ss = s * s
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             if t1 < 0. && t2 < 0. then HitPoint(r)
             else if t1 < t2 then HitPoint(r, t1, this.NormalAtPoint (r.PointAtTime t1), tex) //this.getTextureCoords (r.PointAtTime t1))
@@ -252,7 +254,8 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
     member this.NormalAtPoint (p:Point):Vector =
         new Vector(p.X/radius, 0.0, p.Z/radius)
 
-    member this.getTextureCoords (p:Point) = 
+    override this.getTextureCoords hitPoint =
+        let p = hitPoint.Point
         let n = (this.NormalAtPoint p)
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
@@ -352,7 +355,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    member this.getTextureCoords (p:Point) = //NotImplementedException()
+    override this.getTextureCoords hitPoint = //NotImplementedException()
                                                (0.0, 0.0)
     override this.hitFunction (r:Ray) = 
         // look for hitPoints
@@ -398,7 +401,8 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
         let e = 0.000001
         BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
 
-    member this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
+    override this.getTextureCoords hitPoint =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
+        let p = hitPoint.Point
         let width = high.X - low.X
         let height = high.Y - low.Y
         ((p.X / width), (p.Y / height))
@@ -445,6 +449,7 @@ type InfinitePlane(tex:Material) =
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         if r.GetDirection.Z <> 0.0 && t > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, 1.0), tex) else HitPoint(r)
+    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
 
 
@@ -569,3 +574,5 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Intersection -> this.intersectionHitFunction r
                                         |Subtraction -> failwith "not implemented yet"
                                         |Grouping -> failwith "not implemented yet"
+
+    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()

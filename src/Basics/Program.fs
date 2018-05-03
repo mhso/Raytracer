@@ -9,10 +9,10 @@ let main _ =
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 1920.
-    let height = 1080.
-    let resX = 1920
-    let resY = 1080
+    let width = 500.
+    let height = 400.
+    let resX = 500
+    let resY = 400
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -26,7 +26,7 @@ let main _ =
     let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
     let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
-    let emissive = EmissiveMaterial(Colour.White, 1.)
+    let emissive = EmissiveMaterial(Colour.White, 10000.)
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
@@ -121,14 +121,16 @@ let main _ =
 
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 6.0, 4.0,
-    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
-    
+  
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,0.,1.))
+    let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
+    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
+    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
+    let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]

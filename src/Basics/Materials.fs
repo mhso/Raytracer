@@ -1,6 +1,7 @@
 ﻿namespace Tracer.Basics
 open System
 open Tracer.Sampling
+open System.Drawing
 
 //- MATTE MATERIAL
 type MatteMaterial(colour:Colour) = 
@@ -26,9 +27,10 @@ type MatteMaterial(colour:Colour) =
 
         // Determine the colour
         if n * ld > 0. then
-            let friction    = (kd * cd) / Math.PI           
+            let friction    = (kd * cd) / Math.PI     
+            let volume      = (light.GetGeometricFactor hitPoint.Point / light.GetProbabilityDensity)
             let direction   = lc * (n * ld)                 
-            friction * direction
+            friction * volume * direction
         else
             Colour.Black
 
@@ -116,7 +118,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
         let rays = Array.create sampleCount Ray.None
 
         for i = 0 to sampleCount-1 do
-            let sp = new Point(Sampling.mapToHemisphere (samplingGenerator.Next()) sharpness)
+            let sp = Tracer.Basics.Point(Sampling.mapToHemisphere (samplingGenerator.Next()) sharpness)
             let m = direction + 2. * (normal * -direction) * normal
             let up = new Vector(0., 1., 0.)
             let w = m.Normalise
@@ -148,7 +150,18 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     default this.BounceMethod hitPoint = [||]
     default this.AmbientColour shape hitPoint = emisiveRadience
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
-        if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then
-            emisiveRadience
-        else
-            Colour.Black
+        emisiveRadience
+
+type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap) = 
+    inherit Material()
+
+    let round (x:float) = int (Math.Round(x))
+
+    default this.Bounces = 0
+    default this.BounceMethod hitPoint = [||]
+    default this.AmbientColour shape hitPoint = 
+        let (u,v) = shape.getTextureCoords hitPoint |> uvFunc
+        let (x,y) = (round (u * float(image.Width)), round (v * float(image.Height)))
+        Colour(image.GetPixel(x,y))
+    default this.Bounce shape hitPoint light = 
+        light.Intensity * this.AmbientColour shape hitPoint
