@@ -169,10 +169,11 @@ module ExprToPoly =
     let mutable vars = Map.empty
     List.iter (fun x ->
       match x with
-      | [ANum n]      -> nums <- n + nums // Add atom groups with only constants together.
-      | ANum n::cr    -> match Map.tryFind cr vars with
-                          | Some v  -> vars <- Map.add cr (v + n) vars
-                          | None    -> vars <- Map.add cr n vars
+      | [ANum n]   -> nums <- n + nums // Add atom groups with only constants together.
+      | ANum n::cr -> 
+            match Map.tryFind cr vars with
+            | Some v  -> vars <- Map.add cr (v + n) vars
+            | None    -> vars <- Map.add cr n vars
       | []            -> nums <- 0.0 
       | _             -> failwith "simplifySimpleExpr: unmatched clause" // should never get here                   
     ) ags'
@@ -232,12 +233,13 @@ module ExprToPoly =
     | t::cr -> 
         match t with
         | (0,_)       -> inner m' cr
-        | (n,(SE s))  -> let updated = 
-                            Map.add
-                              (n-1) 
-                              (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
-                              m'
-                         inner updated cr
+        | (n,(SE s))  -> 
+              let updated = 
+                Map.add
+                  (n-1) 
+                  (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
+                  m'
+              inner updated cr
     P (inner Map.empty (Map.toList m))
 
   let rec solveAG m = function
@@ -267,16 +269,21 @@ module ExprToPoly =
   
   let rec solveReducedPolyList x = function
     | []        -> 0.0
-    | (0,c)::cr  -> c + solveReducedPolyList x cr 
+    | (0,c)::cr -> c + solveReducedPolyList x cr 
     | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
 
+  // assuming p2 is of lower order
+  // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
+  (*let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
+    let (divExp, divConst) = p1.[0]
+    let rec inner tail = function
+      | []          -> tail
+      | (n,c)::rest  -> let toAdd = (n-divExp, c / divConst)
+                        // do more stuff
+  *)
 
-  let polynomialLongDivision (p1:poly) (p2:poly) =
-    // TODO: implement 
-    p1
-
-  type poly with
-    static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
+  //type poly with
+   // static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
 
  (* Simple tests
 
