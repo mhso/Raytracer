@@ -82,7 +82,7 @@ and AmbientLight(colour: Colour, intensity: float) =
 //- SHAPE
 and [<AbstractClass>] Shape() =
     abstract member isInside: Point -> bool
-    abstract member getBoundingBox: Unit -> BBox
+    abstract member getBoundingBox: unit -> BBox
     abstract member hitFunction: Ray -> HitPoint
     abstract member getTextureCoords: HitPoint -> (float * float)
     static member None = BlankShape() :> Shape
