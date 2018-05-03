@@ -5,14 +5,14 @@ open System.IO
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(0.,0.,5.)
+    let position = Point(0.,0.,7.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 1920.
-    let height = 1080.
     let resX = 1920
     let resY = 1080
+    let width = 2.
+    let height = (float(resY) / float(resX)) * width
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -33,9 +33,9 @@ let main _ =
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
     
-    let sL = SphereShape(Point(2., 0., -4.), 1., matteRed)
-    let sC = SphereShape(Point(0., 1., 0.), 1., matteYellow)
-    let sR = SphereShape(Point(0., 0., -2.), 1., matteGreen)
+    let sL = SphereShape(Point(0., 2., 0.), 1., matteRed)
+    let sC = SphereShape(Point(0., 0., 0.), 1., matteYellow)
+    //let sR = SphereShape(Point(0., 0., -2.), 1., matteGreen)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
@@ -43,19 +43,19 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
-                            new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-                            new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     
     //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
+    let lightFront     = PointLight(Colour.White, 1.5, Point(0.,0.,7.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sL;sC;sR]
+    let lights: Light list      = [lightAmbient; lightFront]
+    let spheres: Shape list     = [sC]
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render

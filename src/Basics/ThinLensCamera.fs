@@ -30,17 +30,14 @@ type ThinLensCamera
             let lx = lx * r
             let ly = ly * r
 
-            //let rayOrigin = base.Vpc + (qx + float(x)-base.Width/2.) * base.Pw * base.V + (qy + float(y)-base.Height/2.)*base.Ph*base.U
-            //let rayDirection = (rayOrigin - base.Position).Normalise
-            //rays <- (new Ray(base.Position, rayDirection))::rays
-
             // Create the primary lens ray, 
             // from the lens disc point to the focal unit square point.
         
 
-            let rayOrigin = base.Vpc + lx * base.U + ly * base.V
-            let rayTarget = base.Vpc + (qx + float(x)-base.Width/2.) * base.Pw * base.V + (qy + float(y)-base.Height/2.)*base.Ph*base.U
+            let rayOrigin = lx * base.U + ly * base.V
+            let rayTarget = (qx + float(x)-base.Width/2.) * base.Pw * base.V + (qy + float(y)-base.Height/2.)*base.Ph*base.U
 
             let rayDirection = ((px - lx) * base.U + (py - ly) * base.V - f * base.W).Normalise
-            rays <- (new Ray(rayOrigin, rayDirection))::rays
+            ()
+            //rays <- (new Ray(rayOrigin, rayDirection))::rays
         rays
