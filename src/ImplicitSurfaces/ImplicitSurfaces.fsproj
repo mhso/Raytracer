@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{9d08a5b9-b8c2-46d8-ac62-20487a193ebf}</ProjectGuid>
+    <ProjectGuid>940a3706-dae3-4f52-87b8-d71f44641b0d</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>ImplicitSurfaces</RootNamespace>
     <AssemblyName>ImplicitSurfaces</AssemblyName>
@@ -86,11 +86,6 @@
     <ProjectReference Include="..\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Sampling\Sampling.fsproj">
-      <Name>Sampling</Name>
-      <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Shapes\Shapes.fsproj">
