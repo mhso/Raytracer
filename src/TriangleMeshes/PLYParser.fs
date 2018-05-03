@@ -322,11 +322,12 @@ let drawNumberOfTriangles (filepath:string) n=
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
         ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
-    
+        printfn "TREKANTER!: h1 %A l1 %A" ((ar.[i]).getBoundingBox().highPoint) ((ar.[i]).getBoundingBox().lowPoint)
     let kdTree = buildKDTree (ar)
-
+    printfn "%A" kdTree
     let sh = {new Shape() with
-        member this.hitFunction r = traverseKDTree kdTree r ar
+        member this.hitFunction r = 
+            traverseKDTree kdTree r ar
         member this.getBoundingBox () = failwith "I hate this"
         member this.isInside p = failwith "I hate this"
         member this.getTextureCoords hp = (1.,1.) // or none, or idk

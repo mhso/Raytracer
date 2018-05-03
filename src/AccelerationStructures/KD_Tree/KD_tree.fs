@@ -303,6 +303,8 @@ module KD_tree =
     let traverseKDTree (tree:KDTree) (ray:Ray) (shapes:array<Shape>) = 
         let value = tree.bBox.intersect ray
         match value with
-        | Some (t, t') -> searchKDTree (tree, ray, t, t', shapes)
-        | None -> printfn "No Hit!"
+        | Some (t, t') -> 
+            //printfn "hits almost"
+            searchKDTree (tree, ray, t, t', shapes)
+        | None -> //printfn "No Hit!"
                   HitPoint (ray)
