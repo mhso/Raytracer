@@ -134,8 +134,8 @@ let main _ =
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
-    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
-    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
+    let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
+    let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
     let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
