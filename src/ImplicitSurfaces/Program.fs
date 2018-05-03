@@ -22,8 +22,8 @@ module Program =
     let height = 2.
     //let height = (float resY / float resX) * width
 
-    let mkScene' s c =
-      let light = DirectionalLight (Colour.White, 0.5, Vector(4.0, 2.0, 4.0))
+    let mkScene' s (c:Camera) =
+      let light = PointLight (Colour.White, 0.5, Point(4.0, 2.0, 4.0))
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
       let (lights:Light list) = [light; light2; ambientLight]
@@ -50,9 +50,9 @@ module Program =
     let sphere1 (r : float) =
       let aqua = Colour (Color.Aqua)
       let white = Colour (Color.White)
-      let s = [mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
-               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
-               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white))
+      let s = [mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.2, aqua, 0.7, white));
+               //mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+               //mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white))
                ]
       let camera = PinholeCamera (Point(0.0, 0.0,4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
       mkScene' s camera

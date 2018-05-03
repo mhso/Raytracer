@@ -11,4 +11,4 @@ type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point,
         let py = base.Ph * ((float y - (float resY/2.0)) + 0.5)
         let pz = -zoom
         let direction = (px * base.V) + (py * base.U) + (pz * base.W)
-        [new Ray(base.Position, direction)]
+        [new Ray(base.Position, direction.Normalise)]

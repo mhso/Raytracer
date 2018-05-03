@@ -87,6 +87,6 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
 
         // Printing how much time was spent rendering
         timer.Stop()
-        printfn "Seconds: %f" timer.Elapsed.TotalSeconds
+        printfn "\nTime elapsed rendering: %f seconds" timer.Elapsed.TotalSeconds
 
         System.Console.ReadKey () |> ignore

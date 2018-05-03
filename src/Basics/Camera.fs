@@ -9,8 +9,8 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     let w = (position - lookat).Normalise
     let v = up % w
     let u = w % v
-    let pw = width/float resX
-    let ph = height/float resY
+    let pw = width / (float resX)
+    let ph = height / (float resY)
 
     member this.W = w
     member this.U = u
@@ -41,7 +41,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             let normal = hitPoint.Normal
             lights 
                 |> List.fold (fun accColour light -> 
-                    let shadowColour = Colour.Black//this.CastShadow hitPoint light shapes
+                    let shadowColour = this.CastShadow hitPoint light shapes
                     let colour = this.CastRecursively ray shape hitPoint light Colour.Black hitPoint.Material.Bounces shapes hitPoint.Material.BounceMethod
                     accColour + (colour - shadowColour)) (new Colour(0.,0.,0.))
         else
