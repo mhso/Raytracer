@@ -1,6 +1,7 @@
 ﻿namespace Tracer.Basics
 open System
 open Tracer.Sampling
+open System.Numerics
 
 exception LightException
 
@@ -36,6 +37,18 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
     member this.Normal = normal
     member this.Material = material
     
+    override this.Equals(other) =
+        match other with
+        | :? HitPoint as h ->
+                                if (this.Ray.Equals(h.Ray)
+                                    && this.Time.Equals(h.Time)
+                                    && this.Point.Equals(h.Point)
+                                    && this.Normal.Equals(h.Normal)
+                                    && this.Material.Equals(h.Material)) then true
+                                 else false
+        | _ -> false
+    member this.GetHashCode = 
+        hash (this.Ray, this.Time, this.Point, this.DidHit, this.Normal, this.Material)
     // For hit rays
     new(ray: Ray, time:float, normal: Vector, material: Material) = 
         HitPoint(ray, time, normal, material, true)
