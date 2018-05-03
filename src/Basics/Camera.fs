@@ -64,6 +64,23 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
 
+    member this.GetFirstShadowHitPoint (ray:Ray) (shapes:Shape list) = 
+        
+        // Get all hit points
+        let pointsThatHit = 
+            [for s in shapes do yield (s, s.hitFunction ray )]
+                |> List.filter (fun (_,hp:HitPoint) -> hp.DidHit)
+                |> List.filter (fun (_,hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
+        
+        // Check if the ray hit
+        if pointsThatHit.IsEmpty then
+            // If not, return an empty hit point
+            (Shape.None, HitPoint(ray))
+        else
+            // If the ray hit, then return the first hit point
+            pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
+
+
     member this.GetFirstHitPointExcept (ray: Ray) (shapes: Shape list) (except: Shape) = 
 
         // Get all hit points
@@ -89,10 +106,17 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
         else
             let shadowRays = light.GetShadowRay hitPoint
             let isShadow ray = 
-                let (_, hp) = (this.GetFirstHitPoint ray shapes)
-                if hp.DidHit then Colour.White else Colour.Black
-            let totalShadow = Array.fold (fun acc ray -> isShadow ray) Colour.Black shadowRays
-            (totalShadow / float(shadowRays.Length))
+                let (_, hp) = (this.GetFirstShadowHitPoint ray shapes)
+                if hp.DidHit then
+                        Colour.White 
+                    else 
+                        Colour.Black
+            
+            if shadowRays.Length = 0 then 
+                Colour.Black
+            else
+                let totalShadow = Array.fold (fun acc ray -> acc + isShadow ray) Colour.Black shadowRays
+                (totalShadow / float(shadowRays.Length))
 
     // Will cast a ray recursively
     member this.CastRecursively 

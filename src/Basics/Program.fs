@@ -26,7 +26,7 @@ let main _ =
     let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
     let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
-    let emissive = EmissiveMaterial(Colour.White, 1.)
+    let emissive = EmissiveMaterial(Colour.White, 10000.)
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
@@ -36,7 +36,10 @@ let main _ =
     let sL = SphereShape(Point(0., 2., 0.), 1., matteRed)
     let sC = SphereShape(Point(0., 0., 0.), 1., matteYellow)
     //let sR = SphereShape(Point(0., 0., -2.), 1., matteGreen)
-
+    let sTop = SphereShape(Point(0., 0., 15.), 5., matteWhite)
+    let discC = Disc(Point(0., 0., 0.), 4., emissive)
+    let rectC = Rectangle(Point(-4., -4., 0.), Point(-4., 4., 0.), Point(4., -4., 0.), emissive)
+    let sR = SphereShape(Point(1., 0., 8.), 1., matteGreen)
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
     let VIEW_SAMPLES = 8
@@ -51,11 +54,20 @@ let main _ =
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(0.,0.,7.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
+  
+    //- LIGHTS
+    let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
+
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
+    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
+    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
+    let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightFront]
     let spheres: Shape list     = [sC]
+
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render

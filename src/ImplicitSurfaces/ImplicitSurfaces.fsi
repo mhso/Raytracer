@@ -4,19 +4,17 @@ module Main =
 
   open Tracer.Basics
 
-  type hf = Ray -> (float * Vector * MatteMaterial) option
+  type hf = Ray -> (float * Vector) option
+  type hfMat = Ray -> (float * Vector * Material) option
 
-  type shape =
-    abstract hf : hf
+  type baseShape = Tracer.BaseShape.BaseShape
+  type shape = Tracer.Basics.Shape
 
-  type baseShape =
-    abstract mkShape : Material -> shape
-
-  val mkImplicit : string -> shape
+  val mkImplicit : string -> baseShape
 
   // needed for testing
   type expr = ExprParse.expr
-  val partial : string -> expr -> expr
+  val partialDerivative : string -> expr -> expr
   val substWithRayVars : expr -> expr
 
   type Ray = Tracer.Basics.Ray

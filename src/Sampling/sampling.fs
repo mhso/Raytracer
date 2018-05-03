@@ -290,7 +290,6 @@ type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], samp
     let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
 
     let mutable currentSampleIndex = 0
-    let mutable currentSetIndex = 0
     let mutable currentSample: (float * float) = (0.,0.)
 
     member this.Next() = 
