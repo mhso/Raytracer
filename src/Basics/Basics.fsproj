@@ -63,6 +63,8 @@
     <Compile Include="BBox.fs" />
     <Compile Include="Foundation.fs" />
     <Compile Include="Materials.fs" />
+    <Compile Include="Textures.fsi" />
+    <Compile Include="Textures.fs" />
     <Compile Include="Transformation.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
