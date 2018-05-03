@@ -26,7 +26,7 @@ let allTest =
     
         let BBList = [BBox1;BBox2;BBox3;BBox4;BBox5;BBox6]
     
-        let result = buildKDTree BBList
+        let result = createKDTreeFromList BBList
 
         let actual = 
             new KDTree

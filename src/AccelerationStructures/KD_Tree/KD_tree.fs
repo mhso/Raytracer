@@ -180,7 +180,7 @@ module KD_tree =
         | 2 -> point.Z
 
 
-    let rec buildKDTree (boxes:list<ShapeBBox>) = 
+    let rec createKDTreeFromList (boxes:list<ShapeBBox>) = 
         //printfn "KD Branch build start"
         //if (List.length boxes) < 10 then Leaf(boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
         //else
@@ -214,12 +214,20 @@ module KD_tree =
                     let newFirst = first @ (List.filter(fun n -> (findPointAxis(n.lowPoint) axis) < splitValue) second)
                     if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
                     else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then new KDTree(BBox(KDMaxXYZ, KDMinXYZ),oldBoxes)
-                    else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newSecond), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newFirst))
-                    else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newFirst), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newSecond))
-                    else new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), buildKDTree(newSecond), buildKDTree(newFirst))
+                    else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newSecond), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newFirst))
+                    else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newFirst), new KDTree(BBox(KDMaxXYZ, KDMinXYZ),newSecond))
+                    else new KDTree(axis, splitValue, BBox(KDMaxXYZ, KDMinXYZ), createKDTreeFromList(newSecond), createKDTreeFromList(newFirst))
                 if axis <= 2 then buildNodeWithSpecifiedAxis boxes axis
                 else new KDTree(BBox(KDMaxXYZ, KDMinXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
+
+    let buildKDTree (shapes:array<Shape>) = 
+        let mutable shapeBoxList = List.Empty
+        for shape in shapes do
+            let id = Array.findIndex (fun n -> n = shape) shapes
+            let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
+            shapeBoxList <- newShapeBox::shapeBoxList
+        createKDTreeFromList shapeBoxList
 
     let findRayDirectionFromA (a:int) (r:Ray) =
         match a with
