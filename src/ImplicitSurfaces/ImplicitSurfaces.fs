@@ -185,7 +185,7 @@ module Main =
                         member this.getBoundingBox () = failwith "I hate this"
                         member this.isInside p = failwith "I hate this"
                         member this.getTextureCoords hp = (1.,1.) // or none, or idk
-                        }
+                    }
                }
     bsh
 
