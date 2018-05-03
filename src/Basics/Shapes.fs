@@ -30,7 +30,8 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    //override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+    member this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+
     override this.hitFunction (r:Ray) = 
         match r with
         |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -272,7 +273,6 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
         let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
         match D with
         |(0.0) -> if t1 <= 0.0 then HitPoint(r) else this.determineHitPoint r t1 //if D=0 then t1 = t2
-              
         (*
         |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
                   |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
@@ -320,7 +320,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.cylinder = cylinder
     member this.top = top
     member this.bottom = bottom
-    //builds the transfored discs at the top and bottom of the solid cylinder
+    //builds the transformed discs at the top and bottom of the solid cylinder
     member this.topDisc = 
         let rotate = rotateX (Math.PI/2.)
         let move = translate 0. 0. (height/2.)
@@ -517,9 +517,10 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                            let PointAtTime = r.PointAtTime s1T
                                            let newOrigin = (r.PointAtTime s1T).Move moveVector
                                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s1T = s2T -> s1Hit
         |(s1T, s2T) -> 
                     //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
-                    if s1T >= s2T then 
+                    if s1T > s2T then 
                         if s2.isInside (r.PointAtTime s1T) then //might be able to condense this with next if
                             if s1.isInside (r.PointAtTime s2T) then s2Hit
                             else s1Hit
