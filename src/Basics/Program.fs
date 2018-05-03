@@ -9,10 +9,10 @@ let main _ =
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 500.
-    let height = 400.
-    let resX = 500
-    let resY = 400
+    let resX = 1920
+    let resY = 1080
+    let width = 2.
+    let height = (float(resY) / float(resX)) * width
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -115,17 +115,23 @@ let main _ =
     let shapes : Shape list = [box]
 
     //- THIN LENS SAMPLE SETTINGS
-    let CAM_SETS = 1
-    let VIEW_SAMPLES = 16
-    let LENS_SAMPLES = 16
+    let CAM_SETS = 129
+    let VIEW_SAMPLES = 8
+    let LENS_SAMPLES = 8
 
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    
+    //- LIGHTS
+    let lightFront     = PointLight(Colour.White, 1.5, Point(0.,0.,7.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
   
     //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,0.,1.))
     let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
+
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)

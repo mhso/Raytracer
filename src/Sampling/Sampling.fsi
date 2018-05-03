@@ -13,3 +13,4 @@ type SampleGenerator =
     new: samplingAlgorighm:(int -> int -> (float * float) [][]) * sampleCount:int * sampleSetCount:int -> SampleGenerator
     member Current: float * float
     member Next: unit -> float * float
+    member SampleCount: int

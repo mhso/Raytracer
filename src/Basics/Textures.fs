@@ -17,9 +17,3 @@ module Texture =
         Texture func
 
     let getFunc (Texture func) = func
-
-    let bounce (texture:Texture) (shape:Shape) (hitPoint:HitPoint) (light:Light) = 
-        let func = getFunc texture
-        let (u,v) = shape.getTextureCoords hitPoint
-        let mat = func u v
-        mat.Bounce shape hitPoint light
