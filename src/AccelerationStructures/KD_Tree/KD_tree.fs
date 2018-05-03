@@ -263,9 +263,9 @@ module KD_tree =
         if tree.isLeaf then let searchKDLeaf (tree:KDTree) (ray:Ray) (t':float) (shapes:array<Shape>) = 
                                 let shape = closestHit tree.shapeList ray shapes
                                 match shape with 
-                                | Some shape -> if (shape.hitFunction ray).Time < t' then Some (shape.hitFunction ray)
-                                                else None
-                                | None -> None
+                                | Some shape -> if (shape.hitFunction ray).Time < t' then shape.hitFunction ray
+                                                else HitPoint ray
+                                | None -> HitPoint ray
                             searchKDLeaf tree ray t' shapes
         else let rec searchKDNode (tree:KDTree) (ray:Ray) (t:float) (t':float) (shapes:array<Shape>) = 
                  let a = tree.axis
@@ -278,9 +278,9 @@ module KD_tree =
                      if tHit <= t || tHit <= 0. then searchKDTree(second, ray, t, t', shapes)
                      else if tHit >= t' then searchKDTree(first, ray, t, t', shapes)
                      else let value = searchKDTree(first, ray, t, tHit, shapes)
-                          match value with
-                          | Some hitpoint -> value
-                          | None -> searchKDTree(second, ray, tHit, t', shapes)
+                          match value.DidHit with
+                          | true -> value
+                          | false -> searchKDTree(second, ray, tHit, t', shapes)
              searchKDNode tree ray t t' shapes
                             
 
@@ -288,4 +288,4 @@ module KD_tree =
         let value = tree.bBox.intersect ray
         match value with
         | Some (t, t') -> searchKDTree (tree, ray, t, t', shapes)
-        | None -> None
+        | None -> HitPoint (ray)
