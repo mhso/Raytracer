@@ -1,4 +1,4 @@
-﻿namespace Tracer.Basics
+namespace Tracer.Basics
 
 open System
 open System.Drawing
@@ -25,13 +25,6 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
         let mutable loadingIndex = 0
         Console.WriteLine("                                                    
-
-
-
-
-
-
-
                            ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
                            ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
                            ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
@@ -44,20 +37,22 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                                                        ░                                        
                                                                                                 ")
         
-        
         let timer = System.Diagnostics.Stopwatch.StartNew()
-        
+
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
 
-        let colours = Array2D.zeroCreate camera.ResY camera.ResX
+        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
 
         Parallel.ForEach (pos, fun (x,y) -> 
-          colours.[y,x] <- camera.Cast (camera.CreateRay x y) backgroundColour shapes lights) |> ignore
+            let rays = camera.CreateRays x y
+            let cols = List.map (fun ray -> (camera.Cast ray backgroundColour shapes lights)) rays
+            let colour = (List.fold (+) Colour.Black cols)/float cols.Length
+            bmColourArray.[y,x] <- colour) |> ignore
 
         for y in 0 .. camera.ResY - 1 do
           for x in 0 .. camera.ResX - 1 do
-            renderedImage.SetPixel(x, y, colours.[y,x].ToColor)
+            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
         (*
         for x in 0..camera.ResX-1 do
@@ -75,11 +70,11 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
 
                     Console.Write("\r                                {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%");
                     
-                let ray = camera.CreateRay x y
-                let colour = camera.Cast ray backgroundColour shapes lights
-                renderedImage.SetPixel(x, y, colour.ToColor)
+                let rays = camera.CreateRays x y
+                let colours = List.map (fun ray -> (camera.Cast ray backgroundColour shapes lights)) rays
+                let colour = (List.fold (+) Colour.Black colours)/float colours.Length
+                renderedImage.SetPixel(x, y, colour.ToColor)*)
                 
-*)
         // Save image
         renderedImage.Save(camera.RenderFilepath)
         
@@ -91,6 +86,3 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
         printfn "Seconds: %f" timer.Elapsed.TotalSeconds
 
         System.Console.ReadKey () |> ignore
-
-    
-        
