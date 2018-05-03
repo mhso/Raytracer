@@ -303,6 +303,8 @@ type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], samp
     member this.Current = 
         currentSample
 
+    member this.SampleCount = sampleCount
+
 [<EntryPoint>]
 let main argsv =
     if Array.isEmpty argsv then 
