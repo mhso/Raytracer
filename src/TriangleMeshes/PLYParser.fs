@@ -74,7 +74,12 @@ let parsePLY (filepath:string) =
     let sr = new StreamReader(filepath)
     let mutable parsing = true
     if (not sr.EndOfStream) then
-        let mutable nextLine = sr.ReadLine()
+        let mutable headerCharCount = 0
+        let proceed (s:StreamReader) = 
+            let nextLine = s.ReadLine()
+            headerCharCount <- headerCharCount + nextLine.Length + 1
+            nextLine
+        let mutable nextLine = proceed sr
         let mutable numberOfProperty = 1
         let mutable vertexProperty = []
         let mutable faceProperty = []
@@ -84,8 +89,8 @@ let parsePLY (filepath:string) =
 
         | true -> 
             //printfn "Started Parsing..."
-
-            nextLine <- sr.ReadLine()
+            headerCharCount <- headerCharCount + nextLine.ToCharArray().Length
+            nextLine <- proceed sr
 
             let isAscii = parseBool (pstring "format ascii " .>> pfloat) (nextLine)
             let formatBoolean = (pstring "format binary_little_endian " .>> pfloat) 
@@ -95,11 +100,11 @@ let parsePLY (filepath:string) =
 
             if (not (isBoolean) && not isAscii) then failwith ("Parsing Error: TAMPERED PLY FILE")
 
-            nextLine <- sr.ReadLine()
+            nextLine <- proceed sr
             let arraySizeParser = pstring "element vertex " >>. pint32
             let isArraySize s = parseBool arraySizeParser s
             while (not (isArraySize nextLine)) do
-                nextLine <- sr.ReadLine()
+                nextLine <- proceed sr
 
             let arraySize = parse arraySizeParser nextLine
             triangleArray <- Array.zeroCreate arraySize
@@ -107,7 +112,7 @@ let parsePLY (filepath:string) =
             let vertexPosition : int array = Array.zeroCreate 9
             let startWithProperty (s:string) = parseBool (pstring "property" .>> (anyString (s.Length-8))) s
             let readPropertyParser = 
-                nextLine <- sr.ReadLine()
+                nextLine <- proceed sr
                 while (startWithProperty nextLine) do
                     let lineSplit = nextLine.Split [|' '|]
                     match lineSplit.[2] with
@@ -122,13 +127,13 @@ let parsePLY (filepath:string) =
                         | _ -> vertexPosition.[8] <- numberOfProperty
                     let typeVal = typeParser lineSplit.[1]
                     vertexProperty <- List.append vertexProperty [typeVal]
-                    nextLine <- sr.ReadLine()
+                    nextLine <- proceed sr
                     numberOfProperty <- numberOfProperty + 1
             readPropertyParser
 
             let faceLength = parse (pstring "element face " >>. pint32) nextLine
             faceArray <- Array.zeroCreate faceLength
-            nextLine <- sr.ReadLine()
+            nextLine <- proceed sr
             while (startWithProperty nextLine) do
                 let lineSplit = nextLine.Split[|' '|]
                 let parseListProps = pstring "property list " >>. (anyString (nextLine.Length-28)) .>> pstring "vertex_indices"
@@ -140,7 +145,7 @@ let parsePLY (filepath:string) =
                 else 
                     let typeVal = typeParser lineSplit.[1]
                     skipAbleProperty <- List.append skipAbleProperty [typeVal]
-                nextLine <- sr.ReadLine()
+                nextLine <- proceed sr
             nextLine <- sr.ReadLine()
 
             match isAscii,isBoolean with
@@ -159,10 +164,9 @@ let parsePLY (filepath:string) =
                     nextLine <- sr.ReadLine()
             | _,true -> 
                 printfn ("BINARY START")
-                let br = new BinaryReader(sr.BaseStream)
-                let dumpBuffer : byte[] = Array.zeroCreate(12)
-                br.Read(dumpBuffer,0,10)
-                //Parsing Vertices
+                let stream = sr.BaseStream
+                stream.Seek((int64 (headerCharCount-3)), SeekOrigin.Begin) |> ignore
+                let br = new BinaryReader(stream)
                 let mutable numberOfBytesRead = 0
                 for j in 0..(triangleArray.Length-1) do 
                     let vertexProps = Array.zeroCreate(vertexProperty.Length)
@@ -207,7 +211,6 @@ let parsePLY (filepath:string) =
                             | _ -> 0.0
                         vertexProps.[k] <- f
                     triangleArray.[j] <- findVertexFromArray (vertexProps |> Array.toList) vertexPosition
-                printfn "%A %A %A" triangleArray.[0].x triangleArray.[0].y triangleArray.[0].z
                 //Parsing Triangles
                 numberOfBytesRead <- 0
                 for j in 0..faceArray.Length-1 do 
@@ -262,9 +265,8 @@ let parsePLY (filepath:string) =
                                 (int (BitConverter.ToDouble (buffer, 0)))
                             | _ -> 0
                     faceArray.[j] <- [intValue faceProperty.[0] ; intValue faceProperty.[1]; intValue faceProperty.[1]; intValue faceProperty.[1]]
-                printfn "%A" faceArray.[0]
             | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
-            printfn "...Parsing Done"
+            //printfn "...Parsing Done"
         | false -> parsing <- false
 
 let drawTriangles (filepath:string)= 
@@ -282,13 +284,30 @@ let drawTriangles (filepath:string)=
         ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
 
     let kdTree = buildKDTree (ar)
+
     let sh = {new Shape() with
-        member this.hitFunction r = (traverseKDTree kdTree r ar).Value
+        member this.hitFunction r = traverseKDTree kdTree r ar
         member this.getBoundingBox () = failwith "I hate this"
         member this.isInside p = failwith "I hate this"
         member this.getTextureCoords hp = (1.,1.) // or none, or idk
     }
     sh
+
+let drawTrianglesWithouKd (filepath:string)= 
+    let test = parsePLY filepath
+    let material = MatteMaterial(Colour.Red)
+    let ar = Array.zeroCreate(faceArray.Length)
+    for i in 0..faceArray.Length-1 do 
+        let v1 = triangleArray.[faceArray.[i].[1]]
+        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
+        
+        let v2 = triangleArray.[faceArray.[i].[2]]
+        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
+        let v3 = triangleArray.[faceArray.[i].[3]]
+        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
+        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
+
+    ar
 
 let drawNumberOfTriangles (filepath:string) n= 
     let test = parsePLY filepath
@@ -303,4 +322,13 @@ let drawNumberOfTriangles (filepath:string) n=
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
         ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
-    ar
+    
+    let kdTree = buildKDTree (ar)
+
+    let sh = {new Shape() with
+        member this.hitFunction r = traverseKDTree kdTree r ar
+        member this.getBoundingBox () = failwith "I hate this"
+        member this.isInside p = failwith "I hate this"
+        member this.getTextureCoords hp = (1.,1.) // or none, or idk
+    }
+    sh
