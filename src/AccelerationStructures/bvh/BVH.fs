@@ -134,18 +134,44 @@ module BVH =
         | Node (_,_,bbox,_) -> bbox
         | Leaf (_, bbox) -> bbox
     
+    type ShapeBBox (highPoint:Point, lowPoint:Point, shape:int) =
+        member this.highPoint = highPoint
+        member this.lowPoint = lowPoint
+        member this.shape = shape
+        override this.ToString() =
+            "ShapeBox(Max: "+highPoint.ToString()+", Min: "+lowPoint.ToString()+", shape: "+shape.ToString()+")"
+        override this.GetHashCode() =
+            hash (highPoint, lowPoint, shape)
+        override this.Equals(x) = 
+            match x with
+            | :? ShapeBBox as box -> this.highPoint = box.highPoint && 
+                                     this.lowPoint = box.lowPoint && 
+                                     this.shape = box.shape
+            | _ -> false
+
+    //let closestHit (shapeBoxes:list<ShapeBBox>)(ray:Ray)(shapes:array<Shape>) =
+    //    let mutable closestHit = None
+    //    let mutable closestDist = infinity
+    //    for shapeRef in shapeBoxes do
+    //        let hit = shapes.[shapeRef.shape].hitFunction ray
+    //        let dist = hit.Time
+    //        if dist < closestDist then
+    //            closestDist <- dist
+    //            closestHit <- Some hit
+    //    closestHit
+
     let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
         match treeNode with
         | Leaf (shapesRef, _) -> 
-                            let mutable closestShape = None
+                            let mutable closestHit = None
                             let mutable closestDist = infinity
                             for shapeRef in shapesRef do
                                 let hit = shapes.[shapeRef].hitFunction ray
                                 let dist = hit.Time
                                 if dist < closestDist then
                                     closestDist <- dist
-                                    closestShape <- Some shapes.[shapeRef]
-                            closestShape
+                                    closestHit <- Some hit
+                            closestHit
         | _ -> None
 
     let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =     
@@ -156,8 +182,7 @@ module BVH =
                                     let checkForHit = (closestHit treeNode ray shapes)
                                     match checkForHit with
                                     | Some hitFound -> 
-                                        let hit = hitFound.hitFunction ray
-                                        if hit.Time < tmax then Some hitFound
+                                        if hitFound.Time < tmax then Some hitFound
                                         else None
                                     | None -> None
                                 else 
@@ -167,14 +192,12 @@ module BVH =
                                         let second = search right ray shapes tmax
                                         match first with
                                         | Some hitFound1 ->
-                                                let hit1 = hitFound1.hitFunction ray
-                                                let result2 = search treeNode ray shapes hit1.Time
+                                                let result2 = search treeNode ray shapes hitFound1.Time
                                                 match result2 with
-                                                | Some hitFound2 -> 
-                                                    Some hitFound2
+                                                | Some hitFound2 -> Some hitFound2
                                                 | _ -> Some hitFound1
             
-                                        | None -> search treeNode ray shapes tmax
+                                        | None -> second
                                     | _ -> None
                             else None
         | None -> None

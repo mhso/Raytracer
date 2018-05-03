@@ -98,9 +98,9 @@ let allTest =
 // ----------------------------- TEST BEGIN -----------------------------
     let testTraverse = 
         let tree = buildBVHTree (testBVHDataInputSmall)
-        let ray = Ray(Point(0.0,0.0,0.0), Vector(1.,2.,3.))
+        let ray = Ray(Point(-10.0,-10.0,-10.0), Vector(1.,2.,3.))
         let shapeArr, bboxArr = createShapeAndBBoxArr
         let result = traverse tree ray shapeArr infinity
-        let expected = Some (SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White)):>Shape)
+        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White)):>Shape).hitFunction ray)
         Assert.Equal (expected,result,"testTraverse")
     testTraverse
