@@ -112,7 +112,7 @@ let main _ =
     let csgShape2 = CSG(csgShape, solidCylinder, Union)
     let csgShape3 = CSG(box, csgShape2, Intersection)
 
-    let shapes : Shape list = [csgShape3]
+    let shapes : Shape list = [box]
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 1

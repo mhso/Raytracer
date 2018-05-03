@@ -24,9 +24,9 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
         let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
         let lz = (min bottomLeft.Z (min topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
 
-        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) - e
-        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) - e
-        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) + e
+        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) + e
+        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -104,9 +104,9 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let ly = (min a.Y (min b.Y c.Y)) - e
         let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
 
-        let hx = (max a.X (max b.X c.X)) - e
-        let hy = (max a.Y (max b.Y c.Y)) - e
-        let hz = (max a.Z (max b.Z c.Z)) - e //might be redundant as Z should always equal 0
+        let hx = (max a.X (max b.X c.X)) + e
+        let hy = (max a.Y (max b.Y c.Y)) + e
+        let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -339,6 +339,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
             if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
             else false
         else false
+
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (center.X - radius) - e
