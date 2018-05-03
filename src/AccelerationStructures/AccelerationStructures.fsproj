@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="KD_Tree\KD_tree.fs" />
     <Compile Include="BVH\BVH.fs" />
+    <Compile Include="RG\RegularGrids.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
