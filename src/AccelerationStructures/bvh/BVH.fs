@@ -2,6 +2,8 @@
 
 module BVH = 
     open Tracer.Basics
+    
+    let debug = true
 
     (* BVH TREE *)
     type BVHtree = 
@@ -112,6 +114,7 @@ module BVH =
 
     // swaps the order if d is not positive
     let order d (left:BVHtree) (right:BVHtree) = 
+        if debug then printfn "Call to order..."
         match d with
         | d when d > 0 -> (left, right)
         | _            -> (right, left)
@@ -122,6 +125,7 @@ module BVH =
     | _ -> false
 
     let getRayDirectionValue (ray:Ray) (axis:int) =
+        if debug then printfn "Call to getRayDirectionValue..."
         match axis with
         | 0 -> (int ray.GetDirection.X)
         | 1 -> (int ray.GetDirection.Y)
@@ -131,36 +135,13 @@ module BVH =
     // Get bounding box from tree element.
     let getBbox (tree:BVHtree) : BBox = 
         match tree with
-        | Node (_,_,bbox,_) -> bbox
-        | Leaf (_, bbox) -> bbox
-    
-    type ShapeBBox (highPoint:Point, lowPoint:Point, shape:int) =
-        member this.highPoint = highPoint
-        member this.lowPoint = lowPoint
-        member this.shape = shape
-        override this.ToString() =
-            "ShapeBox(Max: "+highPoint.ToString()+", Min: "+lowPoint.ToString()+", shape: "+shape.ToString()+")"
-        override this.GetHashCode() =
-            hash (highPoint, lowPoint, shape)
-        override this.Equals(x) = 
-            match x with
-            | :? ShapeBBox as box -> this.highPoint = box.highPoint && 
-                                     this.lowPoint = box.lowPoint && 
-                                     this.shape = box.shape
-            | _ -> false
-
-    //let closestHit (shapeBoxes:list<ShapeBBox>)(ray:Ray)(shapes:array<Shape>) =
-    //    let mutable closestHit = None
-    //    let mutable closestDist = infinity
-    //    for shapeRef in shapeBoxes do
-    //        let hit = shapes.[shapeRef.shape].hitFunction ray
-    //        let dist = hit.Time
-    //        if dist < closestDist then
-    //            closestDist <- dist
-    //            closestHit <- Some hit
-    //    closestHit
+        | Node (_,_,bbox,_) ->  if debug then printfn "getBox -> Node box \n %A" bbox
+                                bbox
+        | Leaf (_, bbox) ->     if debug then printfn "getBox -> Leaf box \n %A" bbox
+                                bbox
 
     let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
+        if debug then printfn "Call to closestHit..."
         match treeNode with
         | Leaf (shapesRef, _) -> 
                             let mutable closestHit = None
@@ -171,14 +152,25 @@ module BVH =
                                 if dist < closestDist then
                                     closestDist <- dist
                                     closestHit <- Some hit
+                            if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
                             closestHit
-        | _ -> None
+        | _ -> 
+                if debug then printfn "closestHit -> None..."
+                None
 
-    let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =     
+    let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
+        if debug then printfn "Call to search with tmax: %f, lenght of array %i" tmax shapes.Length 
+        if debug then printfn "Value of ray: %A" ray
+        if debug then printfn "Value of treeNode: %A" treeNode
         let value = (getBbox treeNode).intersect ray
+        if debug then printfn "Value of intersect: \n %A" value
         match value with  
-        | Some (t, t')  -> if (t<tmax) then 
+        | Some (t, t')  -> 
+                            printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'
+                            
+                            if (t<tmax) then 
                                 if isLeaf treeNode then
+                                    if debug then printfn "(t<tmax) and isLeaf..."
                                     let checkForHit = (closestHit treeNode ray shapes)
                                     match checkForHit with
                                     | Some hitFound -> 
@@ -200,9 +192,11 @@ module BVH =
                                         | None -> second
                                     | _ -> None
                             else None
-        | None -> None
+        | None -> if debug then printfn "search -> match value -> None"
+                  None
 
     let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) = 
+        if debug then printfn "Call to traverse..."
         search treeNode ray shapes infinity
         
         
