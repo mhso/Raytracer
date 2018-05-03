@@ -40,6 +40,7 @@ let main _ =
     let discC = Disc(Point(0., 0., 0.), 4., emissive)
     let rectC = Rectangle(Point(-4., -4., 0.), Point(-4., 4., 0.), Point(4., -4., 0.), emissive)
     let sR = SphereShape(Point(1., 0., 8.), 1., matteGreen)
+    
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
     let VIEW_SAMPLES = 8
@@ -57,7 +58,6 @@ let main _ =
   
     //- LIGHTS
     let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
-
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)

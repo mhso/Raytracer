@@ -8,10 +8,10 @@ type PointLight(colour: Colour, intensity: float, position: Point) =
 
     override this.GetColour point = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
-    override this.GetDirectionFromPoint (point:Point) = 
-        (position - point).Normalise
-    override this.GetShadowRay (hitPoint:HitPoint) = 
-        let normal:Vector = hitPoint.Normal
+    override this.GetDirectionFromPoint hitPoint = 
+        (position - hitPoint.Point).Normalise
+    override this.GetShadowRay hitPoint = 
+        let normal = hitPoint.Normal
         let shadowRayOrigin = hitPoint.Point + normal * 0.00001
         let direction = (position - shadowRayOrigin).Normalise
         [| new Ray(shadowRayOrigin, direction) |]
@@ -29,7 +29,7 @@ type DirectionalLight(colour: Colour, intensity: float, direction: Vector) =
 
     override this.GetColour point = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
-    override this.GetDirectionFromPoint (point:Point) = 
+    override this.GetDirectionFromPoint hitPoint = 
         direction.Normalise
     override this.GetShadowRay (hitPoint:HitPoint) =
         let shadowRayOrigin = hitPoint.Point + hitPoint.Normal * 0.00001

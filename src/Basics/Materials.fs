@@ -21,14 +21,14 @@ type MatteMaterial(colour:Colour) =
         // Initialize parameters 
         let kd  = coefficient                           // Matte coefficient
         let cd  = colour                                // Matte colour
-        let lc:Colour  = light.GetColour hitPoint.Point // Light colour
+        let lc:Colour  = light.GetColour hitPoint // Light colour
         let n   = hitPoint.Normal                       // Normal at hit point
-        let ld  = (light.GetDirectionFromPoint hitPoint.Point)  // Light direction
+        let ld  = (light.GetDirectionFromPoint hitPoint)  // Light direction
 
         // Determine the colour
         if n * ld > 0. then
             let friction    = (kd * cd) / Math.PI     
-            let volume      = (light.GetGeometricFactor hitPoint.Point / light.GetProbabilityDensity)
+            let volume      = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity)
             let direction   = lc * (n * ld)                 
             friction * volume * direction
         else
@@ -59,7 +59,7 @@ type SpecularMaterial
         let kd = matteMaterial.Coefficient             // Matte coefficient
         let cd = matteMaterial.Colour                   // Matte colour
         let ld  = 
-            let l:Vector = (light.GetDirectionFromPoint hitPoint.Point)
+            let l:Vector = (light.GetDirectionFromPoint hitPoint)
             l.Normalise // Light direction
         let n = hitPoint.Normal                         // Normal at hit point
         let r1 = -ld + (2. * (n * ld)) * n             // Light ray direction
@@ -68,7 +68,7 @@ type SpecularMaterial
         let e = specularExponent                       // Specular exponent
         let ks = specularCoefficient                   // Specular coefficient
         let cs = specularColour                        // Specular colour
-        let lc  = light.GetColour hitPoint.Point       // Light colour
+        let lc  = light.GetColour hitPoint       // Light colour
         
         // Detemine the colour
         if n * ld > 0. then

@@ -11,7 +11,7 @@ type Material() =
     abstract member AmbientColour: Shape -> HitPoint -> Colour
     abstract member Bounces: int
     abstract member BounceMethod: HitPoint -> Ray[]
-    member this.IsRecursive = this.Bounces > 0
+    member this.IsRecursive: bool = this.Bounces > 0
     member this.PreBounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         if light :? AmbientLight then
             this.AmbientColour shape hitPoint * light.Intensity
@@ -29,12 +29,12 @@ and BlankMaterial() =
 //- HITPOINT
 and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: bool) = 
     
-    member this.Ray = ray
-    member this.Time = time
+    member this.Ray: Ray = ray
+    member this.Time: float = time
     member this.Point: Point = ray.PointAtTime time
-    member this.DidHit = didHit
-    member this.Normal = normal
-    member this.Material = material
+    member this.DidHit: bool = didHit
+    member this.Normal: Vector = normal
+    member this.Material: Material = material
     
     // For hit rays
     new(ray: Ray, time:float, normal: Vector, material: Material) = 
@@ -47,20 +47,20 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =
     let colour = colour
     let intensity = intensity
-    member this.BaseColour = colour
+    member this.BaseColour: Colour = colour
     member this.Intensity: float = intensity
 
     // (l_c) Final colour
-    abstract member GetColour: Point -> Colour
+    abstract member GetColour: HitPoint -> Colour
 
     // (l_d) Direction from a point to this light
-    abstract member GetDirectionFromPoint: Point -> Vector
+    abstract member GetDirectionFromPoint: HitPoint -> Vector
 
     // (_ls) Shadow ray
     abstract member GetShadowRay: HitPoint -> Ray[]
 
     // (l_G) Geometric factor
-    abstract member GetGeometricFactor: Point -> float
+    abstract member GetGeometricFactor: HitPoint -> float
 
     // (l_pdf) Probability density function
     abstract member GetProbabilityDensity: float
@@ -70,7 +70,7 @@ and AmbientLight(colour: Colour, intensity: float) =
 
     override this.GetColour point = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
-    override this.GetDirectionFromPoint (point:Point) = 
+    override this.GetDirectionFromPoint hitPoint = 
         raise LightException
     override this.GetShadowRay (hitPoint:HitPoint) = 
         raise LightException
@@ -92,7 +92,7 @@ and BlankShape() =
     override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
     override this.getBoundingBox () = failwith "cannot get bounding box for a blank shape"
     override this.getTextureCoords hitPoint = failwith "cannot get texture coordinates for a blank shape"
-    default this.hitFunction r = HitPoint(r)
+    override this.hitFunction r = HitPoint(r)
 
 //- TEXTURES
 and Texture =

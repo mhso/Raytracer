@@ -6,7 +6,8 @@ open System
 type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCount: int) = 
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
 
-    override this.GetColour point = 
+    override this.GetColour hitPoint = 
+        let point = hitPoint.Point
         let x = 
             [for i in [0..sampleCount] do 
                 let sp = this.SamplePoint point
@@ -20,7 +21,8 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
         let total = x |> List.fold (fun acc c -> acc + c) Colour.Black
         total / float(sampleCount)
 
-    override this.GetDirectionFromPoint (point: Point) = 
+    override this.GetDirectionFromPoint hitPoint = 
+        let point = hitPoint.Point
         let total = [for i=0 to sampleCount - 1 do yield (this.SamplePoint point - point).Normalise] |> List.sum
         total / float(sampleCount)
 
@@ -36,7 +38,8 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
                 shadowRays.[i] <- Ray(shadowRayOrigin, direction)
             shadowRays
 
-    override this.GetGeometricFactor (p: Point) = 
+    override this.GetGeometricFactor hitPoint = 
+        let p = hitPoint.Point
         let sp = this.SamplePoint p
         let sp_n = this.SamplePointNormal sp
         (sp_n * (p - sp).Normalise) / ((p - sp) * (p - sp))
@@ -105,3 +108,5 @@ type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sam
         2. * Math.PI * (sphere.Radius * sphere.Radius)
     override this.FlushSample() = 
         ignore sampleGenerator.Next
+
+    

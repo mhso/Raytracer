@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 
-module Texture =
+module Textures =
     val mkTexture : (float -> float -> Material) -> Texture
     val mkMatTexture : Material -> Texture
     val mkTextureFromFile : (float * float -> float * float) -> string -> Texture
