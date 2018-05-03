@@ -5,20 +5,20 @@ module Program =
   open Tracer.Basics
   open Tracer.ImplicitSurfaces.Main
 
-  type baseShape = Tracer.ImplicitSurfaces.Main.baseShape
-  type shape = Tracer.ImplicitSurfaces.Main.shape
+  type baseShape = Main.baseShape
+  type shape = Main.shape
 
   [<EntryPoint>]
   let main _ = 
 
-    let position = Point(17.,0.0,1.)
+    let position = Point(0., 0., 10.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 1920.
-    let height = 1080.
     let resX = 1920
     let resY = 1080
+    let width = 2.
+    let height = (float resY / float resX) * width
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -39,9 +39,9 @@ module Program =
     let mkShape (bs:baseShape) m = bs.toShape m
 
     //- SHAPES
-    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) phongYellow
-    let sphere2 = mkShape (mkImplicit ("(x-2)^2 + (y+1)^2 + (z-1)^2 - " + (string (2.0**2.0)))) phongRed
-    let sphere3 = mkShape (mkImplicit ("(x+3)^2 + (y-3)^2 + (z+2)^2 - " + (string (4.0**2.0)))) phongGreen
+    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) matteRed
+    //let sphere2 = mkShape (mkImplicit ("(x-2)^2 + (y+1)^2 + (z-1)^2 - " + (string (2.0**2.0)))) phongRed
+    //let sphere3 = mkShape (mkImplicit ("(x+3)^2 + (y-3)^2 + (z+2)^2 - " + (string (4.0**2.0)))) phongGreen
 
     let plane = mkShape (mkImplicit "z") matteWhite
 
@@ -75,7 +75,7 @@ module Program =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphere1; sphere2; sphere3]
+    let spheres: Shape list     = [sphere1]
     let scene                   = Scene(spheres, camera, lights)
 
     scene.Render |> ignore
