@@ -3,6 +3,7 @@
 open System
 open System.Drawing
 open System.Diagnostics
+open System.Threading.Tasks
 
 type Scene(shapes: Shape list, camera: Camera, lights: Light list) = 
 
@@ -42,6 +43,23 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                                ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                        ░                                        
                                                                                                 ")
+        
+        
+        let timer = System.Diagnostics.Stopwatch.StartNew()
+        
+        let pos = [for y in 0 .. camera.ResY - 1 do
+                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
+
+        let colours = Array2D.zeroCreate camera.ResY camera.ResX
+
+        Parallel.ForEach (pos, fun (x,y) -> 
+          colours.[y,x] <- camera.Cast (camera.CreateRay x y) backgroundColour shapes lights) |> ignore
+
+        for y in 0 .. camera.ResY - 1 do
+          for x in 0 .. camera.ResX - 1 do
+            renderedImage.SetPixel(x, y, colours.[y,x].ToColor)
+
+        (*
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
                 let pct = int((float (x*y)/total) * 100.0)
@@ -60,13 +78,19 @@ type Scene(shapes: Shape list, camera: Camera, lights: Light list) =
                 let ray = camera.CreateRay x y
                 let colour = camera.Cast ray backgroundColour shapes lights
                 renderedImage.SetPixel(x, y, colour.ToColor)
-
-        
+                
+*)
         // Save image
         renderedImage.Save(camera.RenderFilepath)
         
         // Open image
-        Process.Start(camera.RenderFilepath)
+        Process.Start(camera.RenderFilepath) |> ignore
+
+        // Printing how much time was spent rendering
+        timer.Stop()
+        printfn "Seconds: %f" timer.Elapsed.TotalSeconds
+
+        System.Console.ReadKey () |> ignore
 
     
         
