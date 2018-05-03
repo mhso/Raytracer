@@ -7,20 +7,16 @@ open System
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
-    let hfov = Math.PI/3.5
-    let vfov = hfov * float(resY)/float(resX)
-    let u = up % w
-    let v = w % u
-    let pw = 2.0 * tan(float(hfov/2.0))/float(resX)
-    let ph = 2.0 * tan(float(vfov/2.0))/float(resY)
-    let vpc = position - w
+    let v = up % w
+    let u = w % v
+    let pw = width/float resX
+    let ph = height/float resY
 
     member this.W = w
     member this.U = u
     member this.V = v
     member this.Pw = pw
     member this.Ph = ph
-    member this.Vpc = vpc
     member this.Position = position
     member this.Lookat = lookat
     member this.Up = up
@@ -33,7 +29,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.Direction = 
         (lookat - position).Normalise
 
-    abstract member CreateRay : int -> int -> Ray
+    abstract member CreateRays : int -> int -> Ray list
 
     member this.Cast ray bgColor (shapes : Shape list) (lights : Light list) =
         // Get the hitpoint
