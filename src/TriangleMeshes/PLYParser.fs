@@ -284,9 +284,9 @@ let drawTriangles (filepath:string)=
         ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
 
     let kdTree = buildKDTree (ar)
-
     let sh = {new Shape() with
-        member this.hitFunction r = traverseKDTree kdTree r ar
+        member this.hitFunction r = 
+            traverseKDTree kdTree r ar
         member this.getBoundingBox () = failwith "I hate this"
         member this.isInside p = failwith "I hate this"
         member this.getTextureCoords hp = (1.,1.) // or none, or idk
