@@ -5,7 +5,7 @@ open System.Drawing
 open System.Diagnostics
 open System.Threading.Tasks
 
-type Scene(shapes: Shape list, camera: Camera, lights: Light list) = 
+type Scene(shapes: Shape[], camera: Camera, lights: Light list) = 
 
     let backgroundColour = new Colour(0., 0., 0.)
     let total = float (camera.ResX * camera.ResY)

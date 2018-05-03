@@ -28,6 +28,7 @@ let main _ =
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
     let emissive = EmissiveMaterial(Colour.White, 10000.)
 
+
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
@@ -57,11 +58,7 @@ let main _ =
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.5, 7.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
-    
-    //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 1.5, Point(0.,0.,7.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
-  
+
     //- LIGHTS
     let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
 
@@ -71,8 +68,8 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightFront]
-    let spheres: Shape list     = [thinBoxC;thinBoxL;thinBoxR;plane]
+    let lights: Light list      = [lightAmbient; lightRight]
+    let spheres: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
 
     let scene                   = Scene(spheres, camera, lights)
 
