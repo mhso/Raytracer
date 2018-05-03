@@ -276,7 +276,8 @@ module ExprToPoly =
   // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
   (*let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
     let (divExp, divConst) = p1.[0]
-    let rec inner head = function
+
+let rec inner head = function
       | []        -> head
       | (n,c)::cr -> let curr = (n-divExp, c / divConst)
                      let toSubtract = 
@@ -287,6 +288,7 @@ module ExprToPoly =
                         // do more stuff
     0
     *)
+    
   //type poly with
    // static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
 
