@@ -108,5 +108,42 @@ type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sam
         2. * Math.PI * (sphere.Radius * sphere.Radius)
     override this.FlushSample() = 
         ignore sampleGenerator.Next
-
+        
+type EnvironmentLight(radius: float, texture: Texture, sampler: Sampling.SampleGenerator) = 
+    inherit Light(Colour.Black, 1.)
     
+    let sphere = SphereShape(Point(0.,0.,0.), radius, texture)
+
+    member this.Radius = radius
+    member this.Texture = texture
+    member this.Sampler = sampler
+
+    override this.GetColour point = 
+        let sp = Point(Sampling.mapToHemisphere (sampler.Next()) 0.)
+        let ray = Ray(point.Point, (sp - point.Point).Normalise)
+        let hitPoint = sphere.hitFunction(ray)
+        hitPoint.Material.Bounce sphere hitPoint this
+
+    override this.GetDirectionFromPoint point = 
+        let sp = Point(Sampling.mapToHemisphere (sampler.Next()) 0.)
+        (sp - point.Point).Normalise
+
+    override this.GetShadowRay (hitPoint:HitPoint) =
+        if hitPoint.Material :? EmissiveMaterial then
+            [||]
+        else
+            let shadowRays = Array.create sampler.SampleCount Ray.None
+            for i=0 to sampler.SampleCount-1 do 
+                let sp = Point(Sampling.mapToHemisphere (sampler.Next()) 0.)
+                let shadowRayOrigin = hitPoint.Point + hitPoint.Normal * 0.00001
+                let direction = (sp - shadowRayOrigin).Normalise
+                shadowRays.[i] <- Ray(shadowRayOrigin, direction)
+            shadowRays
+
+    override this.GetGeometricFactor point = 
+        1.
+    override this.GetProbabilityDensity =
+        //let sp = Point(Sampling.mapToHemisphere (sampler.Next()) 0.)
+        1.
+        //hitPoint.normal * 
+        

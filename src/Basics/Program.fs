@@ -30,7 +30,7 @@ let main _ =
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
-    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
+    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, perfectWhite)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
     
     let sL = SphereShape(Point(-1., 0., -1.), 1., matteRed)
