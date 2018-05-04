@@ -482,8 +482,10 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                   else false
                                         |Intersection -> if s1.isInside p && s2.isInside p then true
                                                          else false
-                                        |Subtraction -> failwith "not implemented yet"
-                                        |Grouping -> failwith "not implemented yet"
+                                        |Subtraction -> if s1.isInside p && (not (s2.isInside p)) then true
+                                                        else false
+                                        |Grouping -> if s1.isInside p || s2.isInside p then true
+                                                     else false
 
     override this.getBoundingBox () = failwith "not implemented yet"
 
@@ -607,27 +609,12 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
-        match (s1Time, s2Time) with 
-        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
-        |(s1T, s2T) when s2T = infinity -> s1Hit //hit on the s1 shape (the subtractee)
-        |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
-                                           else 
-                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
-                                           this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when s1T = s2T -> s1Hit
-        |(s1T, s2T) -> if s1T < s2T then s1Hit
-                       else
-                           if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
-                           else 
-                               let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                               let newOrigin = (r.PointAtTime s2T).Move moveVector
-                               this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+        if s1Time <= s2Time then s1Hit else s2Hit
 
-
-
+    
+    ////GENERAL HIT-FUNCTION////
     override this.hitFunction (r:Ray) = match op with
                                         |Union -> this.unionHitFunction r
                                         |Intersection -> this.intersectionHitFunction r
-                                        |Subtraction -> failwith "not implemented yet"
-                                        |Grouping -> failwith "not implemented yet"
+                                        |Subtraction -> this.subtractionHitFunction r
+                                        |Grouping -> this.groupingHitFunction r
