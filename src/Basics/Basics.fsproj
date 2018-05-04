@@ -68,6 +68,7 @@
     <Compile Include="Transformation.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="BaseShape.fs" />
     <Compile Include="AdvancedLight.fs" />
     <Compile Include="Camera.fs" />
     <Compile Include="PinholeCamera.fs" />
@@ -76,7 +77,6 @@
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
