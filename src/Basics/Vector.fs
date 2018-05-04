@@ -14,6 +14,14 @@ type Vector(x:float, y:float, z:float) =
 
     // Public methods
     override this.ToString() = "[" + x.ToString() + "," + y.ToString() + "," + z.ToString() + "]"
+    override this.GetHashCode() = hash (this.X, this.Y, this.Z)
+    override this.Equals(other) = 
+        match other with
+        | :? Vector as v -> if(this.X.Equals(v.X)
+                               && this.Y.Equals(v.Y)
+                               && this.Z.Equals(v.Z)) then true
+                            else false
+        | _ -> false
     member this.MkVector x y z = new Vector(x, y, z)
     member this.GetCoord = x,y,z
     member this.MultScalar s = new Vector(x*s,y*s,z*s) 
@@ -27,6 +35,7 @@ type Vector(x:float, y:float, z:float) =
         
     member this.Normalise = new Vector(x/this.Magnitude, y/this.Magnitude, z/this.Magnitude)
     member this.Round (d:int) = new Vector(System.Math.Round(x,d),System.Math.Round(y,d),System.Math.Round(z,d))
+    static member Zero = Vector(0.,0.,0.)
 
     // Operators
     static member ( ~- ) (v: Vector) = new Vector(-v.X,-v.Y,-v.Z)

@@ -119,32 +119,4 @@ open System
         | _ -> light
 
 
-    let transformRay (r : Ray) t = 
-        let o = pointToMatrix r.GetOrigin
-        let d = vectorToMatrix r.GetDirection
-        let invT = getInvMatrix t
-        let originMatrix = Matrix.multi (invT, o)
-        let directionMatrix = Matrix.multi (invT, d)
-        let origin = matrixToPoint originMatrix
-        let direction = matrixToVector directionMatrix
-        new Ray(origin, direction)
-
-    let originalHitPoint dist (r:Ray) = 
-        r.PointAtTime dist
-
-    let transformNormal (v:Vector) (t: Transformation)= 
-        let vector = v
-        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
-        tVector
-
-    let transform (s : Shape) (t:Transformation) =    
-        let transHitFunction (r:Ray) = 
-            let transformedRay = transformRay r t
-            let hitsOriginal = s.hitFunction transformedRay
-            match hitsOriginal.DidHit with
-            | true -> 
-                let normal = transformNormal (hitsOriginal.Normal) t
-                (Some (hitsOriginal.Time), Some (normal), Some (hitsOriginal.Material))
-            | false -> 
-                (None, None, None)
-        new TransformShape(transHitFunction)
+    

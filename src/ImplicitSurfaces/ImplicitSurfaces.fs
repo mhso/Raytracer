@@ -5,18 +5,22 @@ module Main =
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Tracer.Basics
-
-  type Vector = Tracer.Basics.Vector
-  type Point = Tracer.Basics.Point
-
-  type Ray(o: Point, d: Vector) = 
-    member this.GetOrigin = o
-    member this.GetDirection = d.Normalise
-    // Returns a point from a given time/length of the ray
-    member this.PointAtTime (t:float) = 
-        o + (t * d)
+  open Tracer.BaseShape
 
   type hf = Ray -> (float * Vector) option
+  type hfMat = Ray -> (float * Vector * Material) option
+  type hitPoint = Tracer.Basics.HitPoint
+  //type shape =
+  //  abstract hf : hfMat
+  //type baseShape =
+  //  abstract mkShape : Material -> shape
+
+  type baseShape = Tracer.BaseShape.BaseShape
+  type shape = Tracer.Basics.Shape
+
+  type expr = ExprParse.expr
+  type poly = ExprToPoly.poly
+  type Ray = Tracer.Basics.Ray
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -36,19 +40,22 @@ module Main =
     | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
-  let rec partial var = function // the follow rewrites are based on the chain rule
-    | FNum _          -> FNum 0.0 // case 1
-    | FVar x          -> if x <> var then FNum 0.0 // case 1
-                         else FNum 1.0 // case 2
-    | FAdd(e1, e2)    -> FAdd (partial var e1, partial var e2) // case 3
-    | FMult(e1, e2)   -> FAdd (FMult (partial var e1, e2), FMult (partial var e2, e1)) // case 4
-    | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, partial var e1), FMult (FNum -1.0, FMult (e1, partial var e2))), FExponent(e2,2)) // case 5
-    | FExponent(e1, n)-> FExponent(FMult (partial var e1, FMult (FNum (float n), e1)), n-1) // case 6
-    | FRoot(e1, n)    -> FDiv(partial var e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+  let rec partialDerivative var e =
+    let rec inner = function
+    // the follow rewrites are based on the chain rule
+      | FNum _          -> FNum 0.0 // case 1
+      | FVar x          -> if x <> var then FNum 0.0 // case 1
+                           else FNum 1.0 // case 2
+      | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
+      | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
+      | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
+      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
+      | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
+    (inner >> reduceExpr) e
 
   // thou shall not be simplified!
-  // returns a derivative vector, based on the partial derivatives for x, y, and z
-  let derivative (p:Point) dx dy dz  =
+  // returns a vector, based on the initital shape equation, and partially derived with respect to x, y, and z from the hitpoint
+  let normalVector (p:Point) dx dy dz  =
     let m = Map.empty
               .Add("x",p.X)
               .Add("y",p.Y)
@@ -57,6 +64,11 @@ module Main =
     let y = solveExpr m dy
     let z = solveExpr m dz
     Vector(x, y, z)
+  
+  let polyLongDivision p =
+    let p' = polyDerivative p
+    
+    p'
 
   let discriminant (a:float) (b:float) (c:float) =
     b**2.0 - 4.0 * a * c
@@ -83,21 +95,21 @@ module Main =
     let bSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
-    let dx = partial "x" e
-    let dy = partial "y" e
-    let dz = partial "z" e
-
+    let dx = partialDerivative "x" e
+    let dy = partialDerivative "y" e
+    let dz = partialDerivative "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSimpleExpr m aSimple
-      let b = solveSimpleExpr m bSimple
+      let a = solveSE m aSimple
+      let b = solveSE m bSimple
       let t = (-b) / a
       if t < 0.0 then None
-      else Some (t, derivative (r.PointAtTime t) dx dy dz)
+      else 
+        let c = new Colour(1.,1.,1.)
+        Some (t, normalVector (r.PointAtTime t) dx dy dz)
+    hitFunction
 
-    hitFunction    
-
-  let getSecondDegreeHF (P m) e = 
+  let getSecondDegreeHF (P m) e :hf = 
     let aSimple = match Map.tryFind 2 m with
                   | Some v -> v
                   | None   -> SE []
@@ -107,15 +119,14 @@ module Main =
     let cSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
-    let dx = partial "x" e
-    let dy = partial "y" e
-    let dz = partial "z" e
-
+    let dx = partialDerivative "x" e
+    let dy = partialDerivative "y" e
+    let dz = partialDerivative "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSimpleExpr m aSimple
-      let b = solveSimpleExpr m bSimple
-      let c = solveSimpleExpr m cSimple
+      let a = solveSE m aSimple
+      let b = solveSE m bSimple
+      let c = solveSE m cSimple
       if discriminant a b c < 0.0 then None
       else
         let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
@@ -123,17 +134,94 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', derivative hp dx dy dz)
-
+          Some (t', normalVector hp dx dy dz)
     hitFunction
 
-  let mkImplicit (s:string) : hf =
-    let exp = parseStr s
-    let (P m) = (substWithRayVars >> exprToPoly) exp "t"
-    match getOrder m with
-    | 1     -> getFirstDegreeHF (P m) exp
-    | 2     -> getSecondDegreeHF (P m) exp
-    | _     -> failwith "poly of higher degree than 2 is not supported yet"
+  // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
+  let newtonRaphson f f' g =
+    let tolerance = 10.**(-7.) // 7 digit accuracy is desired
+    let epsilon = 10.**(-14.) // Don't want to divide by a number smaller than this
+    let maxIterations = 20 // Don't allow the iterations to continue indefinitely
+    let mutable foundSolution = false // Have not yet converged to a solution
+    let mutable x0 = g // the initial value/guess
+
+    for i in [1 .. maxIterations] do
+      let y = solveReducedPolyList x0 f
+      let y' = solveReducedPolyList x0 f'
+      if abs y' < epsilon then () // break
+      else
+        let x1 = x0 - (y / y')
+        if abs (x1 - x0) <= (tolerance * abs x1) then
+          foundSolution <- true
+          // break
+        else foundSolution <- foundSolution
+        x0 <- x1
+    // I still need to do some work. For instance, I would like to do recursion instead of a for-loop
+    if foundSolution then Some x0
+    else None
+
+  let newtonRaph p r g =
+    newtonRaphson
+      (reducePolyConstants p (getVarMap r) |> Map.toList)
+      ((polyDerivative >> reducePolyConstants) p (getVarMap r) |> Map.toList)
+      g
+
+  let mkImplicit (s:string) : baseShape =
+    let exp = parseStr s // parsing the equation string to expression
+    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    let hitfunction =
+      match getOrder m with
+      | 1     -> getFirstDegreeHF (P m) exp
+      | 2     -> getSecondDegreeHF (P m) exp
+      | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let bsh = { new baseShape() with
+                  member this.toShape tex =
+                    let mat = (Textures.getFunc tex) 1. 1.
+                    let newhf r =
+                      match hitfunction r with
+                      | None        -> hitPoint (r)
+                      | Some (t,v)  -> hitPoint (r, t, v, mat)
+                    { new shape() with
+                        member this.hitFunction r = newhf r
+                        member this.getBoundingBox () = failwith "I hate this"
+                        member this.isInside p = failwith "I hate this"
+                        //member this.getTextureCoords hp = (1.,1.) // or none, or idk
+                    }
+               }
+    bsh
+
+  let implicitPlane (s:string) : baseShape =
+    let exp = parseStr s // parsing the equation string to expression
+    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    let hitfunction =
+      match getOrder m with
+      | 1     -> getFirstDegreeHF (P m) exp
+      | 2     -> getSecondDegreeHF (P m) exp
+      | _     -> failwith "poly of higher degree than 2 is not supported yet"
+    let checker x z =
+        let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
+        if (int (abs' x) + int (abs' z)) % 2 = 0
+        then MatteMaterial(Colour.Red)
+        else MatteMaterial(Colour.Green)
+    let bsh = { new baseShape() with
+                  member this.toShape tex = 
+                    let mat = (Textures.getFunc tex) 1. 1.
+                    let newhf r =
+                      match hitfunction r with
+                      | None        -> hitPoint (r)
+                      | Some (t,v)  -> 
+                          let hp = hitPoint (r, t, v, mat)
+                          let x = hp.Point.X
+                          let z = hp.Point.Z
+                          hitPoint (r, t, v, checker x z)
+                    { new shape() with
+                        member this.hitFunction r = newhf r
+                        member this.getBoundingBox () = failwith "I hate this"
+                        member this.isInside p = failwith "I hate this"
+                    }
+               }
+    bsh
+
 
 (*
   [<EntryPoint>]

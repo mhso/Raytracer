@@ -5,9 +5,13 @@ open Tracer.Basics
 
 [<AbstractClass>]
 type Shape()=
+    abstract member isInside: Point -> bool
+    abstract member getBoundingBox: Unit -> BBox
     abstract member hitFunction: Ray -> float option*Vector option*Material option
     // abstract member hitFunction: Ray -> (float * Vector * Texture) option
     // abstract member getUV: Point -> float * float
+
+
 
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
     inherit Shape()
@@ -17,6 +21,19 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
     member this.tex = tex
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (min bottomLeft.X (min topLeft.X bottomRight.X)) - e
+        let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
+        let lz = (min bottomLeft.Z (min topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+
+        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) - e
+        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) - e
+        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
     //override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
     override this.hitFunction (r:Ray) = match r with
                                              |(r) when (r.GetDirection.Z) = 0.0 -> (None, None, None) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -32,8 +49,21 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
 type Disc(center:Point, radius:float, tex:Material)=
     inherit Shape()
     member this.center = center
-    member this.radius = radius
+    member this.radius = radius // must not be a negative number
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () =  //no point on the disc should be larger than the center point + the radius...
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - radius) - e
+        let lz = 0.0 - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + radius) + e
+        let hz = 0.0 + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
     (*
     override this.getTextureCoords (p:Point) = 
         let u = (p.X + radius)/(2.*radius)
@@ -63,6 +93,18 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (min a.X (min b.X c.X)) - e
+        let ly = (min a.Y (min b.Y c.Y)) - e
+        let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
+
+        let hx = (max a.X (max b.X c.X)) - e
+        let hy = (max a.Y (max b.Y c.Y)) - e
+        let hz = (max a.Z (max b.Z c.Z)) - e //might be redundant as Z should always equal 0
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     //this section of members, attempts to shorten and simplify some of the later functions, all
 
@@ -102,9 +144,23 @@ type Triangle(a:Point, b:Point, c:Point, mat:Material)=
 
 type SphereShape(origin: Point, radius: float, tex: Material) = 
     inherit Shape()
-    member this.Origin = origin //perhaps both should be lower case
-    member this.Radius = radius
-    member this.Material = tex
+    member this.origin = origin
+    member this.radius = radius
+    member this.material = tex
+    override this.isInside (p:Point) =
+        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2.
+        if x < (radius**2.) then true else false
+    override this.getBoundingBox () =  //no point on the sphere should be larger than the center point + the radius...
+        let e = 0.000001
+        let lx = (origin.X - radius) - e
+        let ly = (origin.Y - radius) - e
+        let lz = (origin.Z - radius) - e
+
+        let hx = (origin.X + radius) + e
+        let hy = (origin.Y + radius) + e
+        let hz = (origin.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
     
     member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
@@ -117,6 +173,7 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
     
     member this.NormalAtPoint (p:Point):Vector = 
         (p - origin).Normalise
+
     member this.GetDiscriminant (ray:Ray) = 
         let s = (ray.GetOrigin - origin)
         let rayDir = ray.GetDirection.Normalise
@@ -145,6 +202,18 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
     member this.radius = radius
     member this.height = height
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
+        let lz = (center.Z - radius) - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
+        let hz = (center.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     member this.getTextureCoords (p:Point) = 
         let n = (this.NormalAtPoint p)
@@ -187,6 +256,22 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.cylinder = cylinder
     member this.top = top
     member this.bottom = bottom
+    override this.isInside (p:Point) = 
+        if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
+            if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
+            else false
+        else false
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        let lx = (center.X - radius) - e
+        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
+        let lz = (center.Z - radius) - e
+
+        let hx = (center.X + radius) + e
+        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
+        let hz = (center.Z + radius) + e
+
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     member this.getTextureCoords (p:Point) = //NotImplementedException()
                                                (0.0, 0.0)
@@ -206,6 +291,18 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     member this.bottom = bottom
     member this.left = left
     member this.right = right
+
+    override this.isInside (p:Point) =
+        if low.X <= p.X && p.X <= high.X then
+            if low.Y <= p.Y && p.Y <= high.Y then
+                if low.Z <= p.Z && p.Z <= high.Z then true
+                else false
+            else false
+        else false
+
+    override this.getBoundingBox () = 
+        let e = 0.000001
+        BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
 
     member this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
         let width = high.X - low.X
@@ -249,12 +346,95 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
 type InfinitePlane(tex:Material) = 
     inherit Shape()
     member this.tex = tex
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
     //override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
                                                 let p = r.PointAtTime t
                                                 (Some(t), Some(new Vector(0.0, 0.0, 1.0)), Some(tex)) else (None, None, None) //(p.X), (p.Y)
+
+
+type CSGOperator = Union | Intersection | Subtraction | Grouping
+
+type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
+    inherit Shape()
+    member this.s1 = s1
+    member this.s2 = s2
+    member this.op = op
+    override this.isInside (p:Point) = match op with
+                                        |Union -> if s1.isInside p || s2.isInside p then true
+                                                  else false
+                                        |Intersection -> if s1.isInside p && s2.isInside p then true
+                                                         else false
+                                        |Subtraction -> failwith "not implemented yet"
+                                        |Grouping -> failwith "not implemented yet"
+
+    override this.getBoundingBox () = failwith "not implemented yet"
+
+    //Union
+    member this.unionHitFunctionInside (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = match s1Hit with //i could likely make this more efficient
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity //extract time from the hit (or infinity if miss)
+        let s2Time = match s2Hit with
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity
+
+        //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
+        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
+                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                 else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+        else if s1.isInside (r.PointAtTime s2Time) then 
+                this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+
+    member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
+                                           |false -> 
+                                                let s1Hit = s1.hitFunction r
+                                                let s2Hit = s2.hitFunction r
+                                                let s1Time = match s1Hit with //i could likely make this more efficient
+                                                             |(t,_,_) -> if t.IsSome then t.Value else infinity
+                                                let s2Time = match s2Hit with
+                                                             |(t,_,_) -> if t.IsSome then t.Value else infinity
+                                                if s1Time <= s2Time then s1Hit else s2Hit
+                                            |true -> this.unionHitFunctionInside r
+                                               
+    //Intersection
+    member this.intersectionHitFunction (r:Ray) = 
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = match s1Hit with //i could likely make this more efficient
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity //extract time from the hit (or infinity if miss)
+        let s2Time = match s2Hit with
+                     |(t,_,_) -> if t.IsSome then t.Value else infinity
+        
+        //check if the hitpoint for the smallest time, is inside the other shape, if it is, return that hitpoint, else fire a new ray
+        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then s1Hit
+                                 else this.intersectionHitFunction (new Ray((r.PointAtTime s1Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+        else if s1.isInside (r.PointAtTime s2Time) then s1Hit
+             else this.intersectionHitFunction (new Ray((r.PointAtTime s2Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+
+
+    //Seperation
+
+
+    //Grouping
+
+
+
+    override this.hitFunction (r:Ray) = match op with
+                                        |Union -> this.unionHitFunction r
+                                        |Intersection -> this.intersectionHitFunction r
+                                        |Subtraction -> failwith "not implemented yet"
+                                        |Grouping -> failwith "not implemented yet"
+
+    
+
+
+    //static member (u) (s1:Shape, s2:Shape) = new CSG(s1, s2)
+
 
 
 

@@ -1,16 +1,11 @@
-namespace Tests
+module ExprToPolyTests
 
-(*
-  All of these tests are based on the ones given in the Functional Programming course
-*)
-
-module ExprToPolyTests =
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Assert
 
-  let allTests =
-    printfn "Doing ExprToPolyTests..."
+  // All of these tests are based on the ones given in the Functional Programming course
+  let allTest =
 
     let test01 = 
       let ex01 =
@@ -23,7 +18,7 @@ module ExprToPolyTests =
       let ez = FAdd(FVar "pz", FMult(FVar "t",FVar "dz"))
       let ex01Subst = List.fold subst ex01 [("x",ex);("y",ey);("z",ez)]
       let pd = exprToPoly ex01Subst "t"
-      Assert.Equal (ppPoly "t" pd) "(pz^2+py^2+px^2+-1)+t(2*dz*pz+2*dy*py+2*dx*px)+t^2(dz^2+dy^2+dx^2)" "TestPoly01"
+      Assert.Equal ("(pz^2+py^2+px^2+-1)+t(2*dz*pz+2*dy*py+2*dx*px)+t^2(dz^2+dy^2+dx^2)", (ppPoly "t" pd), "TestPoly01")
 
     let test02 =
       let e = FAdd(FAdd(FAdd(FExponent(FVar "x",2),
@@ -31,7 +26,7 @@ module ExprToPolyTests =
                         FExponent(FVar "z",2)),
                    FAdd(FNum -1.0,FNum 1.0))
       let px = exprToPoly e "x"
-      Assert.Equal (ppPoly "x" px) "(z^2+y^2)+x^2" "TestPoly02"
+      Assert.Equal ("(z^2+y^2)+x^2", (ppPoly "x" px), "TestPoly02")
 
     let test03 =
       let plane = FAdd (FMult (FVar "a", FVar "x"), FAdd (FMult (FVar "b", FVar "y"), FAdd (FMult (FVar "c", FVar "z"), FVar "d")))
@@ -93,24 +88,33 @@ module ExprToPolyTests =
       let eR = FNum -1.0
       let sphereSubst = List.fold subst sphere [("x",ex);("y",ey);("z",ez);("R",eR)]
       let sphereSE = exprToSimpleExpr sphereSubst
-      Assert.Equal sphereSubst (FAdd (FAdd (FAdd (FExponent (FAdd (FVar "px",FMult (FVar "t",FVar "dx")),2),
+      Assert.Equal ((FAdd (FAdd (FAdd (FExponent (FAdd (FVar "px",FMult (FVar "t",FVar "dx")),2),
                                                      FExponent (FAdd (FVar "py",FMult (FVar "t",FVar "dy")),2)),
                                                FExponent (FAdd (FVar "pz",FMult (FVar "t",FVar "dz")),2)),
-                                         FMult (FNum -1.0,FNum -1.0))) "TestSphere01" 
-      Assert.Equal sphereSE (SE [[ANum 1.0];
+                                         FMult (FNum -1.0,FNum -1.0))), sphereSubst, "TestSphere01")
+      Assert.Equal ((SE [[ANum 1.0];
                                  [ANum 2.0; AExponent ("dx",1); AExponent ("px",1); AExponent ("t",1)];
                                  [AExponent ("dx",2); AExponent ("t",2)];
                                  [ANum 2.0; AExponent ("dy",1); AExponent ("py",1); AExponent ("t",1)];
                                  [AExponent ("dy",2); AExponent ("t",2)];
                                  [ANum 2.0; AExponent ("dz",1); AExponent ("pz",1); AExponent ("t",1)];
                                  [AExponent ("dz",2); AExponent ("t",2)]; [AExponent ("px",2)];
-                                 [AExponent ("py",2)]; [AExponent ("pz",2)]]) "TestSphere02"
+                                 [AExponent ("py",2)]; [AExponent ("pz",2)]]), sphereSE, "TestSphere02")
      
-    let test06 = Assert.Equal (simplifyAtomGroup [AExponent ("px",1); AExponent ("px",2); ANum -2.0; ANum -2.0]) [ANum 4.0; AExponent ("px",3)] "TestSE01"
+    let test06 = 
+      let actual = simplifyAtomGroup [AExponent ("px",1); AExponent ("px",2); ANum -2.0; ANum -2.0]
+      let expected = [ANum 4.0; AExponent ("px",3)]
+      Assert.Equal (expected, actual, "TestSE01")
 
-    let test07 = Assert.Equal (simplifySimpleExpr (SE [[ANum 3.0];[ANum 4.0];[AExponent("x",2);AExponent("y",3)];[AExponent("x",2); AExponent("y",3)]])) (SE [[ANum 7.0]; [ANum 2.0; AExponent ("x",2); AExponent ("y",3)]]) "TestSE02"
+    let test07 = 
+      let actual = simplifySimpleExpr (SE [[ANum 3.0];[ANum 4.0];[AExponent("x",2);AExponent("y",3)];[AExponent("x",2); AExponent("y",3)]])
+      let expected = SE [[ANum 7.0]; [ANum 2.0; AExponent ("x",2); AExponent ("y",3)]]
+      Assert.Equal (expected, actual, "TestSE02")
 
-    let test08 = Assert.Equal ((parseStr >> exprToSimpleExpr >> simplifySimpleExpr >> ppSimpleExpr) "a*b+b*a") "2*a*b" "TestSimplify11"
+    let test08 =
+      let actual = (parseStr >> exprToSimpleExpr >> simplifySimpleExpr >> ppSimpleExpr) "a*b+b*a"
+      let expected = "2*a*b"
+      Assert.Equal (expected, actual, "TestSimplify11")
  
     test01 
     test02
