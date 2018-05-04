@@ -27,9 +27,11 @@ let main _ =
     let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
 
     //- SHAPES
+    (*
     let sphereRed        = SphereShape(Point(0.,-1.,0.1), 0.5, matteRed)
     let spherePerfectYellow     = SphereShape(Point(0.,0.,0.), 0.5, matteYellow)
     let sphereGreen      = SphereShape(Point(0.,1.,-0.1), 0.5, matteGreen)
+    *)
 
     //- CAMERA
     let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
