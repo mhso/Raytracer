@@ -458,7 +458,7 @@ type InfinitePlane(tex:Texture) =
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
             let func = Textures.getFunc tex
             let mat = func (r.PointAtTime t).X (r.PointAtTime t).Z
-            HitPoint(r, t, Vector(0.0, 0.0, 1.0), mat) 
+            HitPoint(r, t, Vector(0.0, 1.0, 0.0), mat) 
         else HitPoint(r)
 
 
@@ -576,6 +576,50 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     *)
 
     ////SUBTRACTION////
+    (*
+    member this.subtractionHitFunction (r:Ray) =
+        let s2Hit = s2.hitFunction r //fire ray at second shapes
+        if s2Hit.DidHit then 
+            if s1.isInside (r.PointAtTime (s2Hit.Time)) then s2Hit
+            else 
+                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                let newOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
+                this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+        else HitPoint(r)
+    
+    
+
+    member this.subtractionHitFunction (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at first shapes
+        if s1Hit.DidHit then 
+            if s2.isInside (r.PointAtTime (s1Hit.Time)) then //refire Ray
+                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                let newOrigin = (r.PointAtTime s1Hit.Time).Move moveVector
+                this.subtractionHitFunctionHelper (new Ray(newOrigin, r.GetDirection))
+            else s1Hit
+        else HitPoint(r)
+        *)
+
+    member this.subtractionHitFunction (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at first shape
+
+        if s1Hit.DidHit then 
+            if s2.isInside (r.PointAtTime (s1Hit.Time)) then //refire Ray
+                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                let newOrigin = (r.PointAtTime s1Hit.Time).Move moveVector
+                let s2Hit = s2.hitFunction r //fire ray at second shape
+
+                if s2Hit.DidHit then 
+                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then s2Hit
+                    else 
+                        let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                        let newnewOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
+                        this.subtractionHitFunction (new Ray(newnewOrigin, r.GetDirection))
+                else HitPoint(r)
+            else s1Hit
+        else HitPoint(r)
+    
+    (*
     member this.subtractionHitFunction (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
@@ -584,7 +628,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
         match (s1Time, s2Time) with 
         |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
-        |(s1T, s2T) when s2T = infinity -> s1Hit //hit on the s1 shape (the subtractee)
+        |(s1T, s2T) when s2T = infinity -> if s2.isInside then //refire 
+                                           else s1Hit //hit on the s1 shape (the subtractee)
         |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
                                            else 
                                            let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
@@ -598,6 +643,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
                                let newOrigin = (r.PointAtTime s2T).Move moveVector
                                this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+                               *)
 
 
 
