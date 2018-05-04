@@ -100,6 +100,18 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
+    //the many members are for simplifying cramers rule and hit function
+    member this.pa = ((a.X)-(b.X))
+    member this.pb = ((a.X)-(c.X))
+    member this.e = ((a.Y)-(b.Y))
+    member this.f = ((a.Y)-(c.Y))
+    member this.i = ((a.Z)-(b.Z))
+    member this.j = ((a.Z)-(c.Z))
+
+
+
+
+
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
         let e = 0.000001
@@ -112,36 +124,25 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+    
 
-    //no method for returning texture coords are given by the lecture notes....
-    //seems to be under triangle meshes (perhaps texturing)
-    //override this.getTextureCoords (p:Point) = 
-        //let uCoord =
-        //let vCoord =
-        //(uCoord, vCoord)
-        //(0., 0.)
 
     //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = 
-        let pa = ((a.X)-(b.X))
-        let pb = ((a.X)-(c.X))
-        let e = ((a.Y)-(b.Y))
-        let f = ((a.Y)-(c.Y))
-        let i = ((a.Z)-(b.Z))
-        let j = ((a.Z)-(c.Z))
+        let pc = (r.GetDirection.X)
+        let g = (r.GetDirection.Y)
+        let k = (r.GetDirection.Z)
+
 
         match r with
-            |(r) when (pa*((f*(r.GetDirection.Z))-((r.GetDirection.Y)*j)) + pb*(((r.GetDirection.Y)*i)-(e*(r.GetDirection.Z))) + (r.GetDirection.X)*((e*j)-(f*i))) = 0.0 -> HitPoint(r)
-            |(r) -> let pc = (r.GetDirection.X)
-                    let g = (r.GetDirection.Y)
-                    let k = (r.GetDirection.Z)
-                    let d = ((a.X)-(r.GetOrigin.X)) 
+            |(r) when (this.pa*((this.f*(k))-((g)*this.j)) + this.pb*(((g)*this.i)-(this.e*(k))) + (pc)*((this.e*this.j)-(this.f*this.i))) = 0.0 -> HitPoint(r)
+            |(r) -> let d = ((a.X)-(r.GetOrigin.X)) 
                     let h = ((a.Y)-(r.GetOrigin.Y)) 
                     let l = ((a.Z)-(r.GetOrigin.Z))
-                    let D = (pa*((f*k)-(g*j)) + pb*((g*i)-(e*k)) + pc*((e*j)-(f*i)))
-                    let x = (d*((f*k)-(g*j)) + pb*((g*l)-(h*k)) + pc*((h*j)-(f*l)))/D
-                    let y = (pa*((h*k)-(g*l)) + d*((g*i)-(e*k)) + pc*((e*l)-(h*i)))/D
-                    let z = (pa*((f*l)-(h*j)) + pb*((h*i)-(e*l)) + d*((e*j)-(f*i)))/D
+                    let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
+                    let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
+                    let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                    let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
                     if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
@@ -447,10 +448,10 @@ type InfinitePlane(tex:Texture) =
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
     override this.hitFunction (r:Ray) = 
-        let t = -(r.GetOrigin.Z / r.GetDirection.Z)
+        let t = -(r.GetOrigin.Y / r.GetDirection.Y) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
             let func = Texture.getFunc tex
-            let mat = func (r.PointAtTime t).X (r.PointAtTime t).Y
+            let mat = func (r.PointAtTime t).X (r.PointAtTime t).Z
             HitPoint(r, t, Vector(0.0, 0.0, 1.0), mat) 
         else HitPoint(r)
 
