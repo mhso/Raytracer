@@ -102,21 +102,5 @@ open System
         let z = a.Item(2).Head
         new Point(x, y, z)
 
-    let transformDirectionalLight ((light:DirectionalLight),t) = 
-        let matrix = vectorToMatrix (light.GetDirectionFromPoint (new Point(0.,0.,0.)))
-        let transMatrix = Matrix.multi (getMatrix(t),matrix)
-        matrixToVector transMatrix
-
-    let transformPointLight ((light:PointLight),t) = 
-        let matrix = pointToMatrix (light.Position)
-        let transMatrix = Matrix.multi (getMatrix(t),matrix)
-        matrixToPoint transMatrix
-
-    let transformLight (light:Light) t =
-        match light with
-        | :? DirectionalLight as d -> DirectionalLight(d.BaseColour, d.Intensity, transformDirectionalLight (d,t)) :> Light
-        | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
-        | _ -> light
-
 
     
