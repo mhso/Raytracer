@@ -18,7 +18,6 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.V = v
     member this.Pw = pw
     member this.Ph = ph
-    member this.ViewOffset = viewOffset
     member this.Position = position
     member this.Lookat = lookat
     member this.Up = up

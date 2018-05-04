@@ -60,7 +60,7 @@ module Program =
       mkScene' s camera
 
     let sc = sphere1 1.
-    sc.Render |> ignore
+    sc.RenderParallel |> ignore
 
     //- SHAPES
     let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) phongYellow
