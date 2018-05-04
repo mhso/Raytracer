@@ -153,8 +153,8 @@ module KD_tree =
             printfn "Max: %A, Min: %A" MaxX MinX
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
-            if boxes.Length < 10 then KDTree(BBox(KDMinXYZ, KDMaxXYZ), boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
-            else
+            //if boxes.Length < 10 then KDTree(BBox(KDMinXYZ, KDMaxXYZ), boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
+            //else
             let XDistance = MaxX - MinX
             let YDistance = MaxY - MinY
             let ZDistance = MaxZ - MinZ
