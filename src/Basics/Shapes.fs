@@ -139,7 +139,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                             
     override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
-type SphereShape(origin: Point, radius: float, tex: Material) = 
+type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
@@ -173,6 +173,16 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
         let v = 1.0-(theta / Math.PI)
         (u, v)
 
+    member this.getTextureMaterial p = 
+        let n = (this.NormalAtPoint p)
+        let theta = Math.Acos n.Y
+        let phiNot = Math.Atan2(n.X, n.Z)
+        let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
+        let u = phi / (2. * Math.PI)
+        let v = 1.0-(theta / Math.PI)
+        let func = Textures.getFunc tex
+        func u v
+
     member this.GetDiscriminant (ray:Ray) = 
         let s = (ray.GetOrigin - origin)
         let rayDir = ray.GetDirection.Normalise
@@ -189,8 +199,14 @@ type SphereShape(origin: Point, radius: float, tex: Material) =
             let sv = s * rayDir
             let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
             if t1 < 0. && t2 < 0. then HitPoint(r)
-            else if t1 < t2 then HitPoint(r, t1, this.NormalAtPoint (r.PointAtTime t1), tex) //this.getTextureCoords (r.PointAtTime t1))
-            else HitPoint(r, t2, this.NormalAtPoint (r.PointAtTime t2), tex) //this.getTextureCoords (r.PointAtTime t2))
+            elif t1 < t2 then
+                let p = r.PointAtTime t1
+                let mat = this.getTextureMaterial p
+                HitPoint(r, t1, this.NormalAtPoint p, mat) //this.getTextureCoords (r.PointAtTime t1))
+            else 
+                let p = r.PointAtTime t2
+                let mat = this.getTextureMaterial p
+                HitPoint(r, t2, this.NormalAtPoint p, mat) //this.getTextureCoords (r.PointAtTime t2))
 
 
 
