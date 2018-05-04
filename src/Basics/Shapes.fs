@@ -1,21 +1,4 @@
-﻿Skip to content
-Enterprise
-This repository
-Search
-Pull requests
-Issues
-Gist
- @mhso
-3
-2 0 frwi/raytracer Private
- Code  Issues 6  Pull requests 0  Projects 0  Wiki  Pulse  Graphs
-raytracer/src/Basics/Shapes.fs
-8bbb4e1  2 hours ago
-@maoj maoj fixed build error in trianglemeshes and the transform method
-@almh @frwi @maoj
-     
-634 lines (529 sloc)  33.1 KB
-namespace Tracer.Basics
+﻿namespace Tracer.Basics
 open System
 open Transformation
 
@@ -648,5 +631,3 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Intersection -> this.intersectionHitFunction r
                                         |Subtraction -> failwith "not implemented yet"
                                         |Grouping -> failwith "not implemented yet"
-API Training Shop Blog About
-© 2018 GitHub, Inc. Help Support

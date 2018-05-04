@@ -289,7 +289,6 @@ let drawTriangles (filepath:string)=
             traverseKDTree kdTree r ar
         member this.getBoundingBox () = failwith "I hate this"
         member this.isInside p = failwith "I hate this"
-        member this.getTextureCoords hp = (1.,1.) // or none, or idk
     }
     sh
 
@@ -330,6 +329,5 @@ let drawNumberOfTriangles (filepath:string) n=
             traverseKDTree kdTree r ar
         member this.getBoundingBox () = failwith "I hate this"
         member this.isInside p = failwith "I hate this"
-        member this.getTextureCoords hp = (1.,1.) // or none, or idk
     }
     sh
