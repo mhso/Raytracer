@@ -62,6 +62,8 @@
     <Compile Include="BBox.fs" />
     <Compile Include="Foundation.fs" />
     <Compile Include="Materials.fs" />
+    <Compile Include="Textures.fsi" />
+    <Compile Include="Textures.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
     <Compile Include="AdvancedLight.fs" />
@@ -70,9 +72,9 @@
     <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
