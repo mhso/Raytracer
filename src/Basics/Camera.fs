@@ -8,7 +8,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
     let v = up % w
-    let u = -(w % v)
+    let u = -(w % v) // <-- HACK ALERT!! We invert y because otherwise up would be negative and down would be positive.
     let pw = width/float resX
     let ph = height/float resY
     let viewOffset = position - w
