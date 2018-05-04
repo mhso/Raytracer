@@ -5,16 +5,9 @@ module Main =
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
   open Tracer.Basics
-  open Tracer.BaseShape
 
   type hf = Ray -> (float * Vector) option
-  type hfMat = Ray -> (float * Vector * Material) option
   type hitPoint = Tracer.Basics.HitPoint
-  //type shape =
-  //  abstract hf : hfMat
-  //type baseShape =
-  //  abstract mkShape : Material -> shape
-
   type baseShape = Tracer.BaseShape.BaseShape
   type shape = Tracer.Basics.Shape
 
@@ -27,8 +20,6 @@ module Main =
       let ey = FAdd(FVar "oy", FMult(FVar "t",FVar "dy"))
       let ez = FAdd(FVar "oz", FMult(FVar "t",FVar "dz"))
       List.fold subst e [("x",ex);("y",ey);("z",ez)]
-
-  let getOrder m = Map.toList m |> List.fold (fun m (n,_) -> max m n) 0
 
   let rec containsVar var = function
     | FVar x        -> x = var
@@ -64,11 +55,6 @@ module Main =
     let y = solveExpr m dy
     let z = solveExpr m dz
     Vector(x, y, z)
-  
-  let polyLongDivision p =
-    let p' = polyDerivative p
-    
-    p'
 
   let discriminant (a:float) (b:float) (c:float) =
     b**2.0 - 4.0 * a * c

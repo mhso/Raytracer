@@ -11,7 +11,6 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     let u = -(w % v)
     let pw = width/float resX
     let ph = height/float resY
-    let viewOffset = position - w
 
     member this.W = w
     member this.U = u

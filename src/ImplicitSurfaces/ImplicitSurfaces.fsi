@@ -5,7 +5,6 @@ module Main =
   open Tracer.Basics
 
   type hf = Ray -> (float * Vector) option
-  type hfMat = Ray -> (float * Vector * Material) option
 
   type baseShape = Tracer.BaseShape.BaseShape
   type shape = Tracer.Basics.Shape
