@@ -7,10 +7,10 @@ open Assert
 let allTest = 
 
     let createShapeAndBBoxArr =
-        let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
-        let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
-        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
-        let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
+        let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White)))
+        let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue)))
+        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red)))
+        let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green)))
 
         let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
         let bboxArr : BBox[] = Array.zeroCreate (shapeArr.Length)
@@ -101,6 +101,6 @@ let allTest =
         let ray = Ray(Point(-10.0,-10.0,-10.0), Vector(1.,2.,3.))
         let shapeArr, bboxArr = createShapeAndBBoxArr
         let result = traverse tree ray shapeArr infinity
-        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White)):>Shape).hitFunction ray)
+        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White))):>Shape).hitFunction ray)
         Assert.Equal (expected,result,"testTraverse")
     testTraverse
