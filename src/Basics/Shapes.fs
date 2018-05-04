@@ -308,7 +308,13 @@ module Transform =
                 new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
             else 
                 new HitPoint(r)
-        new TransformShape(transHitFunction)
+        let sh = {new Shape() with
+            member this.hitFunction r = 
+                transHitFunction r
+            member this.getBoundingBox () = failwith "I hate this"
+            member this.isInside p = failwith "I hate this"
+        }
+        sh
         
 
 type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, top:Texture, bottom:Texture) =
