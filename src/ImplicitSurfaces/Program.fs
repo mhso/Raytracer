@@ -75,7 +75,7 @@ module Program =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphere1]
+    let spheres: Shape array     = [|sphere1|]
     let scene                   = Scene(spheres, camera, lights)
 
     scene.Render |> ignore

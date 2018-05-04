@@ -41,7 +41,7 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-    let spheres: Shape list     = [sphereRed;spherePerfectYellow;sphereGreen]
+    let spheres: Shape array     = [|sphereRed;spherePerfectYellow;sphereGreen|]
     let scene                   = Scene(spheres, camera, lights)
 
 

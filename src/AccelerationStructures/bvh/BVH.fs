@@ -137,7 +137,7 @@ module BVH =
         match tree with
         | Node (_,_,bbox,_) ->  if debug then printfn "getBox -> Node box \n %A" bbox
                                 bbox
-        | Leaf (_, bbox) ->     if debug then printfn "getBox -> Leaf box \n %A" bbox
+        | Leaf (_,bbox) ->      if debug then printfn "getBox -> Leaf box \n %A" bbox
                                 bbox
 
     let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
@@ -162,7 +162,11 @@ module BVH =
         if debug then printfn "Call to search with tmax: %f, lenght of array %i" tmax shapes.Length 
         if debug then printfn "Value of ray: %A" ray
         if debug then printfn "Value of treeNode: %A" treeNode
-        let value = (getBbox treeNode).intersect ray
+        let treeNodeBBox = getBbox treeNode
+        if debug then printfn "Value of treeNodeBBox: \n %A" treeNodeBBox
+        let value = treeNodeBBox.intersect ray
+        if value.IsSome then printfn "search -> Intersect is Some..."
+        if value.IsNone then printfn "search -> Intersect is None..."
         if debug then printfn "Value of intersect: \n %A" value
         match value with  
         | Some (t, t')  -> 

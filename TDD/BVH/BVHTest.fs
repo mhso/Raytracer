@@ -97,7 +97,7 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
     let testTraverse = 
-        let ray = Ray(Point(-10.0,-10.0,-10.0), Vector(1.,1.,3.))
+        let ray = Ray(Point(9.0,9.0,2.0), Vector(-2.,-3.,1.))
         let shapeArr, bboxArr = createShapeAndBBoxArr
         let tree = buildBVHTree (bboxArr)
         let result = traverse tree ray shapeArr infinity
