@@ -595,6 +595,28 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
 
     ////GROUPING////
+    member this.groupingHitFunction (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
+        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+
+        match (s1Time, s2Time) with 
+        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+        |(s1T, s2T) when s2T = infinity -> s1Hit //hit on the s1 shape (the subtractee)
+        |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                           this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) -> if s1T < s2T then s1Hit
+                       else
+                           if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                           else 
+                               let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                               let newOrigin = (r.PointAtTime s2T).Move moveVector
+                               this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
 
 
 
