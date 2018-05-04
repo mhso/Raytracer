@@ -47,14 +47,19 @@ module Program =
 
     let mkShape (bs:baseShape) m = bs.toShape m
 
+    let texfun m =
+        let f a b = m
+        Texture f
+
     let sphere1 (r : float) =
       let aqua = Colour (Color.Aqua)
       let white = Colour (Color.White)
-      let s = [|mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.2, aqua, 0.7, white));
-               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
-               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (SpecularMaterial (0.5, aqua, 0.7, white));
+
+      let s = [|mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.2, aqua, 0.7, white)));
+               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
+               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
                //mkShape (mkImplicit "y") matteYellow
-               mkShape (implicitPlane "y") phongGreen
+               mkShape (implicitPlane "y") (texfun phongGreen)
                |]
       let camera = PinholeCamera (Point(0.0, 2.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
       mkScene' s camera
@@ -63,13 +68,13 @@ module Program =
     sc.RenderParallel |> ignore
 
     //- SHAPES
-    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) phongYellow
-    let sphere2 = mkShape (mkImplicit ("(x - 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) phongRed
-    let sphere3 = mkShape (mkImplicit ("(x + 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) phongGreen
-    let sphere4 = mkShape (mkImplicit ("(x)^2 + (y - 3)^2 + z^2 - " + (string (1.0**2.0)))) matteWhite
-    let sphere5 = mkShape (mkImplicit ("(x)^2 + (y + 3)^2 + z^2 - " + (string (1.0**2.0)))) matteYellow
+    let sphere1 = mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (1.**2.0)))) (texfun phongGreen)
+    let sphere2 = mkShape (mkImplicit ("(x - 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) (texfun phongGreen)
+    let sphere3 = mkShape (mkImplicit ("(x + 3)^2 + (y)^2 + z^2 - " + (string (1.0**2.0)))) (texfun phongGreen)
+    let sphere4 = mkShape (mkImplicit ("(x)^2 + (y - 3)^2 + z^2 - " + (string (1.0**2.0)))) (texfun phongGreen)
+    let sphere5 = mkShape (mkImplicit ("(x)^2 + (y + 3)^2 + z^2 - " + (string (1.0**2.0)))) (texfun phongGreen)
 
-    let plane = mkShape (mkImplicit "z") matteWhite
+    let plane = mkShape (mkImplicit "z") (texfun phongGreen)
 
     let low = new Point(0., 0., 0.)
     let high = new Point(1., 1., 1.)

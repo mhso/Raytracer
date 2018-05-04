@@ -1,7 +1,7 @@
 ﻿namespace Tracer.Basics
 open System.Drawing
 
-module Texture = 
+module Textures = 
 
     let mkTexture func = 
         Texture func

@@ -40,7 +40,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                 let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
                 if (px > 0.0 && px < this.width) && (py > 0.0 && py < this.height) then 
-                    let func = Texture.getFunc tex
+                    let func = Textures.getFunc tex
                     let mat = func (px / this.width) (py / this.height)
                     HitPoint(r, t, this.normal, mat) 
                 else HitPoint(r)
@@ -84,7 +84,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
                         then 
                             let u = (px + radius)/(2.*radius)
                             let v = (py + radius)/(2.*radius)
-                            let func = Texture.getFunc tex
+                            let func = Textures.getFunc tex
                             let mat = func u v
                             HitPoint(r, t, this.normal, mat) 
                     else HitPoint(r)
@@ -188,7 +188,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let uv = this.getTextureCoords (r.PointAtTime t)
         let u = fst uv
         let v = snd uv
-        let func = Texture.getFunc tex
+        let func = Textures.getFunc tex
         let mat = func u v 
         HitPoint(r, t, p.ToVector.Normalise, mat)
 
@@ -258,7 +258,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             let uv = this.getTextureCoords (r.PointAtTime t)
             let u = fst uv
             let v = snd uv
-            let func = Texture.getFunc tex
+            let func = Textures.getFunc tex
             let mat = func u v 
             HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat) 
         else HitPoint (r)
@@ -405,7 +405,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
         let uv = this.getTextureCoords p
         let u = fst uv
         let v = snd uv
-        let func = Texture.getFunc tex
+        let func = Textures.getFunc tex
         let mat = func u v 
         mat
 
@@ -450,7 +450,7 @@ type InfinitePlane(tex:Texture) =
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Y / r.GetDirection.Y) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
-            let func = Texture.getFunc tex
+            let func = Textures.getFunc tex
             let mat = func (r.PointAtTime t).X (r.PointAtTime t).Z
             HitPoint(r, t, Vector(0.0, 0.0, 1.0), mat) 
         else HitPoint(r)

@@ -175,16 +175,17 @@ module Main =
       | 2     -> getSecondDegreeHF (P m) exp
       | _     -> failwith "poly of higher degree than 2 is not supported yet"
     let bsh = { new baseShape() with
-                  member this.toShape m = 
+                  member this.toShape tex =
+                    let mat = (Textures.getFunc tex) 1. 1.
                     let newhf r =
                       match hitfunction r with
                       | None        -> hitPoint (r)
-                      | Some (t,v)  -> hitPoint (r,  t, v, m)
+                      | Some (t,v)  -> hitPoint (r, t, v, mat)
                     { new shape() with
                         member this.hitFunction r = newhf r
                         member this.getBoundingBox () = failwith "I hate this"
                         member this.isInside p = failwith "I hate this"
-                        member this.getTextureCoords hp = (1.,1.) // or none, or idk
+                        //member this.getTextureCoords hp = (1.,1.) // or none, or idk
                     }
                }
     bsh
@@ -203,12 +204,13 @@ module Main =
         then MatteMaterial(Colour.Red)
         else MatteMaterial(Colour.Green)
     let bsh = { new baseShape() with
-                  member this.toShape m = 
+                  member this.toShape tex = 
+                    let mat = (Textures.getFunc tex) 1. 1.
                     let newhf r =
                       match hitfunction r with
                       | None        -> hitPoint (r)
                       | Some (t,v)  -> 
-                          let hp = hitPoint (r, t, v, m)
+                          let hp = hitPoint (r, t, v, mat)
                           let x = hp.Point.X
                           let z = hp.Point.Z
                           hitPoint (r, t, v, checker x z)
@@ -216,7 +218,6 @@ module Main =
                         member this.hitFunction r = newhf r
                         member this.getBoundingBox () = failwith "I hate this"
                         member this.isInside p = failwith "I hate this"
-                        member this.getTextureCoords hp = (1.,1.) // or none, or idk
                     }
                }
     bsh
