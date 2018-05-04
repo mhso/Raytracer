@@ -97,14 +97,12 @@ and [<AbstractClass>] Shape() =
     abstract member isInside: Point -> bool
     abstract member getBoundingBox: unit -> BBox
     abstract member hitFunction: Ray -> HitPoint
-    abstract member getTextureCoords: HitPoint -> (float * float)
     static member None = BlankShape() :> Shape
 
 and BlankShape() = 
     inherit Shape()
     override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
     override this.getBoundingBox () = failwith "cannot get bounding box for a blank shape"
-    override this.getTextureCoords hitPoint = failwith "cannot get texture coordinates for a blank shape"
     default this.hitFunction r = HitPoint(r)
 
 //- TEXTURES
