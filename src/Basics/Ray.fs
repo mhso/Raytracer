@@ -17,3 +17,12 @@ type Ray(origin: Point, direction: Vector) =
 
     static member None = 
         Ray(Point(0.,0.,0.),Vector(0.,0.,0.))
+
+    override this.GetHashCode() = hash (this.GetOrigin, this.GetDirection)
+    override this.Equals(other) =
+        match other with
+        | :? Ray as r -> if (this.GetOrigin.Equals(r.GetOrigin)
+                         && this.GetDirection.Equals(r.GetDirection)) then true
+                         else false
+        | _ -> false
+    

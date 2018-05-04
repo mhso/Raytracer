@@ -8,9 +8,10 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
     let v = up % w
-    let u = w % v
+    let u = -(w % v)
     let pw = width/float resX
     let ph = height/float resY
+    let viewOffset = position - w
 
     member this.W = w
     member this.U = u
@@ -31,7 +32,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
 
     abstract member CreateRays : int -> int -> Ray list
 
-    member this.Cast ray bgColor (shapes : Shape list) (lights : Light list) =
+    member this.Cast ray bgColor (shapes : Shape []) (lights : Light list) =
         // Get the hitpoint
         let (shape, (hitPoint: HitPoint)) = this.GetFirstHitPoint ray shapes
 
@@ -49,7 +50,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             bgColor
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
-    member this.GetFirstHitPoint (ray:Ray) (shapes : Shape list) = 
+    member this.GetFirstHitPoint (ray:Ray) (shapes : Shape []) = 
 
         // Get all hit points
         let pointsThatHit = 
@@ -64,7 +65,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
 
-    member this.GetFirstShadowHitPoint (ray:Ray) (shapes:Shape list) = 
+    member this.GetFirstShadowHitPoint (ray:Ray) (shapes:Shape []) = 
         
         // Get all hit points
         let pointsThatHit = 
@@ -81,7 +82,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
 
 
-    member this.GetFirstHitPointExcept (ray: Ray) (shapes: Shape list) (except: Shape) = 
+    member this.GetFirstHitPointExcept (ray: Ray) (shapes: Shape []) (except: Shape) = 
 
         // Get all hit points
         let pointsThatHit = 
@@ -100,7 +101,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
 
     // Returns the average shadow for a hitpoint and a light source
-    member this.CastShadow (hitPoint: HitPoint) (light: Light) (shapes : Shape list) = 
+    member this.CastShadow (hitPoint: HitPoint) (light: Light) (shapes : Shape []) = 
         if light :? AmbientLight 
             then Colour.Black
         else
@@ -121,7 +122,7 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     // Will cast a ray recursively
     member this.CastRecursively 
         (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int)
-        (shapes : Shape list) (reflectionFunction: HitPoint -> Ray[]) =
+        (shapes : Shape []) (reflectionFunction: HitPoint -> Ray[]) =
         if bounces = 0 || hitPoint.Material.Bounces = 0 then
             acc + hitPoint.Material.PreBounce shape hitPoint light
         else
