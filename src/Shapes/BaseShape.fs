@@ -5,7 +5,7 @@ open Tracer.Basics
 
 [<AbstractClass>]
 type BaseShape()=
-    abstract member toShape: Material -> Shape
+    abstract member toShape: Texture -> Shape
 
 
 type BaseRectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point)=
@@ -15,14 +15,14 @@ type BaseRectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point)=
     member this.bottomRight = bottomRight
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
-    override this.toShape (mat:Material) = new Rectangle(bottomLeft, topLeft, bottomRight, mat) :> Shape
+    override this.toShape (mat:Texture) = new Rectangle(bottomLeft, topLeft, bottomRight, mat) :> Shape
 
                     
 type BaseDisc(center:Point, radius:float)=
     inherit BaseShape()
     member this.center = center
     member this.radius = radius
-    override this.toShape (mat:Material) = new Disc(center, radius, mat) :> Shape
+    override this.toShape (mat:Texture) = new Disc(center, radius, mat) :> Shape
     
 
 type BaseTriangle(a:Point, b:Point, c:Point)=
@@ -30,14 +30,16 @@ type BaseTriangle(a:Point, b:Point, c:Point)=
     member this.a = a
     member this.b = b
     member this.c = c
-    override this.toShape (mat:Material) = new Triangle(a, b, c, mat) :> Shape
+    override this.toShape tex = 
+      let mat = (Textures.getFunc tex) 1. 1.
+      new Triangle(a, b, c, mat) :> Shape
 
 
 type BaseSphere(origin: Point, radius: float) = 
     inherit BaseShape()
     member this.origin = origin
     member this.radius = radius
-    override this.toShape (mat:Material) = new SphereShape(origin, radius, mat) :> Shape
+    override this.toShape (mat:Texture) = new SphereShape(origin, radius, mat) :> Shape
 
 
 type BaseHollowCylinder(center:Point, radius:float, height:float) =
@@ -45,4 +47,4 @@ type BaseHollowCylinder(center:Point, radius:float, height:float) =
     member this.center = center
     member this.radius = radius
     member this.height = height
-    override this.toShape (mat:Material) = new HollowCylinder(center, radius, height, mat) :> Shape
+    override this.toShape (mat:Texture) = new HollowCylinder(center, radius, height, mat) :> Shape

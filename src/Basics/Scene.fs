@@ -35,6 +35,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list) =
         Console.WriteLine(" 
         
 
+
                            ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
                            ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
                            ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
@@ -107,6 +108,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list) =
                 let rays = camera.CreateRays x y
                 let colours = List.map (fun ray -> (camera.Cast ray backgroundColour shapes lights)) rays
                 let colour = (List.fold (+) Colour.Black colours)/float colours.Length
+
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.EndRender renderedImage

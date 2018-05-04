@@ -152,6 +152,7 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         emisiveRadience
 
+        (*
 type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap) = 
     inherit Material()
 
@@ -159,9 +160,11 @@ type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap
 
     default this.Bounces = 0
     default this.BounceMethod hitPoint = [||]
+    
     default this.AmbientColour shape hitPoint = 
         let (u,v) = shape.getTextureCoords hitPoint |> uvFunc
         let (x,y) = (round (u * float(image.Width)), round (v * float(image.Height)))
         Colour(image.GetPixel(x,y))
     default this.Bounce shape hitPoint light = 
         light.Intensity * this.AmbientColour shape hitPoint
+        *)
