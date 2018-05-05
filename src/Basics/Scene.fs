@@ -29,7 +29,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list) =
             loadingIndex <- loadingIndex + 1
             if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
 
-            Console.Write("\r                                {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%")
+            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%")
 
     member this.StartRender =
         Console.WriteLine(" 

@@ -67,10 +67,10 @@ module API =
       Box(low, high, front, back, top, bottom, left, right) :> Shape
  
 
-  let group (s1 : shape) (s2 : shape) : shape = failwith "group not implemented"
-  let union (s1 : shape) (s2 : shape) : shape = failwith "union not implemented"
-  let intersection (s1 : shape) (s2 : shape) : shape = failwith "intersection not implemented"
-  let subtraction (s1 : shape) (s2 : shape) : shape = failwith "subtraction not implemented"
+  let group (s1 : shape) (s2 : shape) : shape = new CSG(s1, s2, CSGOperator.Grouping) :> Shape
+  let union (s1 : shape) (s2 : shape) : shape = new CSG(s1, s2, CSGOperator.Union) :> Shape
+  let intersection (s1 : shape) (s2 : shape) : shape = new CSG(s1, s2, CSGOperator.Intersection) :> Shape
+  let subtraction (s1 : shape) (s2 : shape) : shape = new CSG(s1, s2, CSGOperator.Subtraction) :> Shape
 
 
   let mkLight (p : point) (c : colour) (i : float) : light = new PointLight(c, i, p) :> Light
