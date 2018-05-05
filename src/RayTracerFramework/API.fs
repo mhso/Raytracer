@@ -88,23 +88,23 @@ module API =
   let renderToScreen (sc : scene) (c : camera) : unit = failwith "renderToScreen not implemented"
   let renderToFile (sc : scene) (c : camera) (path : string) : unit = failwith "renderToFile not implemented"
 
-  let translate (x : float) (y : float) (z : float) : transformation = Transformation.translate x y z
-  let rotateX (angle : float) : transformation = Transformation.rotateX angle
-  let rotateY (angle : float) : transformation = Transformation.rotateY angle
-  let rotateZ (angle : float) : transformation = Transformation.rotateZ angle
-  let sheareXY (distance : float) : transformation = Transformation.sheare(distance, 0., 0., 0., 0., 0.)
-  let sheareXZ (distance : float) : transformation = Transformation.sheare(0., distance, 0., 0., 0., 0.)
-  let sheareYX (distance : float) : transformation = Transformation.sheare(0., 0., distance, 0., 0., 0.)
-  let sheareYZ (distance : float) : transformation = Transformation.sheare(0., 0., 0., distance, 0., 0.)
-  let sheareZX (distance : float) : transformation = Transformation.sheare(0., 0., 0., 0., distance, 0.)
-  let sheareZY (distance : float) : transformation = Transformation.sheare(0., 0., 0., 0., 0., distance)
-  let scale (x : float) (y : float) (z : float) : transformation = Transformation.scale x y z
-  let mirrorX : transformation = failwith "mirrorX not implemented"
-  let mirrorY : transformation = failwith "mirrorX not implemented"
-  let mirrorZ : transformation = failwith "mirrorX not implemented"
+  let translate (x : float) (y : float) (z : float) : transformation = translate x y z
+  let rotateX (angle : float) : transformation = rotateX angle
+  let rotateY (angle : float) : transformation = rotateY angle
+  let rotateZ (angle : float) : transformation = rotateZ angle
+  let sheareXY (distance : float) : transformation = sheare(distance, 0., 0., 0., 0., 0.)
+  let sheareXZ (distance : float) : transformation = sheare(0., distance, 0., 0., 0., 0.)
+  let sheareYX (distance : float) : transformation = sheare(0., 0., distance, 0., 0., 0.)
+  let sheareYZ (distance : float) : transformation = sheare(0., 0., 0., distance, 0., 0.)
+  let sheareZX (distance : float) : transformation = sheare(0., 0., 0., 0., distance, 0.)
+  let sheareZY (distance : float) : transformation = sheare(0., 0., 0., 0., 0., distance)
+  let scale (x : float) (y : float) (z : float) : transformation = scale x y z
+  let mirrorX : transformation = scale -1. 1. 1.
+  let mirrorY : transformation = scale 1. -1. 1.
+  let mirrorZ : transformation = scale 1. 1. -1.
   let mergeTransformations (ts : transformation list) : transformation = Transformation.mergeTransformations ts
   let transform (sh : shape) (tr : transformation) : shape = Transform.transform sh tr
-  let transformLight (l : light) (t : transformation) : light = failwith "transformLight not implemented"
+  let transformLight (l : light) (t : transformation) : light = TransformLight.transformLight l t
 
 
 
