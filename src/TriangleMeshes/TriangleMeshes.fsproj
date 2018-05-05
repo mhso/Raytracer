@@ -56,9 +56,9 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="PLYParser.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="PLYParser2.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
