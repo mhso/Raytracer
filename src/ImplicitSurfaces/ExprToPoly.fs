@@ -194,6 +194,9 @@ module ExprToPoly =
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
   type poly = P of Map<int,simpleExpr>
+  type poly with
+    // TO DO, need to implement this correctly!!
+    static member ( % ) (p1:poly,p2:poly) = p1
 
   let ppPoly v (P p) =
     let pp (d,ags) =
@@ -254,8 +257,11 @@ module ExprToPoly =
             | None   -> failwith "solveAG: variable not found in map"
         | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
 
+  // maps in fsharp are ordered, maybe I can do this in a more efficient way
+  let getOrder m = Map.toList m |> List.fold (fun m (n,_) -> max m n) 0
+  
   // requires a map of all variables, mapped to float values
-  let rec solveSE m = function  
+  let rec solveSE m = function
     | SE ([])     -> 0.0
     | SE (ag::cr) -> solveAG m ag + solveSE m (SE cr)
 
@@ -267,11 +273,25 @@ module ExprToPoly =
       reduced <- Map.add n (solveSE vars s) reduced 
     reduced
   
-  let rec solveReducedPolyList x = function
+  let rec solveReducedPolyListWithT t = function
     | []        -> 0.0
-    | (0,c)::cr -> c + solveReducedPolyList x cr 
-    | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
+    | (0,c)::cr -> c + solveReducedPolyListWithT t cr 
+    | (n,c)::cr -> (t**(float n)) * c + solveReducedPolyListWithT t cr
 
+    (*
+  // not sure about the return value. I'll figure that out soon, hopefully
+  let sturmSeq (p:poly) : float =
+    let p' = (polyDerivative p)
+    let rec inner (plist: poly list) = 
+      let (P m) = plist.[0]
+      match getOrder m with
+      | 0 -> failwith "need to figure out what do"
+      | 1 -> failwith "need to grow more brain cells"
+      | _ -> (plist.[1] % plist.[0]) :: plist
+
+    let plist = inner [p',p] // p0 will always be the last element in the list
+    0.0
+    *)
   // assuming p2 is of lower order
   // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
   let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
