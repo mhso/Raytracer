@@ -10,9 +10,8 @@ exception LightException
 type Material() = 
     abstract member Bounce: Shape -> HitPoint -> Light -> Colour
     abstract member AmbientColour: Shape -> HitPoint -> Colour
-    abstract member Bounces: int
     abstract member BounceMethod: HitPoint -> Ray[]
-    member this.IsRecursive = this.Bounces > 0
+    abstract member IsRecursive : bool
     member this.PreBounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         if light :? AmbientLight then
             this.AmbientColour shape hitPoint * light.Intensity
@@ -24,8 +23,8 @@ and BlankMaterial() =
     inherit Material()
     default this.Bounce shape hitPoint light = Colour.Black
     default this.AmbientColour shape hitPoint = Colour.Black
-    default this.Bounces = 0
     default this.BounceMethod hitPoint = [| hitPoint.Ray |]
+    default this.IsRecursive = false
       
 //- HITPOINT
 and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: bool) = 

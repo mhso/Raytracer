@@ -7,6 +7,25 @@ let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
+type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
+    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
+
+    let mutable currentSampleIndex = 0
+    let mutable currentSample: (float * float) = (0.,0.)
+
+    member this.Next() = 
+        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let sampleIndex = currentSampleIndex % sampleCount
+        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        currentSampleIndex <- currentSampleIndex + 1
+        currentSample <- sample
+        sample
+
+    member this.Current = 
+        currentSample
+
+    member this.SampleCount = sampleCount
+
 let drawSamples (sl:(float * float) []) sampleMethod fileName =
     let size = 400
     let dotSize = 4
@@ -92,7 +111,7 @@ let regular (ni:int) =
             (innerY ni)
             (innerX (c-1))
     innerX (ni-1)
-    samples
+    [|samples|]
 
 let createSampleSets (set:(float * float)[][]) =
     let rand = new Random() // We create a new Random here, for help with testing.
@@ -286,25 +305,6 @@ let mapToHemisphere (x, y) e =
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
 
-type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
-    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
-
-    let mutable currentSampleIndex = 0
-    let mutable currentSample: (float * float) = (0.,0.)
-
-    member this.Next() = 
-        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
-        let sampleIndex = currentSampleIndex % sampleCount
-        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
-        currentSampleIndex <- currentSampleIndex + 1
-        currentSample <- sample
-        sample
-
-    member this.Current = 
-        currentSample
-
-    member this.SampleCount = sampleCount
-
 [<EntryPoint>]
 let main argsv =
     if Array.isEmpty argsv then 
@@ -317,12 +317,12 @@ let main argsv =
     let fileName = "sampletest.png"
     let samples = 
         match method with
-            | "regular" -> regular amount
+            | "regular" -> (regular amount).[0]
             | "random"  -> (random amount sets).[0]
             | "jittered" -> (jittered amount sets).[0]
             | "nrooks"  -> (nRooks amount sets).[0]
             | "multi"   -> (multiJittered amount sets).[0]
-            | _ -> regular 4
+            | _ -> (regular 4).[0]
     if argsv.Length > 3 then
         if argsv.[3] = "disc" then drawDiscSamples (Array.map mapToDisc samples) fileName
         else if argsv.[3] = "sphere" then
