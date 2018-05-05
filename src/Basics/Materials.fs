@@ -10,11 +10,11 @@ type MatteMaterial(colour:Colour) =
     let colour = colour
     let coefficient = 1.
     
-    default this.Bounces = 0
     default this.BounceMethod hitPoint = [||]
     member this.Colour = colour
     member this.Coefficient = coefficient
     default this.AmbientColour shape hitPoint = colour
+    default this.IsRecursive = false
     
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         
@@ -46,7 +46,6 @@ type SpecularMaterial
     let specularColour = specularColour
     let matteColour = matteColour
     let matteMaterial = new MatteMaterial(matteColour)
-    default this.Bounces = 0
     default this.BounceMethod hitPoint = [||]
     default this.AmbientColour shape hitPoint = matteColour
     member this.SpecularCoefficient = specularCoefficient
@@ -89,7 +88,7 @@ type SpecularMaterial
         else
             Colour.Black
 
-type PerfectReflectionMaterial(bounces: int, baseMaterial: Material, reflectionColour: Colour, reflectionCoefficient: float) =
+type PerfectReflectionMaterial(baseMaterial: Material, reflectionColour: Colour, reflectionCoefficient: float) =
     inherit Material()
 
     member this.BaseMaterial = baseMaterial                     // Material to apply perfect reflection to
@@ -97,21 +96,20 @@ type PerfectReflectionMaterial(bounces: int, baseMaterial: Material, reflectionC
     member this.ReflectionColour = reflectionColour             // Reflection colour
     
     default this.AmbientColour shape hitPoint = baseMaterial.AmbientColour shape hitPoint     
-    default this.Bounces = bounces                               
     default this.BounceMethod h = 
         let rayDirection = (h.Ray.GetDirection + (-2. * (h.Normal * h.Ray.GetDirection)) * h.Normal)
         [| Ray(h.Point, rayDirection) |]
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         baseMaterial.Bounce shape hitPoint light
+    default this.IsRecursive = true
 
-type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, baseMaterial: Material, sampleCount: int, setCount: int, bounces: int, sharpness: float) = 
+type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, baseMaterial: Material, sampleCount: int, setCount: int, sharpness: float) = 
     inherit Material()
     
     let random = new Random()
     let samplingGenerator = new Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, setCount)
 
     // Will reflect a ray along a hemisphere
-    default this.Bounces = bounces
     default this.BounceMethod hitPoint =
         let direction = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
@@ -137,6 +135,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
     default this.AmbientColour shape hitPoint = baseMaterial.AmbientColour shape hitPoint
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         baseMaterial.Bounce shape hitPoint light
+    default this.IsRecursive = true
 
 type EmissiveMaterial(lightColour: Colour, lightIntensity: float) = 
     inherit Material()
@@ -146,11 +145,11 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     member this.LightColour = lightColour
     member this.LightIntensity = lightIntensity
     member this.EmisiveRadience = emisiveRadience
-    default this.Bounces = 0
     default this.BounceMethod hitPoint = [||]
     default this.AmbientColour shape hitPoint = emisiveRadience
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         emisiveRadience
+    default this.IsRecursive = false
 
         (*
 type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap) = 
@@ -158,9 +157,9 @@ type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap
 
     let round (x:float) = int (Math.Round(x))
 
-    default this.Bounces = 0
     default this.BounceMethod hitPoint = [||]
-    
+    default this.IsRecursive = false
+
     default this.AmbientColour shape hitPoint = 
         let (u,v) = shape.getTextureCoords hitPoint |> uvFunc
         let (x,y) = (round (u * float(image.Width)), round (v * float(image.Height)))
