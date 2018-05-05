@@ -295,8 +295,7 @@ module Transform =
         new Ray(origin, direction)
 
     let transformNormal (v:Vector) (t: Transformation.Transformation)= 
-        let vector = v
-        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix v)))
         tVector
 
     let transform (s : Shape) (t:Transformation) =
@@ -304,8 +303,8 @@ module Transform =
             member this.hitFunction r = 
                 let transformedRay = transformRay r t
                 let hitsOriginal = s.hitFunction transformedRay
-                let normal = transformNormal (hitsOriginal.Normal) t
                 if (hitsOriginal.DidHit) then
+                    let normal = transformNormal (hitsOriginal.Normal) t
                     new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
                 else 
                     new HitPoint(r)
