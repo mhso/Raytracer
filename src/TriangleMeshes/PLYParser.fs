@@ -1,11 +1,9 @@
-﻿module PLYParser2
+﻿module PLYParser
 
 open FParsec
 open System.IO
 open System
-open Tracer.Basics
-open Acceleration.KD_tree
-open System.Threading.Tasks
+
 
 type UserState = unit
 type Parser<'t> = Parser<'t,UserState>
@@ -265,71 +263,3 @@ let parsePLY (filepath:string) =
         | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
         //printfn "...Parsing Done"
     | false -> failwith ("Not a ply file")
-
-let drawTriangles (filepath:string)= 
-    let test = parsePLY filepath
-    let triangleArray = fst test
-    let faceArray = snd test
-    let material = MatteMaterial(Colour.Red)
-    let ar = Array.zeroCreate(faceArray.Length)
-    for i in 0..(faceArray.Length-1) do 
-        let v1 = triangleArray.[faceArray.[i].[1]]
-        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
-        
-        let v2 = triangleArray.[faceArray.[i].[2]]
-        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
-        let v3 = triangleArray.[faceArray.[i].[3]]
-        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
-        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
-    let kdTree = buildKDTree (ar)
-    let sh = {new Shape() with
-        member this.hitFunction r = 
-            traverseKDTree kdTree r ar
-        member this.getBoundingBox () = failwith "I hate this"
-        member this.isInside p = failwith "I hate this"
-    }
-    sh
-
-let drawTrianglesWithouKd (filepath:string)= 
-    let test = parsePLY filepath
-    let triangleArray = fst test
-    let faceArray = snd test
-    let material = MatteMaterial(Colour.Red)
-    let ar = Array.zeroCreate(faceArray.Length)
-    for i in 0..faceArray.Length-1 do 
-        let v1 = triangleArray.[faceArray.[i].[1]]
-        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
-        
-        let v2 = triangleArray.[faceArray.[i].[2]]
-        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
-        let v3 = triangleArray.[faceArray.[i].[3]]
-        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
-        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
-
-    ar
-
-let drawNumberOfTriangles (filepath:string) n = 
-    let test = parsePLY filepath
-    let triangleArray = fst test
-    let faceArray = snd test
-    let material = MatteMaterial(Colour.Red)
-    let ar = Array.zeroCreate(n)
-    for i in 0..n-1 do 
-        let v1 = triangleArray.[faceArray.[i].[1]]
-        let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
-        
-        let v2 = triangleArray.[faceArray.[i].[2]]
-        let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
-        let v3 = triangleArray.[faceArray.[i].[3]]
-        let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
-        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
-    
-    let kdTree = buildKDTree (ar)
-    printfn "%A" kdTree
-    let sh = {new Shape() with
-        member this.hitFunction r = 
-            traverseKDTree kdTree r ar
-        member this.getBoundingBox () = failwith "I hate this"
-        member this.isInside p = failwith "I hate this"
-    }
-    sh

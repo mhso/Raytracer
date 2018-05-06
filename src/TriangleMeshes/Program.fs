@@ -12,10 +12,10 @@ let main argv =
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let width = 1920.
-    let height = 1080.
     let resX = 1920
     let resY = 1080
+    let width = 2.
+    let height = (float(resY) / float(resX)) * width
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -51,7 +51,7 @@ let main argv =
     let p1 = Point(1.,0.,0.)
     let p2 = Point(0.,4.,0.)
     let p3 = Point(0.,0.,2.)
-    let spheres: Shape array     = [|(PLYParser2.drawTriangles  @"..\..\..\..\resources\ply\bunny.ply")|]
+    let spheres: Shape array     = [|(TriangleMesh.drawTrianglesSpecificNumber 30  @"..\..\..\..\resources\ply\urn2.ply" false false)|]
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.RenderParallel

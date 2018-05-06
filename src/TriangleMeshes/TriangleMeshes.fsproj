@@ -58,7 +58,8 @@
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="PLYParser2.fs" />
+    <Compile Include="PLYParser.fs" />
+    <Compile Include="TriangleMesh.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

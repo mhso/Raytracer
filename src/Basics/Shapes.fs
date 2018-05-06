@@ -99,6 +99,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    member this.n = this.u.CrossProduct this.v
 
     //the many members are for simplifying cramers rule and hit function
     member this.pa = ((a.X)-(b.X))
