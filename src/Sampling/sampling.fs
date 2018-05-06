@@ -2,21 +2,23 @@
 
 open System
 open System.Drawing
+open System.Threading
 
 let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
-type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
-    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
+type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleSize: int, sampleSetCount: int) =   
+    let samples: (float * float) [][] = samplingAlgorithm sampleSize sampleSetCount
 
     let mutable currentSampleIndex = 0
-    let mutable currentSample: (float * float) = (0.,0.)
+    let mutable currentSample: (float * float) = (0., 0.)
+    let sampleCount = samples.[0].Length
 
     member this.Next() = 
-        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let setIndex = (currentSampleIndex / sampleCount) % sampleSetCount
         let sampleIndex = currentSampleIndex % sampleCount
-        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        let sample = samples.[setIndex].[sampleIndex]
         currentSampleIndex <- currentSampleIndex + 1
         currentSample <- sample
         sample
