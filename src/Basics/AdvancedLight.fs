@@ -112,7 +112,7 @@ type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sam
 type EnvironmentLight(radius: float, texture: Texture, sampler: Sampling.SampleGenerator) = 
     inherit Light(Colour.Black, 1.)
     
-    let sphere = SphereShape(Point.Zero, 5., texture)
+    let sphere = SphereShape(Point.Zero, radius, texture)
     let mutable sp = []
     let mutable hsp = HitPoint(Point.Zero)
     let sampleIfNeeded (hitPoint: HitPoint) = 
@@ -136,7 +136,6 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampling.SampleG
     override this.GetColour hitPoint = 
         sampleIfNeeded hitPoint
         Colour.Black
-
         
     override this.GetDirectionFromPoint hitPoint = 
         -hitPoint.Normal
