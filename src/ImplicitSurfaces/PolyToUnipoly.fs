@@ -60,25 +60,26 @@ module PolyToUnipoly =
   *)
   let unipolyLongDiv up1 up2 : unipoly * unipoly =
     // s is the smaller, f the larger, q is quotient.
-    let rec aux (f:unipoly) (s:unipoly) (UP q:unipoly) =
+    let rec inner (f:unipoly) (s:unipoly) (q:unipoly) =
       let ddif = getOrder f - getOrder s
-      if ddif < 0 then (UP q, f)
+      if ddif < 0 then (q, f)
       else
         let (fExp, fConst) = getFirstTerm f
         let (sExp, sConst) = getFirstTerm s
         let k = fExp - sExp, fConst / sConst
         let ks = s * k
-        let q' = Map.add (fExp - sExp) (fConst / sConst) q
+        let (UP qmap) = q
+        let q' = UP (Map.add (fExp - sExp) (fConst / sConst) qmap)
         let f' = f - ks
-        aux f' s (UP q')
-    aux up1 up2 (UP Map.empty)
+        inner f' s q'
+    inner up1 up2 (UP Map.empty)
 
   type unipoly with 
     static member ( % ) (up1, up2) = unipolyLongDiv up1 up2
 
   // not sure about the return value. I'll figure that out soon, hopefully
   // let's only accept the <int,float> version of poly (i.e. no simpleExpr here pls)
-  (*let sturmSeq up : float =
+  let sturmSeq up : unipoly list =
     let up' = unipolyDerivative up
     let rec inner (plist: unipoly list) = 
       let (UP m) = plist.[0]
@@ -86,8 +87,7 @@ module PolyToUnipoly =
       | 0 -> failwith "need to figure out what do"
       | 1 -> failwith "need to grow more brain cells"
       | _ -> (plist.[1] % plist.[0]) :: plist
-
-    let plist = inner [up',up] // p0 will always be the last element in the list
-    0.0*)
+    inner [up',up] // p0 will always be the last element in the list
+    
     
 
