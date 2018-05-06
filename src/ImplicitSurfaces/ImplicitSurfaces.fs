@@ -148,35 +148,56 @@ module Main =
     if foundSolution then Some x0
     else None
 
-  let newtonRaph p r (g:float) =
-    let up = (polyToUnipoly p (getVarMap r))
+  let newtonRaph up (g:float) =
+    //let up = (polyToUnipoly p (getVarMap r))
     newtonRaphson
       up
       (unipolyDerivative up)
       g
+
+  let getHigherDegreeHF p e =
+    // pre-processing parts of the normalVector
+    let dx = partialDerivative "x" e
+    let dy = partialDerivative "y" e
+    let dz = partialDerivative "z" e
+    let hitFunction r =
+      let vars = getVarMap r
+      let up = polyToUnipoly p vars
+      let g = (makeGuess << sturmSeq) up
+      match g with
+      | None    -> None
+      | Some v  -> 
+          let x = newtonRaph up (v/2.0)
+          match x with
+          | None    -> None
+          | Some t  -> 
+              let hp = r.PointAtTime t
+              Some (t, normalVector hp dx dy dz)
+    hitFunction
 
   let mkImplicit (s:string) : baseShape =
     let exp = parseStr s // parsing the equation string to expression
     let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
     let hitfunction =
       match getOrder m with
-      | 1     -> getFirstDegreeHF (P m) exp
-      | 2     -> getSecondDegreeHF (P m) exp
-      | _     -> failwith "poly of higher degree than 2 is not supported yet"
-    let bsh = { new baseShape() with
-                  member this.toShape tex =
-                    let mat = (Textures.getFunc tex) 1. 1.
-                    let newhf r =
-                      match hitfunction r with
-                      | None        -> hitPoint (r)
-                      | Some (t,v)  -> hitPoint (r, t, v, mat)
-                    { new shape() with
-                        member this.hitFunction r = newhf r
-                        member this.getBoundingBox () = failwith "I hate this"
-                        member this.isInside p = failwith "I hate this"
-                        //member this.getTextureCoords hp = (1.,1.) // or none, or idk
-                    }
-               }
+      | 1 -> getFirstDegreeHF (P m) exp
+      | 2 -> getSecondDegreeHF (P m) exp
+      | _ -> getHigherDegreeHF (P m) exp
+    let bsh = 
+        { new baseShape() with
+            member this.toShape tex =
+              let mat = (Textures.getFunc tex) 1. 1.
+              let newhf r =
+                match hitfunction r with
+                | None        -> hitPoint (r)
+                | Some (t,v)  -> hitPoint (r, t, v, mat)
+              { new shape() with
+                  member this.hitFunction r = newhf r
+                  member this.getBoundingBox () = failwith "I hate this"
+                  member this.isInside p = failwith "I hate this"
+                  //member this.getTextureCoords hp = (1.,1.) // or none, or idk
+              }
+          }
     bsh
 
 (*

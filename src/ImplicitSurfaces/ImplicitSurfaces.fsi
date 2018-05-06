@@ -15,8 +15,10 @@ module Main =
   type expr = ExprParse.expr
   val partialDerivative : string -> expr -> expr
   val substWithRayVars : expr -> expr
+  val getVarMap : Ray -> Map<string, float>
 
   type Ray = Tracer.Basics.Ray
   type poly = ExprToPoly.poly
+  type unipoly = PolyToUnipoly.unipoly
 
-  val newtonRaph : poly -> Ray -> float -> float option
+  val newtonRaph : unipoly -> float -> float option

@@ -30,27 +30,28 @@ module Program =
     let phongRed = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Red)
     let phongGreen = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Green)
     let emissive = EmissiveMaterial(Colour.White, 1.)
-
+    
+    // helper functions
     let mkShape (bs:baseShape) m = bs.toShape m
-
     let texfun m =
         let f a b = m
         Texture f
 
-    let sphere1 (r : float) =
+    // shapes
+    let sphere1 = mkShape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (texfun matteGreen)
+    let sphere2 = mkShape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (texfun matteRed)
+    let torus = mkShape (mkImplicit "(((x^2 + y^2)_2 - 100.5)^2 + z^2)_2 - 10.5") (texfun matteWhite)
+    let test1 = mkShape (mkImplicit "(x - 2)^2(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (texfun matteGreen)
+    let heart = mkShape (mkImplicit "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") (texfun matteYellow)
+
+    let setup =
       let aqua = Colour (Color.Aqua)
       let white = Colour (Color.White)
-
-      let s = [|mkShape (mkImplicit ("x^2 + (y)^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
-               mkShape (mkImplicit ("(x + 3)^2 + (y - 2)^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, Colour.Green, 0.7, white)));
-               mkShape (mkImplicit ("(x - 3)^2 + (y)^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, Colour.Red, 0.7, white)));
-               //(InfinitePlane (texfun perfectWhite) :> Shape)
-               //mkShape (implicitPlane "y") (texfun phongGreen)
-               |]
-      let camera = PinholeCamera (Point(0.0, 1.0, 4.4), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
+      let s = [| torus |]
+      let camera = PinholeCamera (Point(-4.0, 1.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
       mkScene' s camera
 
-    let sc = sphere1 1.
-    sc.RenderParallel |> ignore
+    let sc = setup
+    sc.Render |> ignore
 
     0

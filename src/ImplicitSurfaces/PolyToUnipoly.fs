@@ -60,34 +60,59 @@ module PolyToUnipoly =
   *)
   let unipolyLongDiv up1 up2 : unipoly * unipoly =
     // s is the smaller, f the larger, q is quotient.
-    let rec aux (f:unipoly) (s:unipoly) (UP q:unipoly) =
+    let rec inner (f:unipoly) (s:unipoly) (q:unipoly) =
       let ddif = getOrder f - getOrder s
-      if ddif < 0 then (UP q, f)
+      if ddif < 0 then (q, f)
       else
         let (fExp, fConst) = getFirstTerm f
         let (sExp, sConst) = getFirstTerm s
         let k = fExp - sExp, fConst / sConst
         let ks = s * k
-        let q' = Map.add (fExp - sExp) (fConst / sConst) q
+        let (UP qmap) = q
+        let q' = UP (Map.add (fExp - sExp) (fConst / sConst) qmap)
         let f' = f - ks
-        aux f' s (UP q')
-    aux up1 up2 (UP Map.empty)
+        inner f' s q'
+    inner up1 up2 (UP Map.empty)
 
   type unipoly with 
     static member ( % ) (up1, up2) = unipolyLongDiv up1 up2
 
   // not sure about the return value. I'll figure that out soon, hopefully
   // let's only accept the <int,float> version of poly (i.e. no simpleExpr here pls)
-  (*let sturmSeq up : float =
+  let sturmSeq up : unipoly list =
     let up' = unipolyDerivative up
-    let rec inner (plist: unipoly list) = 
-      let (UP m) = plist.[0]
-      match getOrder m with
-      | 0 -> failwith "need to figure out what do"
-      | 1 -> failwith "need to grow more brain cells"
-      | _ -> (plist.[1] % plist.[0]) :: plist
+    let rec inner (uplist: unipoly list) = 
+      match getOrder uplist.[0] with
+      | 0 -> uplist
+      | 1 -> uplist
+      | _ -> let (_,res) = uplist.[1] % uplist.[0]
+             inner (res :: uplist)
+    inner [up';up] // p0 will always be the last element in the list
+  
+  let countSignChanges uplist x =
+    let rec inner fmr cnt = function
+    | []        -> cnt
+    | up::rest  ->
+        let rs = solveUnipoly up x
+        if (rs > 0.0 && fmr > 0.0) || (rs < 0.0 && fmr < 0.0)
+          then inner rs cnt rest
+        else inner rs (cnt + 1) rest
+    inner 0.0 0 uplist
 
-    let plist = inner [up',up] // p0 will always be the last element in the list
-    0.0*)
-    
-
+  let makeGuess uplist =
+    let lox = 0.0
+    let lo = countSignChanges uplist lox
+    let rec inner hix fmr =
+      let hi = countSignChanges uplist hix
+      let diff = lo - hi
+      match diff with
+      | 1             -> Some hix
+      | c when c < 1  -> 
+          if fmr > 1 then inner (hix * 1.8) diff
+          else None
+      | _             -> 
+          if hix < 1.0 then None
+          else 
+            printfn "hix: %f, and diff: %i" hix diff
+            inner (hix / 2.0) diff
+    inner 6.672 0
