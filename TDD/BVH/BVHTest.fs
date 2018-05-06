@@ -7,10 +7,10 @@ open Assert
 let allTest = 
 
     let createShapeAndBBoxArr =
-        let fig1 = SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White))
-        let fig2 = SphereShape(Point(5.,5.,5.), 2., MatteMaterial(Colour.Blue))
-        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., MatteMaterial(Colour.Red))
-        let fig4 = SphereShape(Point(7.,7.,7.), 1., MatteMaterial(Colour.Green))
+        let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White)))
+        let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue)))
+        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red)))
+        let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green)))
 
         let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
         let bboxArr : BBox[] = Array.zeroCreate (shapeArr.Length)
@@ -78,7 +78,8 @@ let allTest =
 // ----------------------------- TEST BEGIN -----------------------------
 
     let testBuildBVHTree = 
-        let tree = buildBVHTree testBVHDataInputSmall
+        let shapeArr, bboxArr = createShapeAndBBoxArr 
+        let tree = buildBVHTree shapeArr
         //printfn "BVH Tree:\n %O" tree
 
         let expectedSmall = 
@@ -89,21 +90,41 @@ let allTest =
                    Node
                      (Leaf ([2],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([3],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
                       BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
+        let expected =
+                (Node
+                  (Node
+                     (Leaf
+                        ([2],
+                         BBox(Point(-1.000001,-1.000001,-1.000001), Point(1.000001,1.000001,1.000001))),
+                      Leaf
+                        ([0],
+                         BBox(Point(-1.000001,-1.000001,-1.000001), Point(1.000001,1.000001,1.000001))),
+                      BBox(Point(-1.000001,-1.000001,2.999999), Point(7.000001,7.000001,1.000001)),
+                      1),
+                   Node
+                     (Leaf
+                        ([1],
+                         BBox(Point(-1.000001,-1.000001,-1.000001), Point(1.000001,1.000001,1.000001))),
+                      Leaf
+                        ([3],
+                         BBox(Point(-1.000001,-1.000001,-1.000001), Point(1.000001,1.000001,1.000001))),
+                      BBox(Point(-1.000001,-1.000001,2.999999), Point(7.000001,7.000001,1.000001)),
+                      1),
+                   BBox(Point(-7.000001,-7.000001,5.999999), Point(8.000001,8.000001,1.000001)),
+                   1))
 
-        //let expected3 = Node(Leaf([1], bBox01), Leaf([2], bBox01), bBox01, 99)
-
-        Assert.Equal (expectedSmall,tree,"testBuildBVHTree")
+        Assert.Equal (expected,tree,"testBuildBVHTree")
     testBuildBVHTree
 
 // ----------------------------- TEST BEGIN -----------------------------
     let testTraverse = 
         let ray = Ray(Point(9.0,9.0,2.0), Vector(-2.,-3.,1.))
         let shapeArr, bboxArr = createShapeAndBBoxArr
-        let tree = buildBVHTree (bboxArr)
+        let tree = buildBVHTree (shapeArr)
         let result = traverse tree ray shapeArr infinity
         printfn "shapeArr: %A \n\n" shapeArr
         printfn "bboxArr: %A \n\n" bboxArr
 
-        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., MatteMaterial(Colour.White)):>Shape).hitFunction ray)
+        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White))):>Shape).hitFunction ray)
         Assert.Equal (expected,result,"testTraverse")
     testTraverse

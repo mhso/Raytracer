@@ -13,8 +13,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Raytracer", "src\RayTracerF
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sampling", "src\Sampling\Sampling.fsproj", "{42998C38-7E25-4225-A77E-CB5CA1DC0414}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Shapes", "src\Shapes\Shapes.fsproj", "{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "src\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ImplicitSurfaces", "src\ImplicitSurfaces\ImplicitSurfaces.fsproj", "{940A3706-DAE3-4F52-87B8-D71F44641B0D}"
@@ -24,9 +22,6 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriangleMeshes", "src\TriangleMeshes\TriangleMeshes.fsproj", "{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -50,9 +45,6 @@ Global
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.Build.0 = Release|Any CPU
@@ -74,5 +66,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADAD7441-AE01-41F1-8A38-D422343C5DD2}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

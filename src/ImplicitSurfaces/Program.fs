@@ -56,12 +56,11 @@ module Program =
       let white = Colour (Color.White)
 
       let s = [|mkShape (mkImplicit ("x^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.2, aqua, 0.7, white)));
-               mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
-               mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
-               //mkShape (mkImplicit "y") matteYellow
-               mkShape (implicitPlane "y") (texfun phongGreen)
+               //mkShape (mkImplicit ("(x + 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
+               //mkShape (mkImplicit ("(x - 3)^2 + y^2 + z^2 - " + (string (r * r)))) (texfun (SpecularMaterial (0.5, aqua, 0.7, white)));
+               //mkShape (implicitPlane "y") (texfun phongGreen)
                |]
-      let camera = PinholeCamera (Point(0.0, 2.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
+      let camera = PinholeCamera (Point(0.0, 0.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
       mkScene' s camera
 
     let sc = sphere1 1.
@@ -106,13 +105,8 @@ module Program =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
-<<<<<<< HEAD
-    let spheres: Shape array     = [|sphere1|]
-    let scene                   = Scene(spheres, camera, lights)
-=======
     let spheres: Shape []       = [|sphere1; sphere2; sphere3; sphere4;sphere5|]
     let scene                   = Scene (spheres, camera, lights)
->>>>>>> d62bf63dba4f80b73c3fd6c4e9808480bca05e93
 
     //scene.Render |> ignore
 

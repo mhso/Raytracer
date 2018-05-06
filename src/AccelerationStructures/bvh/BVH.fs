@@ -14,24 +14,24 @@ module BVH =
       match indexList with
       | [] -> []
       | x :: xs ->
-          let small, large = 
+          let less, great = 
               match axis with
               | 0 ->
-                    let filterSmall = fun e -> boxes.[e].lowPoint.X <= boxes.[x].lowPoint.X
-                    let filterLarger = fun e -> boxes.[e].lowPoint.X >  boxes.[x].lowPoint.X
-                    filterSmall, filterLarger
+                    let filterLess = fun e -> boxes.[e].lowPoint.X <= boxes.[x].lowPoint.X
+                    let filterGreat = fun e -> boxes.[e].lowPoint.X >  boxes.[x].lowPoint.X
+                    filterLess, filterGreat
               | 1 -> 
-                    let filterSmall = fun e -> boxes.[e].lowPoint.Y <= boxes.[x].lowPoint.Y
-                    let filterLarger = fun e -> boxes.[e].lowPoint.Y >  boxes.[x].lowPoint.Y
-                    filterSmall, filterLarger
+                    let filterLess = fun e -> boxes.[e].lowPoint.Y <= boxes.[x].lowPoint.Y
+                    let filterGreat = fun e -> boxes.[e].lowPoint.Y >  boxes.[x].lowPoint.Y
+                    filterLess, filterGreat
               | _ ->
-                    let filterSmall = fun e -> boxes.[e].lowPoint.Z <= boxes.[x].lowPoint.Z
-                    let filterLarger = fun e -> boxes.[e].lowPoint.Z >  boxes.[x].lowPoint.Z
-                    filterSmall, filterLarger
+                    let filterLess = fun e -> boxes.[e].lowPoint.Z <= boxes.[x].lowPoint.Z
+                    let filterGreat = fun e -> boxes.[e].lowPoint.Z >  boxes.[x].lowPoint.Z
+                    filterLess, filterGreat
 
-          let smaller = sortListByAxis (xs |> List.filter(small)) (boxes) axis
-          let larger  = sortListByAxis (xs |> List.filter(large)) (boxes) axis
-          smaller @ [x] @ larger
+          let lesser = sortListByAxis (xs |> List.filter(less)) (boxes) axis
+          let greater  = sortListByAxis (xs |> List.filter(great)) (boxes) axis
+          lesser @ [x] @ greater
     
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
         let lowX = Array.fold (fun acc (box:BBox) -> if box.lowPoint.X < acc then box.lowPoint.X else acc) infinity boxes
@@ -61,20 +61,28 @@ module BVH =
         value
 
     let findAxisMinMaxValues (bBox:BBox) axis =
-        let (lowPoint, highXYZ) = (bBox.lowPoint, bBox.highPoint);
+        let lowPoint, highPoint = bBox.lowPoint, bBox.highPoint;
         match axis with
-        | 0 -> (lowPoint.X, highXYZ.X)
-        | 1 -> (lowPoint.Y, highXYZ.Y)
-        | 2 -> (lowPoint.Z, highXYZ.Z)
+        | 0 -> (lowPoint.X, highPoint.X)
+        | 1 -> (lowPoint.Y, highPoint.Y)
+        | 2 -> (lowPoint.Z, highPoint.Z)
         | _ -> invalidArg "findAxisMinMaxValues invalid axis value" "Axis value needs to be between 0-2."
     
     let rec getBoxArrFromIndexes (indexes:list<int>) (boxes:array<BBox>) : (array<BBox>) =
         [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
-        
- 
+    
+    let convertShapesToBBoxes (shapes:array<Shape>) : array<BBox> =
+        let bboxArr : BBox[] = Array.zeroCreate (shapes.Length)
+        for i in 0..bboxArr.Length-1 do
+            bboxArr.[i] <- shapes.[i].getBoundingBox()
+        bboxArr
+
  // ######################### BUILD BVH TREE #########################
-    let buildBVHTree (boxes:array<BBox>) : BVHtree = 
-        if boxes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+    let buildBVHTree (shapes:array<Shape>) : BVHtree = 
+        if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
+
+        let boxes = convertShapesToBBoxes shapes
+
         let boxIntList = [0..boxes.Length-1]
         let rec innerNodeTree (intIndexes:list<int>) (treeLevel:int) : BVHtree = 
             let boxArr = getBoxArrFromIndexes intIndexes boxes
