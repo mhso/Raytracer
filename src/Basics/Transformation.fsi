@@ -15,9 +15,13 @@ val getList : Matrix -> float list list
 val getMatrix : Transformation -> Matrix
 val getInvMatrix : Transformation -> Matrix
 val scale : width : float -> height : float -> depth : float -> Transformation
+val vectorToMatrix : Vector -> Matrix
+val pointToMatrix : Point -> Matrix
+val matrixToVector : Matrix -> Vector
+val matrixToPoint :  Matrix -> Point
 val rotateX : angle : float -> Transformation
 val rotateY : angle : float -> Transformation
 val rotateZ : angle : float -> Transformation
 val sheare : xy : float * xz :float * yx : float * yz : float * zx : float * zy : float-> Transformation
 val mergeTransformations : Transformation list -> Transformation
-val transformLight : Light -> Transformation -> Light
+//val transformLight : Light -> Transformation -> Light

@@ -274,21 +274,28 @@ module ExprToPoly =
 
   // assuming p2 is of lower order
   // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
-  (*let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
-    let (divExp, divConst) = p1.[0]
-
-let rec inner head = function
-      | []        -> head
-      | (n,c)::cr -> let curr = (n-divExp, c / divConst)
-                     let toSubtract = 
-                     let res = head::(n-divExp, c / divConst)
-                     
-
-    let sh =   
-                        // do more stuff
-    0
-    *)
+  let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
+    let (divExp, divConst) = p2.[0]
     
+    let p1 = [(3,3.0);(2,-2.0);(1,7.0);(0,-4.)]
+    let p2 = [(2,1.0);(0,1.0)]
+
+    let subt (p1:(int * float) list) (p2:(int * float) list) (nn,cc) =
+      printfn "%A" (nn,cc)
+      let toSubtract = [for (n,c) in p2 do
+                          yield (n + nn, c * cc)]
+      toSubtract
+    //let test = subt [] [(2,1.0);(1,3.0)] (1,1.0)
+    let rec inner res = function
+      | []        -> res
+      | (n,c)::cr -> let currVal = (n-divExp, c / divConst)
+                     let resPoly = subt p1 p2 currVal
+                     resPoly
+    
+    let x = inner [] p1
+    // HMMM I am a bit unsure if I should go back to Map<int,float>, or Map<int, simpleExpr>, or stay with the current lists
+    p1, None
+        
   //type poly with
    // static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
 

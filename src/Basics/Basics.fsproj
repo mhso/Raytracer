@@ -64,8 +64,11 @@
     <Compile Include="Materials.fs" />
     <Compile Include="Textures.fsi" />
     <Compile Include="Textures.fs" />
+    <Compile Include="Transformation.fsi" />
+    <Compile Include="Transformation.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="BaseShape.fs" />
     <Compile Include="AdvancedLight.fs" />
     <Compile Include="Camera.fs" />
     <Compile Include="PinholeCamera.fs" />

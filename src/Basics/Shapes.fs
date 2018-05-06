@@ -1,7 +1,14 @@
 ﻿namespace Tracer.Basics
 open System
+open Transformation
 
-type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)=
+type TransformShape (hitFunction) =
+    inherit Shape()
+    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
+    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
+    default this.hitFunction(r: Ray) = hitFunction r
+
+type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
     member this.bottomleft = bottomLeft
     member this.topLeft = topLeft
@@ -17,13 +24,14 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
         let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
         let lz = (min bottomLeft.Z (min topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
 
-        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) - e
-        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) - e
-        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+        let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) + e
+        let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) + e
+        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    //override this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+    //member this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+
     override this.hitFunction (r:Ray) = 
         match r with
         |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -31,13 +39,15 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Material)
         |(r) -> let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                 let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
-                if (px > 0.0 && px < this.width) && (py > 0.0 && py < this.height) 
-                then HitPoint(r, t, this.normal, tex) else HitPoint(r)
+                if (px > 0.0 && px < this.width) && (py > 0.0 && py < this.height) then 
+                    let func = Textures.getFunc tex
+                    let mat = func (px / this.width) (py / this.height)
+                    HitPoint(r, t, this.normal, mat) 
+                else HitPoint(r)
 
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
                                                         
-type Disc(center:Point, radius:float, tex:Material)=
+type Disc(center:Point, radius:float, tex:Texture)=
     inherit Shape()
     member this.center = center
     member this.radius = radius // must not be a negative number
@@ -74,10 +84,10 @@ type Disc(center:Point, radius:float, tex:Material)=
                         then 
                             let u = (px + radius)/(2.*radius)
                             let v = (py + radius)/(2.*radius)
-                            HitPoint(r, t, this.normal, tex) 
+                            let func = Textures.getFunc tex
+                            let mat = func u v
+                            HitPoint(r, t, this.normal, mat) 
                     else HitPoint(r)
-                    
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
 
 
 
@@ -90,6 +100,18 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
+    //the many members are for simplifying cramers rule and hit function
+    member this.pa = ((a.X)-(b.X))
+    member this.pb = ((a.X)-(c.X))
+    member this.e = ((a.Y)-(b.Y))
+    member this.f = ((a.Y)-(c.Y))
+    member this.i = ((a.Z)-(b.Z))
+    member this.j = ((a.Z)-(c.Z))
+
+
+
+
+
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
         let e = 0.000001
@@ -97,47 +119,34 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let ly = (min a.Y (min b.Y c.Y)) - e
         let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
 
-        let hx = (max a.X (max b.X c.X)) - e
-        let hy = (max a.Y (max b.Y c.Y)) - e
-        let hz = (max a.Z (max b.Z c.Z)) - e //might be redundant as Z should always equal 0
+        let hx = (max a.X (max b.X c.X)) + e
+        let hy = (max a.Y (max b.Y c.Y)) + e
+        let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+    
 
-    //no method for returning texture coords are given by the lecture notes....
-    //seems to be under triangle meshes (perhaps texturing)
-    //override this.getTextureCoords (p:Point) = 
-        //let uCoord =
-        //let vCoord =
-        //(uCoord, vCoord)
-        //(0., 0.)
 
     //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = 
-        let pa = ((a.X)-(b.X))
-        let pb = ((a.X)-(c.X))
-        let e = ((a.Y)-(b.Y))
-        let f = ((a.Y)-(c.Y))
-        let i = ((a.Z)-(b.Z))
-        let j = ((a.Z)-(c.Z))
+        let pc = (r.GetDirection.X)
+        let g = (r.GetDirection.Y)
+        let k = (r.GetDirection.Z)
+
 
         match r with
-            |(r) when (pa*((f*(r.GetDirection.Z))-((r.GetDirection.Y)*j)) + pb*(((r.GetDirection.Y)*i)-(e*(r.GetDirection.Z))) + (r.GetDirection.X)*((e*j)-(f*i))) = 0.0 -> HitPoint(r)
-            |(r) -> let pc = (r.GetDirection.X)
-                    let g = (r.GetDirection.Y)
-                    let k = (r.GetDirection.Z)
-                    let d = ((a.X)-(r.GetOrigin.X)) 
+            |(r) when (this.pa*((this.f*(k))-((g)*this.j)) + this.pb*(((g)*this.i)-(this.e*(k))) + (pc)*((this.e*this.j)-(this.f*this.i))) = 0.0 -> HitPoint(r)
+            |(r) -> let d = ((a.X)-(r.GetOrigin.X)) 
                     let h = ((a.Y)-(r.GetOrigin.Y)) 
                     let l = ((a.Z)-(r.GetOrigin.Z))
-                    let D = (pa*((f*k)-(g*j)) + pb*((g*i)-(e*k)) + pc*((e*j)-(f*i)))
-                    let x = (d*((f*k)-(g*j)) + pb*((g*l)-(h*k)) + pc*((h*j)-(f*l)))/D
-                    let y = (pa*((h*k)-(g*l)) + d*((g*i)-(e*k)) + pc*((e*l)-(h*i)))/D
-                    let z = (pa*((f*l)-(h*j)) + pb*((h*i)-(e*l)) + d*((e*j)-(f*i)))/D
+                    let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
+                    let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
+                    let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                    let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
                     if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
-                            then HitPoint(r, z, (this.u % this.v).Normalise, mat) else HitPoint(r) //why mat instead of texture
-                            
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
+                            then HitPoint(r, z, (this.u % this.v).Normalise, mat) else HitPoint(r) //why mat instead of texture???
 
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
@@ -163,23 +172,17 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     member this.NormalAtPoint (p:Point) = 
         (p - origin).Normalise
 
-    override this.getTextureCoords hitPoint =
-        let p = hitPoint.Point
+    member this.getTextureCoords p = 
         let n = (this.NormalAtPoint p)
         let theta = Math.Acos n.Y
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
         let u = phi / (2. * Math.PI)
         let v = 1.0-(theta / Math.PI)
-        (u, v)
+        (u,v)
 
     member this.getTextureMaterial p = 
-        let n = (this.NormalAtPoint p)
-        let theta = Math.Acos n.Y
-        let phiNot = Math.Atan2(n.X, n.Z)
-        let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
-        let u = phi / (2. * Math.PI)
-        let v = 1.0-(theta / Math.PI)
+        let (u,v) = this.getTextureCoords p
         let func = Textures.getFunc tex
         func u v
 
@@ -190,27 +193,44 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let ss = s * s
         sv*sv - ss + radius * radius
 
+    member this.determineHitPoint (r:Ray) (t:float) = 
+        let p = r.PointAtTime t
+        let uv = this.getTextureCoords (r.PointAtTime t)
+        let u = fst uv
+        let v = snd uv
+        let func = Textures.getFunc tex
+        let mat = func u v 
+        HitPoint(r, t, p.ToVector.Normalise, mat)
+
+    (*
+    member this.GetDiscriminant (r:Ray) = 
+        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
+        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
+        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
+        let D = (b**2.)-4.*a*c 
+        D
+    *)
+
     override this.hitFunction (r:Ray) = 
-        let D = this.GetDiscriminant r
-        if D < 0. then HitPoint(r)
-        else
-            let s = (r.GetOrigin - origin)
-            let rayDir = r.GetDirection.Normalise
-            let sv = s * rayDir
-            let (t1,t2) = (-sv + Math.Sqrt(D), -sv - Math.Sqrt(D))
-            if t1 < 0. && t2 < 0. then HitPoint(r)
-            elif t1 < t2 then
-                let p = r.PointAtTime t1
-                let mat = this.getTextureMaterial p
-                HitPoint(r, t1, this.NormalAtPoint p, mat) //this.getTextureCoords (r.PointAtTime t1))
-            else 
-                let p = r.PointAtTime t2
-                let mat = this.getTextureMaterial p
-                HitPoint(r, t2, this.NormalAtPoint p, mat) //this.getTextureCoords (r.PointAtTime t2))
+        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
+        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
+        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
+        let D = (b**2.)-4.*a*c 
+        let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
+        let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+        match D with
+        |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
+        |(D) when D < 0.0 -> HitPoint(r)
+        |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
+                                                                                            else this.determineHitPoint r t1
 
 
 
-type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //change back to texture
+type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //change back to texture
     inherit Shape()
     member this.center = center
     member this.radius = radius
@@ -232,9 +252,9 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
 
     member this.NormalAtPoint (p:Point):Vector =
         new Vector(p.X/radius, 0.0, p.Z/radius)
-
-    override this.getTextureCoords hitPoint =
-        let p = hitPoint.Point
+    
+    
+    member this.getTextureCoords (p:Point) =
         let n = (this.NormalAtPoint p)
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
@@ -244,7 +264,14 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        if p.Y > -(height/2.0) && p.Y < (height/2.0) then HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), tex) else HitPoint (r)
+        if p.Y > -(height/2.0) && p.Y < (height/2.0) then 
+            let uv = this.getTextureCoords (r.PointAtTime t)
+            let u = fst uv
+            let v = snd uv
+            let func = Textures.getFunc tex
+            let mat = func u v 
+            HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat) 
+        else HitPoint (r)
 
     default this.hitFunction (r:Ray) = 
         let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
@@ -254,16 +281,53 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Material) = //
         let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
         let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
         match D with
+        |(0.0) -> if t1 <= 0.0 then HitPoint(r) else this.determineHitPoint r t1 //if D=0 then t1 = t2
+        (*
         |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
                   |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
+                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t
+        *)
         |(D) when D < 0.0 -> HitPoint(r)
         |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                   |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
                   |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
                                                                                             else this.determineHitPoint r t1
 
-type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, top:Material, bottom:Material) =
+module Transform =
+    let transformRay (r : Ray) t = 
+        let o = Transformation.pointToMatrix r.GetOrigin
+        let d = Transformation.vectorToMatrix r.GetDirection
+        let invT = Transformation.getInvMatrix t
+        let originMatrix = Transformation.Matrix.multi (invT, o)
+        let directionMatrix = Transformation.Matrix.multi (invT, d)
+        let origin = Transformation.matrixToPoint originMatrix
+        let direction = Transformation.matrixToVector directionMatrix
+        new Ray(origin, direction)
+
+    let transformNormal (v:Vector) (t: Transformation.Transformation)= 
+        let vector = v
+        let tVector = Transformation.matrixToVector (Transformation.Matrix.multi ((Transformation.transpose (Transformation.getInvMatrix (t))),(Transformation.vectorToMatrix vector)))
+        tVector
+
+    let transform (s : Shape) (t:Transformation) =
+        let transHitFunction (r:Ray) = 
+            let transformedRay = transformRay r t
+            let hitsOriginal = s.hitFunction transformedRay
+            let normal = transformNormal (hitsOriginal.Normal) t
+            if (hitsOriginal.DidHit) then
+                new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
+            else 
+                new HitPoint(r)
+        let sh = {new Shape() with
+            member this.hitFunction r = 
+                transHitFunction r
+            member this.getBoundingBox () = failwith "I hate this"
+            member this.isInside p = failwith "I hate this"
+        }
+        sh
+        
+
+type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, top:Texture, bottom:Texture) =
     inherit Shape()
     member this.center = center
     member this.radius = radius
@@ -271,12 +335,26 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
     member this.cylinder = cylinder
     member this.top = top
     member this.bottom = bottom
+    //builds the transformed discs at the top and bottom of the solid cylinder
+    member this.topDisc = 
+        let rotate = rotateX (Math.PI/2.)
+        let move = translate 0. 0. (height/2.)
+        let mergeTrans = mergeTransformations [rotate; move]
+        Transform.transform (Disc(Point(0.,0.,0.), radius, top)) mergeTrans
+    member this.bottomDisc = 
+        let rotate = rotateX (Math.PI/2.)
+        let move = translate 0. 0. -(height/2.)
+        let mergeTrans = mergeTransformations [rotate; move]
+        Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
+    //builds the hollow cylinder
+    member this.hollowCylinder = HollowCylinder(center, radius, height, cylinder)
 
     override this.isInside (p:Point) = 
         if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
             if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
             else false
         else false
+
     override this.getBoundingBox () = 
         let e = 0.000001
         let lx = (center.X - radius) - e
@@ -289,14 +367,28 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Material, 
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    override this.getTextureCoords hitPoint = //NotImplementedException()
-                                               (0.0, 0.0)
+    override this.hitFunction (r:Ray) = 
+        // look for hitPoints
+        let hpTop = this.topDisc.hitFunction r
+        let hpBottom = this.bottomDisc.hitFunction r
+        let hpCylinder = this.hollowCylinder.hitFunction r
+        //extract time from hitPoints
+        let tTop = if hpTop.DidHit then hpTop.Time else infinity
+        let tBottom = if hpBottom.DidHit then hpBottom.Time else infinity
+        let tCylinder = if hpCylinder.DidHit then hpCylinder.Time else infinity
 
-    default this.hitFunction (r:Ray) = HitPoint(r)
-    //affine transformation is needed for moving the disks
+        //Compare t values
+        if tTop = tBottom && tBottom = tCylinder then HitPoint(r) 
+        else
+            match (tTop, tBottom, tCylinder) with
+            |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
+            |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
+            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
+            |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
+            |(_,_,_) -> HitPoint(r)
 
 
-type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bottom:Material, left:Material, right:Material) = 
+type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom:Texture, left:Texture, right:Texture) = 
     inherit Shape()
     member this.low = low
     member this.high = high
@@ -318,12 +410,20 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
     override this.getBoundingBox () = 
         let e = 0.000001
         BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
-
-    override this.getTextureCoords hitPoint =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
-        let p = hitPoint.Point
+    
+    
+    member this.getTextureCoords (p:Point) =  //this is likely wrong, the lecture notes are not detailed about how i should construct this (p. 37)
         let width = high.X - low.X
         let height = high.Y - low.Y
         ((p.X / width), (p.Y / height))
+    
+    member this.getMatFromTex (tex:Texture) (p:Point) =
+        let uv = this.getTextureCoords p
+        let u = fst uv
+        let v = snd uv
+        let func = Textures.getFunc tex
+        let mat = func u v 
+        mat
 
     override this.hitFunction (r:Ray) = 
         let tx = if r.GetDirection.X >= 0.0 then (low.X - r.GetOrigin.X)/r.GetDirection.X else (high.X - r.GetOrigin.X)/r.GetDirection.X
@@ -341,40 +441,39 @@ type Box(low:Point, high:Point, front:Material, back:Material, top:Material, bot
         if t < t' && t' > 0.0 then 
             if t > 0.0 then 
                 match (tx, ty, tz) with
-                |(tx,ty,tz) when tx >= ty && tx >= tz -> if r.GetDirection.X > 0.0 then HitPoint(r, t, Vector(-1.0, 0.0, 0.0), left) //when tx is the biggest and t > 0.0
-                                                         else HitPoint(r, t, Vector(1.0,0.0,0.0), right)
-                |(tx,ty,tz) when ty >= tx && ty >= tz -> if r.GetDirection.Y > 0.0 then HitPoint(r, t, Vector(0.0, -1.0, 0.0), bottom) //when ty is the biggest and t > 0.0
-                                                         else HitPoint(r, t, Vector(0.0, 1.0, 0.0), top)
-                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Z > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, -1.0), back) //when tz is the biggest and t > 0.0
-                                                         else HitPoint(r, t, Vector(0.0, 0.0, 1.0), front)
+                |(tx,ty,tz) when tx >= ty && tx >= tz -> if r.GetDirection.X > 0.0 then HitPoint(r, t, Vector(-1.0, 0.0, 0.0), (this.getMatFromTex left (r.PointAtTime t))) //when tx is the biggest and t > 0.0
+                                                         else HitPoint(r, t, Vector(1.0,0.0,0.0), (this.getMatFromTex right (r.PointAtTime t)))
+                |(tx,ty,tz) when ty >= tx && ty >= tz -> if r.GetDirection.Y > 0.0 then HitPoint(r, t, Vector(0.0, -1.0, 0.0), (this.getMatFromTex bottom (r.PointAtTime t))) //when ty is the biggest and t > 0.0
+                                                         else HitPoint(r, t, Vector(0.0, 1.0, 0.0), (this.getMatFromTex top (r.PointAtTime t)))
+                |(tx,ty,tz) when tz >= tx && tz >= ty -> if r.GetDirection.Z > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, -1.0), (this.getMatFromTex back (r.PointAtTime t))) //when tz is the biggest and t > 0.0
+                                                         else HitPoint(r, t, Vector(0.0, 0.0, 1.0), (this.getMatFromTex front (r.PointAtTime t)))
             else
                 match (tx', ty', tz') with
-                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then HitPoint(r, t, Vector(1.0, 0.0, 0.0), right) //when tx' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(-1.0, 0.0, 0.0), left)
-                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then HitPoint(r, t, Vector(0.0, 1.0, 0.0), top) //when ty' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(0.0, -1.0, 0.0), bottom)
-                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, 1.0), front) //when tz' is the smallest and t > 0.0
-                                                                else HitPoint(r, t, Vector(0.0, 0.0, -1.0), back)
+                |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then HitPoint(r, t', Vector(1.0, 0.0, 0.0), (this.getMatFromTex right (r.PointAtTime t))) //when tx' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(-1.0, 0.0, 0.0), (this.getMatFromTex left (r.PointAtTime t)))
+                |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> if r.GetDirection.Y > 0.0 then HitPoint(r, t', Vector(0.0, 1.0, 0.0), (this.getMatFromTex top (r.PointAtTime t))) //when ty' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(0.0, -1.0, 0.0), (this.getMatFromTex bottom (r.PointAtTime t)))
+                |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> if r.GetDirection.Z > 0.0 then HitPoint(r, t', Vector(0.0, 0.0, 1.0), (this.getMatFromTex front (r.PointAtTime t))) //when tz' is the smallest and t > 0.0
+                                                                else HitPoint(r, t', Vector(0.0, 0.0, -1.0), (this.getMatFromTex back (r.PointAtTime t)))
         else HitPoint(r)
         
 
-type InfinitePlane(tex:Material) = 
+type InfinitePlane(tex:Texture) = 
     inherit Shape()
     member this.tex = tex
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
-    //override this.getTextureCoords (p:Point) = ((p.X), (p.Y))
     override this.hitFunction (r:Ray) = 
-        let t = -(r.GetOrigin.Z / r.GetDirection.Z)
-        if r.GetDirection.Z <> 0.0 && t > 0.0 then HitPoint(r, t, Vector(0.0, 0.0, 1.0), tex) else HitPoint(r)
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
+        let t = -(r.GetOrigin.Y / r.GetDirection.Y) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
+        if r.GetDirection.Z <> 0.0 && t > 0.0 then 
+            let func = Textures.getFunc tex
+            let mat = func (r.PointAtTime t).X (r.PointAtTime t).Z
+            HitPoint(r, t, Vector(0.0, 0.0, 1.0), mat) 
+        else HitPoint(r)
 
-type TransformShape (hitFunction) =
-    inherit Shape()
-    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
-    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
-    default this.hitFunction(r: Ray) = hitFunction r
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()
+
+
+
 
 
 ///////////////////////////////////
@@ -405,6 +504,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
+        //i continue no matter what 
+
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
         if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
                                     this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
@@ -429,17 +530,109 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
         
-        //check if the hitpoint for the smallest time, is inside the other shape, if it is, return that hitpoint, else fire a new ray
-        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then s1Hit
-                                 else this.intersectionHitFunction (new Ray((r.PointAtTime s1Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
-        else if s1.isInside (r.PointAtTime s2Time) then s1Hit
-             else this.intersectionHitFunction (new Ray((r.PointAtTime s2Time), r.GetDirection)) //fire new ray, (might have to move point furthe forward)
 
+        match (s1Time, s2Time) with
+        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+        |(s1T, s2T) when s1T = infinity -> if s1.isInside (r.PointAtTime s2T) then s2Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s2T = infinity -> if s2.isInside (r.PointAtTime s1T) then s1Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let PointAtTime = r.PointAtTime s1T
+                                           let newOrigin = (r.PointAtTime s1T).Move moveVector
+                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) -> 
+                    //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
+                    if s1T > s2T then 
+                        if s2.isInside (r.PointAtTime s1T) then //might be able to condense this with next if
+                            if s1.isInside (r.PointAtTime s2T) then s2Hit
+                            else s1Hit
+                        else 
+                            if s1.isInside (r.PointAtTime s2T) then s2Hit
+                            else 
+                                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                let newOrigin = (r.PointAtTime s1T).Move moveVector
+                                this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                    else 
+                        if s1.isInside (r.PointAtTime s2T) then //might be able to condense this with next if
+                            if s2.isInside (r.PointAtTime s1T) then s1Hit
+                            else s2Hit
+                        else 
+                            if s2.isInside (r.PointAtTime s1T) then s1Hit
+                            else 
+                                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                    
+                    
+                    //old hit function, that fires new rays from the shortest time
+                    (*
+                    if s1T <= s2T then if s2.isInside (r.PointAtTime s1T) then s1Hit
+                                       else 
+                                       let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                       let newOrigin = (r.PointAtTime s1T).Move moveVector
+                                       this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+                    else if s1.isInside (r.PointAtTime s2T) then s2Hit
+                         else 
+                            let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                            let newOrigin = (r.PointAtTime s2T).Move moveVector
+                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
+                    *)
 
     ////SUBTRACTION////
+    member this.subtractionHitFunction (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
+        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+
+        match (s1Time, s2Time) with 
+        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+        |(s1T, s2T) when s2T = infinity -> s1Hit //hit on the s1 shape (the subtractee)
+        |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                           this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) -> if s1T < s2T then s1Hit
+                       else
+                           if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                           else 
+                               let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                               let newOrigin = (r.PointAtTime s2T).Move moveVector
+                               this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+
+
 
 
     ////GROUPING////
+    member this.groupingHitFunction (r:Ray) =
+        let s1Hit = s1.hitFunction r //fire ray at both shapes
+        let s2Hit = s2.hitFunction r
+        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
+        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+
+        match (s1Time, s2Time) with 
+        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+        |(s1T, s2T) when s2T = infinity -> s1Hit //hit on the s1 shape (the subtractee)
+        |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                                           else 
+                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
+                                           this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
+        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) -> if s1T < s2T then s1Hit
+                       else
+                           if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
+                           else 
+                               let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                               let newOrigin = (r.PointAtTime s2T).Move moveVector
+                               this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
 
 
 
@@ -448,5 +641,3 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Intersection -> this.intersectionHitFunction r
                                         |Subtraction -> failwith "not implemented yet"
                                         |Grouping -> failwith "not implemented yet"
-
-    override this.getTextureCoords hitPoint = (0.,0.) //NotImplementedException()

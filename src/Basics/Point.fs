@@ -47,3 +47,5 @@ type Point(x:float, y:float, z:float) =
     new(hemispherePoint: float * float * float) = 
         let (x,y,z) = hemispherePoint
         Point(x,y,z)
+    new(vector: Vector) = 
+        Point(vector.X, vector.Y, vector.Z)

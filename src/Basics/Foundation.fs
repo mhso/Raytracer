@@ -43,6 +43,7 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
 
     // For missed rays
     new(ray: Ray) = HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, false)
+    new(point: Point) = HitPoint(Ray.None, 0., point.ToVector, Material.None, false)
 
 //- LIGHT
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =
@@ -64,20 +65,20 @@ and [<AbstractClass>] Light(colour: Colour, intensity: float) =
     abstract member GetGeometricFactor: HitPoint -> float
 
     // (l_pdf) Probability density function
-    abstract member GetProbabilityDensity: float
+    abstract member GetProbabilityDensity: HitPoint -> float
 
 and AmbientLight(colour: Colour, intensity: float) =
     inherit Light(colour, intensity)
 
-    override this.GetColour point = 
+    override this.GetColour hitPoint = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
     override this.GetDirectionFromPoint hitPoint = 
         raise LightException
-    override this.GetShadowRay (hitPoint:HitPoint) = 
+    override this.GetShadowRay hitPoint = 
         raise LightException
-    override this.GetGeometricFactor point = 
+    override this.GetGeometricFactor hitPoint = 
         1.
-    override this.GetProbabilityDensity = 
+    override this.GetProbabilityDensity hitPoint = 
         1.
 
 //- SHAPE
@@ -85,15 +86,13 @@ and [<AbstractClass>] Shape() =
     abstract member isInside: Point -> bool
     abstract member getBoundingBox: unit -> BBox
     abstract member hitFunction: Ray -> HitPoint
-    abstract member getTextureCoords: HitPoint -> (float * float)
     static member None = BlankShape() :> Shape
 
 and BlankShape() = 
     inherit Shape()
     override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
     override this.getBoundingBox () = failwith "cannot get bounding box for a blank shape"
-    override this.getTextureCoords hitPoint = failwith "cannot get texture coordinates for a blank shape"
-    override this.hitFunction r = HitPoint(r)
+    default this.hitFunction r = HitPoint(r)
 
 //- TEXTURES
 and Texture =

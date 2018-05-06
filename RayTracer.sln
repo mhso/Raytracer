@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27428.2005
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AccelerationStructures", "src\AccelerationStructures\AccelerationStructures.fsproj", "{B75213C8-4330-4978-BE05-B56E118F5122}"
 EndProject
@@ -13,11 +13,9 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Raytracer", "src\RayTracerF
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sampling", "src\Sampling\Sampling.fsproj", "{42998C38-7E25-4225-A77E-CB5CA1DC0414}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Shapes", "src\Shapes\Shapes.fsproj", "{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "src\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ImplicitSurfaces", "src\ImplicitSurfaces\ImplicitSurfaces.fsproj", "{9D08A5B9-B8C2-46D8-AC62-20487A193EBF}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ImplicitSurfaces", "src\ImplicitSurfaces\ImplicitSurfaces.fsproj", "{940A3706-DAE3-4F52-87B8-D71F44641B0D}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TDD", "TDD\TDD.fsproj", "{E7720E48-DFC5-41B5-914A-C6E4510E5F37}"
 EndProject
@@ -47,16 +45,13 @@ Global
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D11DCB99-64DD-4ECD-A0D8-29B21E12AE72}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D08A5B9-B8C2-46D8-AC62-20487A193EBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D08A5B9-B8C2-46D8-AC62-20487A193EBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D08A5B9-B8C2-46D8-AC62-20487A193EBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D08A5B9-B8C2-46D8-AC62-20487A193EBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,5 +66,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADAD7441-AE01-41F1-8A38-D422343C5DD2}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
