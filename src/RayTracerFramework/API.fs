@@ -54,14 +54,14 @@ module API =
     = new Rectangle(bottomLeft, topLeft, bottomRight, t) :> Shape
   let mkTriangle (a:point) (b:point) (c:point) (m : material) : shape = new Triangle(a, b, c, m) :> Shape
   let mkPlane (m : texture) : shape = InfinitePlane(m) :> Shape
-  let mkImplicit (s : string) : baseShape = mkImplicit(s)
+  let mkImplicit (s : string) : baseShape = mkImplicit s
   let mkPLY (filename : string) (smooth : bool) : baseShape = failwith "mkPoly not implemented"
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = HollowCylinder(c, r, h, t) :> Shape
   let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape
       = SolidCylinder(c, r, h, t, top, bottom) :> Shape
   let mkDisk (c : point) (r : float) (t : texture) : shape = failwith "mkDisk not implemented"
-  let mkBaseDisk (c : point) (r : float) : shape = failwith "mkBaseDisc not implemented"
+  let mkBaseDisk (c : point) (r : float) : baseShape = failwith "mkBaseDisc not implemented"
  
   let mkBox (low : point) (high : point) (front : texture) (back : texture) (top : texture) (bottom : texture) (left : texture) (right : texture) : shape =
       Box(low, high, front, back, top, bottom, left, right) :> Shape

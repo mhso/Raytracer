@@ -13,10 +13,9 @@ module ExprToPoly =
   val ppSimpleExpr : simpleExpr -> string
   val exprToSimpleExpr : expr -> simpleExpr
   val simplifySimpleExpr : simpleExpr -> simpleExpr
+  val solveSE : Map<string,float> -> simpleExpr -> float
 
-  type poly = 
-    | P of Map<int,simpleExpr>
-    static member ( % ) : poly * poly -> poly
+  type poly = P of Map<int,simpleExpr>
     
   val exprToPoly : expr -> string -> poly
   val ppPoly : string -> poly -> string
@@ -28,7 +27,4 @@ module ExprToPoly =
   val simplifyAtomGroup : seq<atom> -> atomGroup
   val combine : atomGroup list -> atom list list -> atom list list
   val getOrder : Map<int, 'a> -> int
-
-  val reducePolyConstants : poly -> Map<string,float> -> Map<int,float>
-  val solveReducedPolyListWithT : float -> (int * float) list -> float
   val polyDerivative : poly -> poly

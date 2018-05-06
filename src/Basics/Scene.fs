@@ -4,6 +4,7 @@ open System
 open System.Drawing
 open System.Diagnostics
 open System.Threading.Tasks
+open System.Threading
 
 type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : AmbientLight, maxBounces) = 
 
@@ -132,11 +133,11 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             currentPct <- pct
 
             let dots = String.replicate (currentPct/2 + 1) "█"
-            let white = String.replicate (49-(currentPct/2)) "░"
+            let white = String.replicate (50-(currentPct/2)) "░"
 
-            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string (pct+1) + "%")
+            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
             loadingIndex <- loadingIndex + 1
-
+    
     member this.StartRender =
         Console.WriteLine(" 
         
@@ -177,22 +178,27 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
         this.StartRender
         
         let mutable processed = 0.0
-
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
-
         let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
+        let mutex = new Mutex()
 
-        // Shoot rays and save the resulting colors, using parallel computations.
-        Parallel.ForEach (pos, fun (x,y) -> 
+        try
+          // Shoot rays and save the resulting colors, using parallel computations.
+          Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
             let cols = List.map (fun ray -> (this.Cast ray)) rays
             let colour = (List.fold (+) Colour.Black cols)/float cols.Length
+              
+            // using mutex to deal with shared ressources in a thread-safe manner
+            mutex.WaitOne() |> ignore
             bmColourArray.[y,x] <- colour
-            
             processed <- processed + 1.0
             this.CalculateProgress processed total
-            ) |> ignore
+            mutex.ReleaseMutex() |> ignore
+          ) |> ignore
+        finally
+          mutex.Dispose() |> ignore
 
         // Apply the colors to the image.
         for y in 0 .. camera.ResY - 1 do

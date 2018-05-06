@@ -4,6 +4,7 @@ module Main =
 
   open Tracer.ImplicitSurfaces.ExprParse
   open Tracer.ImplicitSurfaces.ExprToPoly
+  open Tracer.ImplicitSurfaces.PolyToUnipoly
   open Tracer.Basics
 
   type hf = Ray -> (float * Vector) option
@@ -13,6 +14,7 @@ module Main =
 
   type expr = ExprParse.expr
   type poly = ExprToPoly.poly
+  type unipoly = PolyToUnipoly.unipoly
   type Ray = Tracer.Basics.Ray
 
   let substWithRayVars (e:expr) = 
@@ -132,8 +134,8 @@ module Main =
     let mutable x0 = g // the initial value/guess
 
     for i in [1 .. maxIterations] do
-      let y = solveReducedPolyListWithT x0 f
-      let y' = solveReducedPolyListWithT x0 f'
+      let y = solveUnipoly f x0
+      let y' = solveUnipoly f' x0
       if abs y' < epsilon then () // break
       else
         let x1 = x0 - (y / y')
@@ -146,10 +148,11 @@ module Main =
     if foundSolution then Some x0
     else None
 
-  let newtonRaph p r g =
+  let newtonRaph p r (g:float) =
+    let up = (polyToUnipoly p (getVarMap r))
     newtonRaphson
-      (reducePolyConstants p (getVarMap r) |> Map.toList)
-      ((polyDerivative >> reducePolyConstants) p (getVarMap r) |> Map.toList)
+      up
+      (unipolyDerivative up)
       g
 
   let mkImplicit (s:string) : baseShape =
@@ -175,39 +178,6 @@ module Main =
                     }
                }
     bsh
-
-  let implicitPlane (s:string) : baseShape =
-    let exp = parseStr s // parsing the equation string to expression
-    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
-    let hitfunction =
-      match getOrder m with
-      | 1     -> getFirstDegreeHF (P m) exp
-      | 2     -> getSecondDegreeHF (P m) exp
-      | _     -> failwith "poly of higher degree than 2 is not supported yet"
-    let checker x z =
-        let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
-        if (int (abs' x) + int (abs' z)) % 2 = 0
-        then MatteMaterial(Colour.Red)
-        else MatteMaterial(Colour.Green)
-    let bsh = { new baseShape() with
-                  member this.toShape tex = 
-                    let mat = (Textures.getFunc tex) 1. 1.
-                    let newhf r =
-                      match hitfunction r with
-                      | None        -> hitPoint (r)
-                      | Some (t,v)  -> 
-                          let hp = hitPoint (r, t, v, mat)
-                          let x = hp.Point.X
-                          let z = hp.Point.Z
-                          hitPoint (r, t, v, checker x z)
-                    { new shape() with
-                        member this.hitFunction r = newhf r
-                        member this.getBoundingBox () = failwith "I hate this"
-                        member this.isInside p = failwith "I hate this"
-                    }
-               }
-    bsh
-
 
 (*
   [<EntryPoint>]

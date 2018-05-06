@@ -10,7 +10,6 @@ module Main =
   type shape = Tracer.Basics.Shape
 
   val mkImplicit : string -> baseShape
-  val implicitPlane : string -> baseShape
 
   // needed for testing
   type expr = ExprParse.expr

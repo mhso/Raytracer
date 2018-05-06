@@ -18,7 +18,7 @@ module Program =
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
       let (lights:Light list) = [light; light2; ambientLight]
-      Scene (s, c, lights)
+      Scene (s, c, lights, ambientLight, 8)
 
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -29,11 +29,6 @@ module Program =
     let phongYellow = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour(1.,1.,0.))
     let phongRed = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Red)
     let phongGreen = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Green)
-    let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
-    let perfectGreen = PerfectReflectionMaterial(5, matteGreen, Colour.White, 1.)
-    let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
-    let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
-    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 6, 1, 1, 10.)
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     let mkShape (bs:baseShape) m = bs.toShape m
