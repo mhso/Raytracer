@@ -295,36 +295,40 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
 module Transform =
     let transformRay (r : Ray) t = 
-        let o = Transformation.pointToMatrix r.GetOrigin
-        let d = Transformation.vectorToMatrix r.GetDirection
-        let invT = Transformation.getInvMatrix t
-        let originMatrix = Transformation.Matrix.multi (invT, o)
-        let directionMatrix = Transformation.Matrix.multi (invT, d)
-        let origin = Transformation.matrixToPoint originMatrix
-        let direction = Transformation.matrixToVector directionMatrix
+        let o = pointToMatrix r.GetOrigin
+        let d = vectorToMatrix r.GetDirection
+        let invT = getInvMatrix t
+        let originMatrix = Matrix.multi (invT, o)
+        let directionMatrix = Matrix.multi (invT, d)
+        let origin = matrixToPoint originMatrix
+        let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
 
     let transformNormal (v:Vector) (t: Transformation.Transformation)= 
         let vector = v
-        let tVector = Transformation.matrixToVector (Transformation.Matrix.multi ((Transformation.transpose (Transformation.getInvMatrix (t))),(Transformation.vectorToMatrix vector)))
+        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix vector)))
         tVector
 
     let transform (s : Shape) (t:Transformation) =
-        let transHitFunction (r:Ray) = 
-            let transformedRay = transformRay r t
-            let hitsOriginal = s.hitFunction transformedRay
-            let normal = transformNormal (hitsOriginal.Normal) t
-            if (hitsOriginal.DidHit) then
-                new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
-            else 
-                new HitPoint(r)
-        let sh = {new Shape() with
+        {new Shape() with
             member this.hitFunction r = 
-                transHitFunction r
-            member this.getBoundingBox () = failwith "I hate this"
-            member this.isInside p = failwith "I hate this"
+                let transformedRay = transformRay r t
+                let hitsOriginal = s.hitFunction transformedRay
+                let normal = transformNormal (hitsOriginal.Normal) t
+                if (hitsOriginal.DidHit) then
+                    new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material)
+                else 
+                    new HitPoint(r)
+            member this.getBoundingBox () = 
+                let bbH = s.getBoundingBox().highPoint
+                let bbL = s.getBoundingBox().lowPoint
+                let high = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbH))
+                let low = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbL))
+                BBox(low,high)
+            member this.isInside p = 
+                let oldP = matrixToPoint (Matrix.multi(getInvMatrix t, pointToMatrix p))
+                s.isInside(oldP)
         }
-        sh
         
 
 type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, top:Texture, bottom:Texture) =
