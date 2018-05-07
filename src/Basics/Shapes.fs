@@ -491,7 +491,26 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Grouping -> if s1.isInside p || s2.isInside p then true
                                                      else false
 
-    override this.getBoundingBox () = failwith "not implemented yet"
+    override this.getBoundingBox () = match op with
+                                        |Union -> //merges the two BBoxes, by combining the highest high coords, and the lwest low coords, to form a new bounding box
+                                            let bBox1 = s1.getBoundingBox ()
+                                            let bBox2 = s2.getBoundingBox ()
+                                            let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            let newHigh = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            BBox(newLow, newHigh)
+                                        |Intersection -> //chooses the highest of the low point coords, and the lowest of the highpoint coords, to approximate the intersection
+                                            let bBox1 = s1.getBoundingBox ()
+                                            let bBox2 = s2.getBoundingBox ()
+                                            let newLow = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            let newHigh = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            BBox(newLow, newHigh)
+                                        |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
+                                        |Grouping -> //the same as for union
+                                            let bBox1 = s1.getBoundingBox ()
+                                            let bBox2 = s2.getBoundingBox ()
+                                            let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            let newHigh = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                                            BBox(newLow, newHigh)
 
     ////UNION////
     member this.unionHitFunctionInside (r:Ray) =
