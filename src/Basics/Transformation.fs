@@ -64,12 +64,21 @@ open System
                 [|0.;0.;0.;mult*det|]|])
         mkTransformation(matrix,inv)
 
-    let rotateX angle = mkTransformation(mkMatrix ([|[|1.;0.;0.;0.|];[|0.;Math.Cos(angle);-(Math.Sin(angle));0.|];[|0.;Math.Sin(angle);(Math.Cos(angle));0.|];[|0.;0.;0.;1.|]|]),
-                                         mkMatrix ([|[|1.;0.;0.;0.|];[|0.;Math.Cos(angle);(Math.Sin(angle));0.|];[|0.;-(Math.Sin(angle));(Math.Cos(angle));0.|];[|0.;0.;0.;1.|]|]))
-    let rotateY angle = mkTransformation(mkMatrix ([|[|Math.Cos(angle);0.;Math.Sin(angle);0.|];[|0.;1.;0.;0.|];[|-(Math.Sin(angle));0.;Math.Cos(angle);0.|];[|0.;0.;0.;1.|]|]),
-                                         mkMatrix ([|[|Math.Cos(angle);0.;-(Math.Sin(angle));0.|];[|0.;1.;0.;0.|];[|(Math.Sin(angle));0.;Math.Cos(angle);0.|];[|0.;0.;0.;1.|]|]))
-    let rotateZ angle = mkTransformation(mkMatrix ([|[|Math.Cos(angle);-(Math.Sin(angle));0.;0.|];[|Math.Sin(angle);Math.Cos(angle);0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]),
-                                          mkMatrix ([|[|Math.Cos(angle);(Math.Sin(angle));0.;0.|];[|-(Math.Sin(angle));Math.Cos(angle);0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]))
+    let rotateX angle = 
+        let cos = Math.Cos(angle)
+        let sin = Math.Sin(angle) 
+        mkTransformation(mkMatrix ([|[|1.;0.;0.;0.|];[|0.;cos;-(sin);0.|];[|0.;sin;(cos);0.|];[|0.;0.;0.;1.|]|]),
+                                         mkMatrix ([|[|1.;0.;0.;0.|];[|0.;cos;(sin);0.|];[|0.;-(sin);(cos);0.|];[|0.;0.;0.;1.|]|]))
+    let rotateY angle = 
+        let cos = Math.Cos(angle)
+        let sin = Math.Sin(angle) 
+        mkTransformation(mkMatrix ([|[|cos;0.;sin;0.|];[|0.;1.;0.;0.|];[|-(sin);0.;cos;0.|];[|0.;0.;0.;1.|]|]),
+                                         mkMatrix ([|[|cos;0.;-(sin);0.|];[|0.;1.;0.;0.|];[|(sin);0.;cos;0.|];[|0.;0.;0.;1.|]|]))
+    let rotateZ angle =
+        let cos = Math.Cos(angle)
+        let sin = Math.Sin(angle) 
+        mkTransformation(mkMatrix ([|[|cos;-(sin);0.;0.|];[|sin;cos;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]),
+                                          mkMatrix ([|[|cos;sin;0.;0.|];[|-(sin); cos;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]))
                                           
 
 
