@@ -65,6 +65,7 @@
     <Compile Include="ImplicitSurfaces\ExprParseTests.fs" />
     <Compile Include="ImplicitSurfaces\ExprToPolyTests.fs" />
     <Compile Include="ImplicitSurfaces\ExprToPolyTests2.fs" />
+    <Compile Include="ImplicitSurfaces\PolyToUnipolyTests.fs" />
     <Compile Include="ImplicitSurfaces\ImplicitSurfacesTests.fs" />
     <Compile Include="SamplingTest.fs" />
     <Compile Include="KDTest.fs" />

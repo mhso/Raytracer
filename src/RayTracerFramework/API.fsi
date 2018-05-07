@@ -1,5 +1,8 @@
 ﻿namespace Tracer
 
+open Tracer.Sampling.Sampling
+open Tracer.Basics
+open Transformation
 
 module API =
   type dummy = unit
@@ -8,19 +11,19 @@ module API =
   // Type definitions //
   //////////////////////
   
-  type vector = dummy
-  type point = dummy
-  type colour = dummy
-  type material = dummy
-  type shape = dummy
-  type baseShape = dummy
-  type texture = dummy
-  type camera = dummy
-  type scene = dummy
-  type light = dummy
-  type ambientLight = dummy
-  type transformation = dummy
-  type sampler = dummy
+  type vector = Vector
+  type point = Point
+  type colour = Colour
+  type material = Material
+  type shape = Shape
+  type baseShape = BaseShape.BaseShape
+  type texture = Texture
+  type camera = Camera
+  type scene = Scene
+  type light = Light
+  type ambientLight = AmbientLight
+  type transformation = Transformation
+  type sampler = SampleGenerator
   
   ////////////
   // Basics //

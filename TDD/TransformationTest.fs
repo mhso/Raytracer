@@ -1,6 +1,6 @@
 ﻿module TransformationTest
 
-open Transformation
+open Tracer.Basics.Transformation
 open System
 open Assert
 open Tracer.Basics
@@ -33,7 +33,6 @@ let allTest =
         let trans = scale 2. 0.5 1.
         let matrix1 = (getMatrix trans)
         let matrix2 = (getInvMatrix trans)
-        printfn "%A" (getList matrix1)
         let result = getList (Matrix.multi (matrix2,matrix1))
         let expected = [|[|1.;0.;0.;0.|];[|0.;1.;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]
         Assert.Equal (expected,result, "ScaleInv")

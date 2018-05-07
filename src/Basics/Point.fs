@@ -21,7 +21,7 @@ type Point(x:float, y:float, z:float) =
         | _ -> false
     member this.GetCoord = (x,y,z)
     member this.Move (v: Vector) = new Point(x+v.X, y+v.Y, z+v.Z)
-    member this.Distance (q: Point) = new Vector(abs(q.X-x),abs(q.Y-y),abs(q.Z-z))
+    member this.Distance (q: Point) = new Vector(q.X-x, q.Y-y, q.Z-z)
     member this.Direction (p:Point) (q:Point) = p.Distance(q).Normalise
     member this.Round (d:int) = new Point(System.Math.Round(x,d), System.Math.Round(y,d), System.Math.Round(z,d))
     member this.ToVector = new Vector(x,y,z)
