@@ -7,16 +7,17 @@ let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
-type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
-    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
+type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleSize: int, sampleSetCount: int) =   
+    let samples: (float * float) [][] = samplingAlgorithm sampleSize sampleSetCount
 
     let mutable currentSampleIndex = 0
-    let mutable currentSample: (float * float) = (0.,0.)
+    let mutable currentSample: (float * float) = (0., 0.)
+    let sampleCount = samples.[0].Length
 
     member this.Next() = 
-        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let setIndex = (currentSampleIndex / sampleCount) % sampleSetCount
         let sampleIndex = currentSampleIndex % sampleCount
-        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
+        let sample = samples.[setIndex].[sampleIndex]
         currentSampleIndex <- currentSampleIndex + 1
         currentSample <- sample
         sample
@@ -98,19 +99,20 @@ let drawSphereSamples (sl:(float * float * float) []) fileName above =
 
 let regular (ni:int) =
     let n = float ni
-    let samples = Array.create ni (0.0, 0.0)
+    let samples = Array.create (ni*ni) (0.0, 0.0)
     let rec innerX x = 
         let rec innerY = function
-            | 0 -> samples.[0] <- (float x/(n+1.0), 1.0/(n+1.0))
+            | 1 -> 
+                samples.[ni*(x-1)] <- (float x/(n+1.0), 1.0/(n+1.0))
             | y -> 
-                samples.[y] <- (float x/(n+1.0), float y/(n+1.0))
-                (innerY (y-1))
+                samples.[(ni*(x-1))+(y-1)] <- (float x/(n+1.0), float y/(n+1.0))
+                innerY (y-1)
         match x with
-        | 0 -> innerY ni
+        | 1 -> innerY ni
         | c ->
-            (innerY ni)
-            (innerX (c-1))
-    innerX (ni-1)
+            innerY ni
+            innerX (c-1)
+    innerX ni
     [|samples|]
 
 let createSampleSets (set:(float * float)[][]) =
@@ -304,8 +306,7 @@ let mapToHemisphere (x, y) e =
 (*for i in 0..1920/127 do
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
-        
-(*    
+
 [<EntryPoint>]
 let main argsv =
     if Array.isEmpty argsv then 
@@ -330,4 +331,4 @@ let main argsv =
             let e = if argsv.Length = 5 then float (Int32.Parse argsv.[4]) else 0.0
             drawSphereSamples (Array.map (fun (x, y) -> (mapToHemisphere (x, y) e)) samples) fileName true
     else drawSamples samples method fileName
-    0*)
+    0
