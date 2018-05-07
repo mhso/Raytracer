@@ -4,16 +4,17 @@ open System.IO
 open Tracer.Basics
 open Transformation
 open Tracer.Sampling
+open System.Diagnostics
 
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(5.,2.,0.)
-    let lookat = Point(0.,0.,0.)
+    let position = Point(-5.,3.,0.)
+    let lookat = Point(0.5,1.,0.5)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 250
-    let resY = 100
+    let resX = 640
+    let resY = 480
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     
@@ -22,6 +23,7 @@ let main _ =
     let matteGreen = MatteMaterial(Colour.Green)
     let matteYellow = MatteMaterial(Colour(1.,1.,0.))
     let matteWhite = MatteMaterial(Colour.White)
+    let matteGray = MatteMaterial(Colour(0.7, 0.7, 0.7))
     let matteBlue = MatteMaterial(Colour.Blue)
     let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
     let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
@@ -37,9 +39,17 @@ let main _ =
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
     
     let sLr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteRed)
-    let sCr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
+    let sCr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteGray)
     let sRr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteGreen)
+
+    let boxTex = mkMatTexture matteGreen
+    let rLr = Box(Point(0., 0., 0.), Point(1., 2., 1.), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+
     
+    let rL = Transform.transform rLr (translate 0. 0. -3.)
+    let rC = Transform.transform rLr (translate 0. 1. -1.)
+    let rR = Transform.transform rLr (translate 0. 1. 1.)
+
     let sL = Transform.transform sLr (translate 0. 1. -2.5)
     let sC = Transform.transform sCr (translate 0. 1. 0.)
     let sR = Transform.transform sRr (translate 0. 1. 2.5)
@@ -60,21 +70,22 @@ let main _ =
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     
     //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 1.5, Point(7.,7.,0.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
-    let lightEnviro    = EnvironmentLight(100., mkMatTexture emissive, Sampling.SampleGenerator(Sampling.multiJittered, 1, 1))
+    let lightFront     = PointLight(Colour.White, 1.5, Point(7.,7.,7.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,1.,0.))
+    
+    let lightEnviro    = EnvironmentLight(10000., mkMatTexture emissive, Sampling.SampleGenerator(Sampling.multiJittered, 10, 1))
+    let planeR = InfinitePlane(mkMatTexture matteWhite)
 
     //- LIGHTS
-    let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
-    let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
-    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
-    let plane          = InfinitePlane(mkMatTexture matteWhite)
+    //let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
+    //let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    //let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
+    //let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5) 
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightEnviro]
-    let spheres: Shape []       = [| sL;sC;sR |]
-
+    let lights: Light list      = [lightFront;]
+    let spheres: Shape []       = [| planeR; rLr |]
+    
     let scene                   = Scene(spheres, camera, lights)
 
     ignore scene.Render

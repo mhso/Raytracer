@@ -33,8 +33,9 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
     member this.Ray: Ray = ray
     member this.Time: float = time
     member this.Point: Point = ray.PointAtTime time
+    member this.EscapedPoint: Point = (ray.PointAtTime time) + this.Normal * 0.000001
     member this.DidHit: bool = didHit
-    member this.Normal: Vector = normal
+    member this.Normal: Vector = if ray.GetDirection * normal > 0. then -normal else normal
     member this.Material: Material = material
     
     // For hit rays

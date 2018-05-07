@@ -113,21 +113,6 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampling.SampleG
     inherit Light(Colour.Black, 1.)
     
     let sphere = SphereShape(Point.Zero, radius, texture)
-    let mutable sp = []
-    let mutable hsp = HitPoint(Point.Zero)
-    let sampleIfNeeded (hitPoint: HitPoint) = 
-        if not (Object.ReferenceEquals(hsp, hitPoint)) then
-            sp <- 
-                [for i=0 to sampler.SampleCount do 
-                    let spNew = Point(Sampling.mapToHemisphere (sampler.Next()) 10.) * radius
-                    let m = hitPoint.Normal
-                    let up = new Vector(0., 1., 0.)
-                    let w = m.Normalise
-                    let v = (up % w).Normalise
-                    let u = w % v
-            
-                    yield Point(spNew.OrthonormalTransform(u, v, w)).Move(hitPoint.Point.ToVector)]
-            hsp <- hitPoint
 
     member this.Radius = radius
     member this.Texture = texture
@@ -135,19 +120,50 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampling.SampleG
 
     override this.GetColour hitPoint = 
         sampleIfNeeded hitPoint
-        Colour.Black
+
+        let getColour sp = 
+            let origin = hitPoint.EscapedPoint
+            let direction: Vector = sp - origin
+            let ray = Ray(origin, direction.Normalise)
+            let spHitPoint = sphere.hitFunction(ray)
+            if spHitPoint.Material :? EmissiveMaterial then
+                spHitPoint.Material.Bounce sphere spHitPoint this
+            else
+                Colour.Black
+
+        let totalColour =  
+            [for i=0 to sampler.SampleCount-1 do yield getColour sp.[i]]
+                |> List.fold (fun acc a -> acc + a) Colour.Black
+                
+        totalColour / float(sampler.SampleCount)
+
         
     override this.GetDirectionFromPoint hitPoint = 
-        -hitPoint.Normal
-        
+        sampleIfNeeded hitPoint
+
+        let getDirectionFromSample sp =
+            let delta: Vector = (sp - hitPoint.Point)
+            delta.Normalise
+
+        let totalDirection = 
+            [for i=0 to sampler.SampleCount-1 do yield getDirectionFromSample sp.[i]]
+            |> List.sum
+
+        totalDirection / float(sampler.SampleCount)
+
+
     override this.GetShadowRay (hitPoint:HitPoint) =
         sampleIfNeeded hitPoint
+
+        let getShadowRay sp =
+            let delta: Vector = (sp - hitPoint.EscapedPoint)
+            Ray(hitPoint.EscapedPoint, delta.Normalise)
 
         if hitPoint.Material :? EmissiveMaterial then
             [||]
         else
-            [||]
-
+            List.toArray [for i=0 to sampler.SampleCount-1 do yield getShadowRay sp.[i]]
+                
     override this.GetGeometricFactor hitPoint = 
         sampleIfNeeded hitPoint
         1.

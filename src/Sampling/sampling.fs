@@ -287,8 +287,9 @@ let mapToHemisphere (x, y) e =
         ignore (nRooks 256 127)*)
 
 type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
+    
     let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
-
+    
     let mutable currentSampleIndex = 0
     let mutable currentSample: (float * float) = (0.,0.)
 
