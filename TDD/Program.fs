@@ -21,6 +21,8 @@ let main argv =
     ExprToPolyTests.allTest
     printfn "-=-=-=-=-=-=- ExprToPoly Test v2 (Implicit Surfaces) -=-=-=-=-=-=-"
     ExprToPolyTests2.allTest
+    printfn "-=-=-=-=-=-=- PolyToUnipoly Test (Implicit Surfaces) -=-=-=-=-=-=-"
+    PolyToUnipolyTests.allTest
     printfn "-=-=-=-=-=-=- Implicit Surfaces -=-=-=-=-=-=-"
     ImplicitSurfacesTests.allTest
 

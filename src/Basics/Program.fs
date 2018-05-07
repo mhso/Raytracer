@@ -1,62 +1,71 @@
-﻿open Tracer.Basics.Textures
+﻿open Tracer.Basics
+open Tracer.Basics.Textures
 open Tracer.Sampling.Sampling
 open System.IO
-open Tracer.Basics
-open Transformation
-open Tracer.Sampling
-open System.Diagnostics
 
 [<EntryPoint>]
 let main _ = 
     
-    let position = Point(-5.,3.,0.)
-    let lookat = Point(0.5,1.,0.5)
+    let position = Point(0.,2.,5.)
+    let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 640
-    let resY = 480
+    let resX = 1920
+    let resY = 1080
     let width = 2.
     let height = (float(resY) / float(resX)) * width
+    let maxReflectionBounces = 3
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
     let matteGreen = MatteMaterial(Colour.Green)
     let matteYellow = MatteMaterial(Colour(1.,1.,0.))
     let matteWhite = MatteMaterial(Colour.White)
-    let matteGray = MatteMaterial(Colour(0.7, 0.7, 0.7))
     let matteBlue = MatteMaterial(Colour.Blue)
     let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
-    let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
-    let perfectGreen = PerfectReflectionMaterial(5, matteGreen, Colour.White, 1.)
-    let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
-    let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
-    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
-    let emissive = EmissiveMaterial(Colour.White, 1.)
+    let perfectWhite = PerfectReflectionMaterial(matteWhite, Colour.White, 1.)
+    let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
+    let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
+    let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
+    let perfectBlue = PerfectReflectionMaterial(matteBlue, Colour.Red, 1.)
+    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 127, 100.)
+    let emissive = EmissiveMaterial(Colour.White, 10000.)
+    
 
     //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
-    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture perfectWhite)
+    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
     
-    let sLr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteRed)
-    let sCr = SphereShape(Point(0., 0., 0.), 3., mkMatTexture matteGray)
-    let sRr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteGreen)
+    let matRedTex = mkMatTexture matteRed
+    let matGreenTex = mkMatTexture matteGreen
+    let matBlueTex = mkMatTexture matteBlue
+    let matYellowTex = mkMatTexture matteYellow
 
-    let boxTex = mkMatTexture phongShades
-    let rLr = Box(Point(0., 0., 0.), Point(1., 2., 1.), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    let perfRedTex = mkMatTexture perfectRed
+    let perfYellowTex = mkMatTexture perfectYellow
+    let perfGreenTex = mkMatTexture perfectGreen
+    let perfBlueTex = mkMatTexture perfectBlue
 
-    
-    let rL = Transform.transform rLr (translate 0. 0. -3.)
-    let rC = Transform.transform rLr (translate 0. 1. -1.)
-    let rR = Transform.transform rLr (translate 0. 1. 1.)
+    let sL = SphereShape(Point(-1., 0., -1.), 1., mkMatTexture matteRed)
+    let sC = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
+    let sR = SphereShape(Point(1., 0., 1.), 1., mkMatTexture matteGreen)
 
-    let sL = Transform.transform sLr (translate 0. 1. 0.)
-    let sC = Transform.transform sCr (translate 0. -3. 0.)
-    let sR = Transform.transform sRr (translate 0. 1. 2.5)
-    
-    let sTop = SphereShape(Point(0., 0., 15.), 5., mkMatTexture matteWhite)
-    let discC = Disc(Point(0., 0., 0.), 4., mkMatTexture emissive)
-    let rectC = Rectangle(Point(-4., -4., 0.), Point(-4., 4., 0.), Point(4., -4., 0.), mkMatTexture emissive)
+    // Rectangles for testing Thin Lens.
+    let thinBoxL = Box(Point(-5.5, 0., -6.), Point(-3.5, 3., -5.), matRedTex, matRedTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
+    let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), matYellowTex, matYellowTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
+    let thinBoxR = Box(Point(2., 0., -1.), Point(4., 3., 0.), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
+
+
+    let sTop = SphereShape(Point(0., 0., 10.), 5., Textures.mkMatTexture matteWhite)
+    let discC = Disc(Point(0., 0., 0.), 4., Textures.mkMatTexture emissive)
+    let rectC = Rectangle(Point(-4., -4., 0.), Point(-4., 4., 0.), Point(4., -4., 0.), Textures.mkMatTexture emissive)
+    let checker x y =
+        let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
+        if (int (abs' x) + int (abs' y)) % 2 = 0
+        then new MatteMaterial(new Colour(0., 0., 0.)) :> Material
+        else perfectYellow :> Material
+    let plane =  InfinitePlane(mkTexture(checker))
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129
@@ -65,30 +74,24 @@ let main _ =
 
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 1.0, 5.0,
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
-    
-    //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 1.5, Point(7.,7.,7.))
-    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,1.,0.))
-    
-    let lightEnviro     = EnvironmentLight(10000., mkMatTexture emissive, Sampling.SampleGenerator(Sampling.multiJittered, 5, 1))
-    let ambientOccluder = AmbientOccluder(1., Colour.White, 0., Sampling.SampleGenerator(Sampling.multiJittered, 101, 1))
-    let planeR = InfinitePlane(mkMatTexture matteWhite)
 
     //- LIGHTS
-    //let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
-    //let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    //let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
-    //let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5) 
+    let lightFront     = DirectionalLight(Colour.White, 0.5, Vector(0., 0., -1.))
+
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
+    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
+    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
 
     //- FINAL
-    let lights: Light list      = [ambientOccluder]
-    let spheres: Shape []       = [| sL; sC |]
-    
-    let scene                   = Scene(spheres, camera, lights)
+    let lights: Light list      = [lightAmbient; lightFront]
+    let spheres: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
 
-    ignore scene.RenderParallel
+    let scene                   = Scene(spheres, camera, lights, lightAmbient, maxReflectionBounces)
+
+    ignore scene.Render
     
     0

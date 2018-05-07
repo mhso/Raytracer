@@ -1,4 +1,4 @@
-module Transformation
+module Tracer.Basics.Transformation
 
 open Tracer.Basics
 [<Sealed>]
@@ -6,12 +6,12 @@ type Matrix =
   static member multi : Matrix * Matrix -> Matrix
 type Transformation
   
-val mkMatrix : float list list -> Matrix
+val mkMatrix : float array array -> Matrix
 val getRowLength : Matrix -> int
 val getColLength : Matrix -> int
 val transpose : Matrix -> Matrix
 val translate : x : float -> y : float -> z : float -> Transformation
-val getList : Matrix -> float list list
+val getList : Matrix -> float array array
 val getMatrix : Transformation -> Matrix
 val getInvMatrix : Transformation -> Matrix
 val scale : width : float -> height : float -> depth : float -> Transformation

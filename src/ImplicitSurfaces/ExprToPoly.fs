@@ -253,103 +253,13 @@ module ExprToPoly =
                           else v**(float x) * solveAG m r
             | None   -> failwith "solveAG: variable not found in map"
         | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
-
+  
+  // maps in fsharp are ordered according to generic comparison, and since our keys are ints,
+  // we know that the last element will have the largest integer value
+  // the following should then be faster than iterating over all the elements
+  let getOrder (m:Map<int,'a>) = (m |> Seq.last).Key
+  
   // requires a map of all variables, mapped to float values
-  let rec solveSE m = function  
-    | SE ([])     -> 0.0
-    | SE (ag::cr) -> solveAG m ag + solveSE m (SE cr)
-
-  // only works if all the inner variables are known
-  // returns a map of <int,float> where int is the power of the unknown, and float is the constant
-  let reducePolyConstants (P m) vars =
-    let mutable reduced = Map.empty
-    for KeyValue (n,s) in m do
-      reduced <- Map.add n (solveSE vars s) reduced 
-    reduced
-  
-  let rec solveReducedPolyList x = function
-    | []        -> 0.0
-    | (0,c)::cr -> c + solveReducedPolyList x cr 
-    | (n,c)::cr -> (x**(float n)) * c + solveReducedPolyList x cr
-
-  // assuming p2 is of lower order
-  // returns a SimpleExpr * (SimpleExpr * SimpleExpr) option, where the last part, the option, is a potential remainder
-  let polynomialLongDivision (p1:(int * float) list) (p2:(int * float) list) : (int * float) list * (simpleExpr * simpleExpr) option =
-    let (divExp, divConst) = p2.[0]
-    
-    let p1 = [(3,3.0);(2,-2.0);(1,7.0);(0,-4.)]
-    let p2 = [(2,1.0);(0,1.0)]
-
-    let subt (p1:(int * float) list) (p2:(int * float) list) (nn,cc) =
-      printfn "%A" (nn,cc)
-      let toSubtract = [for (n,c) in p2 do
-                          yield (n + nn, c * cc)]
-      toSubtract
-    //let test = subt [] [(2,1.0);(1,3.0)] (1,1.0)
-    let rec inner res = function
-      | []        -> res
-      | (n,c)::cr -> let currVal = (n-divExp, c / divConst)
-                     let resPoly = subt p1 p2 currVal
-                     resPoly
-    
-    let x = inner [] p1
-    // HMMM I am a bit unsure if I should go back to Map<int,float>, or Map<int, simpleExpr>, or stay with the current lists
-    p1, None
-        
-  //type poly with
-   // static member ( % ) (p1, p2) = polynomialLongDivision p1 p2
-
- (* Simple tests
-
-  let x = parseStr "x^2 - x^2"
-  let x1 = simplify x
-  List.map simplifyAtomGroup x1
-  
-  let x = parseStr "x^2 - x^2"
-  let x1 = simplify x
-  List.map simplifyAtomGroup x1
-  let x = FAdd (FExponent (FVar "x", 2) ,
-                         FAdd (FExponent (FVar "y", 2),
-                               FAdd (FExponent (FVar "z", 2),
-                                     FMult (FNum -1.0, FExponent (FVar "r", 2))))) 
-  let (SE z) = exprToSimpleExpr x
-  let y = simplify x
-  List.map simplifyAtomGroup y
-  
-
-  let (SE z) = exprToSimpleExpr x
-  List.map simplifyAtomGroup z
-  ppPoly "" (exprToPoly (parseStr "x^2 + x + x^3")"") 
-
-  ppPoly "" (exprToPoly (parseStr "x_2 + y_3") "")
-
-  ppPoly "" (exprToPoly (parseStr "3 * -3 * x - 4") "")  
-
-  ppPoly "" (exprToPoly (parseStr "-x * (y - z)") "")
-
-  ppPoly "" (exprToPoly (parseStr "(x + y) / z") "")
-  
-  ppPoly "" (exprToPoly (parseStr "10.0 / 5.5") "")
-
-  ppPoly "" (exprToPoly (parseStr "x^3 / x^2") "")
-
-  ppPoly "" (exprToPoly (parseStr "x^3 / x^2") "")
-
-  ppPoly "" (exprToPoly (parseStr "x^2 - x^2") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + 1") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + x^2 + 1x^2") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + y^2") "")
-  ppPoly "" (exprToPoly (parseStr "x + x*x*y*x*y") "y")
-  ppPoly "" (exprToPoly (parseStr "10 x * x * x + 2 x + 1") "")
-  ppPoly "" (exprToPoly (parseStr " x * x * x + 2") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + z^2 - 1") "")
-  ppPoly "" (exprToPoly (parseStr "x^2 + y^2 + z^2 - R") "")
-  ppPoly "" (exprToPoly (parseStr "- (r * r)") "")
-  ppPoly "" (exprToPoly (parseStr "- r * r") "")
-  ppPoly "" (exprToPoly (parseStr "2_3") "")
-  ppPoly "" (exprToPoly (parseStr "(3 * 3)_2") "")
-  ppPoly "" (exprToPoly (parseStr "- (r * r)_2") "")
-  ppPoly "" (exprToPoly (parseStr "- r * r _ 2") "")
-
-   ppPoly "" (exprToPoly (parseStr  "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") "")
-  *)
+  let rec solveSE m acc = function
+    | SE ([])     -> acc
+    | SE (ag::cr) -> solveSE m (acc + solveAG m ag) (SE cr)

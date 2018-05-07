@@ -1,4 +1,4 @@
-﻿namespace Tracer.Basics
+namespace Tracer.Basics
 open System
 open Transformation
 
