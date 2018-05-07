@@ -22,7 +22,7 @@ type ThinLensCamera
         let mutable rays = []
         for i in 0..lensSamples.SampleCount-1 do
             // Create Ray, setup direction and origin.
-            let qx, qy = viewSamples.Next() // Sample unit square for center point.
+            let qx, qy = viewSamples.Next() // Sample unit square for center ray.
             let qx = base.Pw * ((float x - float resX/2.0) + qx)
             let qy = base.Ph * ((float y - float resY/2.0) + qy)
             
@@ -33,7 +33,7 @@ type ThinLensCamera
             let ly = ly * r
 
             // Create the primary lens ray, 
-            // from the lens disc point to the focal unit square point.
+            // from the lens disc point to the focal point.
             let rayOrigin = base.Position + lx * base.V + ly * base.U
 
             let rayDirection = ((px - lx) * base.V + (py - ly) * base.U - f * base.W).Normalise
