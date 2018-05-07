@@ -143,7 +143,7 @@ let main _ =
     let sphere59 = transform spherere1 (translate 0. fourteen 0.)
     let sphere60 = transform spherere1 (translate 0. sixteen 0.)
 
-    let testList:list<Shape> = [spherere1; sphere102; sphere3; sphere4; sphere5; 
+    let testShapeArr:array<Shape> = [|spherere1; sphere102; sphere3; sphere4; sphere5; 
                                 sphere6; sphere7; sphere8; sphere9; sphere10; 
                                 sphere11; sphere12; sphere13; sphere14; sphere15; 
                                 sphere16; sphere17; sphere18; sphere19; sphere20; 
@@ -162,7 +162,7 @@ let main _ =
                                 sphere81; sphere82; sphere83; sphere84; sphere85; 
                                 sphere86; sphere87; sphere88; sphere89; sphere90; 
                                 sphere91; sphere92; sphere93; sphere94; sphere95; 
-                                sphere96; sphere97; sphere98; sphere99; sphere100; sphere101]
+                                sphere96; sphere97; sphere98; sphere99; sphere100; sphere101|]
 
     
     //- THIN LENS SAMPLE SETTINGS
@@ -177,13 +177,12 @@ let main _ =
     //- FINAL
     let camera                  = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
     let lights: Light list      = [directional; lightAmbient]
-    //let spheres : Shape array   = [| spherere1; spherere2 |]
+    let spheres2 : Shape array   = [| spherere1; spherere2 |]
     //let spheres: Shape array    = [| spherere1; sphere53; sphere54; sphere55; sphere56; sphere57; sphere58; sphere59; sphere60 |]
-    let spheres: Shape array    = List.toArray testList
     //let spheres: Shape array    = List.toArray testList2
-    let scene                   = Scene(spheres, camera, lights)
+    let scene                   = Scene(spheres2, camera, lights)
 
-    let kdTree = Acceleration.KD_tree.buildKDTree spheres
+    //let kdTree = Acceleration.KD_tree.buildKDTree spheres
 
     //printfn "%A" kdTree
 
