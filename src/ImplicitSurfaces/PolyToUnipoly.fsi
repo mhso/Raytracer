@@ -12,5 +12,5 @@ module PolyToUnipoly =
   val polyToUnipoly : poly -> Map<string,float> -> unipoly
   val solveUnipoly : unipoly -> float -> float
   val unipolyDerivative : unipoly -> unipoly
-  val sturmSeq : unipoly -> unipoly list
+  val sturmSeq : unipoly -> unipoly -> unipoly list
   val makeGuess : unipoly list -> float option

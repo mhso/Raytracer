@@ -9,14 +9,17 @@ module PolyToUnipoly =
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
   type unipoly = UP of Map<int, float>
 
+  let epsilon = 10.**(-10.) // we consider this to be as good as zero. Might wanna adjust this...
+
   // only works if the poly terms only consists of ANums
   let polyToUnipoly (P m:poly) vars =
     UP (Map.fold
           (fun res k v ->
-            Map.add k (solveSE vars v) res)
+            Map.add k (solveSE vars 0.0 v) res)
           Map.empty m)
   
-  let rec solveUnipoly (UP m) t = Map.fold (fun acc k v -> acc + (t**(float k) * v)) 0.0 m
+  let rec solveUnipoly (UP m) t = Map.fold (fun acc k v -> if k > 0 then acc + pown t k * v
+                                                           else acc + v) 0.0 m
 
   let unipolyDerivative (UP m:unipoly) =
     UP (Map.fold 
@@ -41,7 +44,7 @@ module PolyToUnipoly =
             match Map.tryFind k res with
             | Some m1val -> 
                 let newC = m1val - v
-                if newC = 0.0 then Map.remove k res
+                if newC = 0.0 || abs newC < epsilon then Map.remove k res
                 else Map.add k newC res
             | None -> Map.add k -v res
        ) m1 m2)
@@ -49,6 +52,10 @@ module PolyToUnipoly =
   let getOrder up =
     let (order,_) = getFirstTerm up
     order
+  
+  let isEmpty (UP m) = m.IsEmpty
+
+  let negateUnipoly (UP m) = UP (Map.fold (fun acc k v -> Map.add k -v acc) Map.empty m)
 
   type unipoly with
     static member ( - ) (up1, up2)    = subtractUnipoly up1 up2
@@ -71,7 +78,8 @@ module PolyToUnipoly =
         let (UP qmap) = q
         let q' = UP (Map.add (fExp - sExp) (fConst / sConst) qmap)
         let f' = f - ks
-        inner f' s q'
+        if isEmpty f' then (q, f)
+        else inner f' s q'
     inner up1 up2 (UP Map.empty)
 
   type unipoly with 
@@ -79,16 +87,15 @@ module PolyToUnipoly =
 
   // not sure about the return value. I'll figure that out soon, hopefully
   // let's only accept the <int,float> version of poly (i.e. no simpleExpr here pls)
-  let sturmSeq up : unipoly list =
-    let up' = unipolyDerivative up
+  let sturmSeq up up' : unipoly list =
     let rec inner (uplist: unipoly list) = 
       match getOrder uplist.[0] with
       | 0 -> uplist
-      | 1 -> uplist
       | _ -> let (_,res) = uplist.[1] % uplist.[0]
-             inner (res :: uplist)
-    inner [up';up] // p0 will always be the last element in the list
-  
+             inner ((negateUnipoly res) :: uplist)
+    let res = (inner [up';up]) // p0 will always be the last element in the list
+    List.rev res
+
   let countSignChanges uplist x =
     let rec inner fmr cnt = function
     | []        -> cnt
@@ -100,19 +107,19 @@ module PolyToUnipoly =
     inner 0.0 0 uplist
 
   let makeGuess uplist =
-    let lox = 0.0
-    let lo = countSignChanges uplist lox
-    let rec inner hix fmr =
-      let hi = countSignChanges uplist hix
-      let diff = lo - hi
-      match diff with
-      | 1             -> Some hix
-      | c when c < 1  -> 
-          if fmr > 1 then inner (hix * 1.8) diff
-          else None
-      | _             -> 
-          if hix < 1.0 then None
-          else 
-            printfn "hix: %f, and diff: %i" hix diff
-            inner (hix / 2.0) diff
-    inner 6.672 0
+    let roots g1 g2 =  
+      let s1 = countSignChanges uplist g1
+      let s2 = countSignChanges uplist g2
+      s1 - s2
+    let rec binarySearch lo hi fmr count =
+      if count < 1 then Some ((hi - lo) / 2.0)
+      else if hi < lo then None
+      else
+        let mid = (lo + hi) / 2.0
+        let dif = roots lo hi
+        match dif with
+        | 1 -> Some ((hi - lo) / 2.0)
+        | 0 -> binarySearch mid fmr fmr (count - 1)
+        | _ -> binarySearch lo mid hi (count - 1)
+
+    binarySearch 0.0 100.0 0.0 15

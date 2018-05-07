@@ -260,6 +260,6 @@ module ExprToPoly =
   let getOrder (m:Map<int,'a>) = (m |> Seq.last).Key
   
   // requires a map of all variables, mapped to float values
-  let rec solveSE m = function
-    | SE ([])     -> 0.0
-    | SE (ag::cr) -> solveAG m ag + solveSE m (SE cr)
+  let rec solveSE m acc = function
+    | SE ([])     -> acc
+    | SE (ag::cr) -> solveSE m (acc + solveAG m ag) (SE cr)

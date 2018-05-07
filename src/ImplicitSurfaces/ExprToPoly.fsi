@@ -13,7 +13,6 @@ module ExprToPoly =
   val ppSimpleExpr : simpleExpr -> string
   val exprToSimpleExpr : expr -> simpleExpr
   val simplifySimpleExpr : simpleExpr -> simpleExpr
-  val solveSE : Map<string,float> -> simpleExpr -> float
 
   type poly = P of Map<int,simpleExpr>
     
@@ -21,7 +20,7 @@ module ExprToPoly =
   val ppPoly : string -> poly -> string
   val simpleExprToPoly : simpleExpr -> string -> poly
 
-  val solveSE : Map<string,float> -> simpleExpr -> float
+  val solveSE : Map<string,float> -> float -> simpleExpr -> float
   val ppExpr : expr -> string
   val rewriteExpr : expr -> atom list list
   val simplifyAtomGroup : seq<atom> -> atomGroup

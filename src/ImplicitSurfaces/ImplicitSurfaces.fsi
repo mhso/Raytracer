@@ -21,4 +21,4 @@ module Main =
   type poly = ExprToPoly.poly
   type unipoly = PolyToUnipoly.unipoly
 
-  val newtonRaph : unipoly -> float -> float option
+  val newtonRaphson : unipoly -> unipoly -> float -> float option

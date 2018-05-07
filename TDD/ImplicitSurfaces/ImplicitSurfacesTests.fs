@@ -123,13 +123,13 @@ let allTest =
   // simple tests on newton-raphson
   let test16 =
     let input = polyToUnipoly ((exprToPoly << parseStr) "3x^2 - 3" "x") (getVarMap (Ray(Point(1.,1.,1.),Vector(1.,1.,1.))))
-    let actual = newtonRaph input 0.1
+    let actual = newtonRaphson input (unipolyDerivative input) 0.1
     let expected = Some 1.0
     Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 - 3 = 0, x = 1")
 
   let test17 =
     let input = polyToUnipoly ((exprToPoly << parseStr) "3x^2" "x") (getVarMap (Ray(Point(1.,1.,1.),Vector(1.,1.,1.))))
-    let actual = newtonRaph input 0.1
+    let actual = newtonRaphson input (unipolyDerivative input) 0.1
     let expected = None
     Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 = 0, no possible x")
 

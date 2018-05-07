@@ -88,8 +88,8 @@ module Main =
     let dz = partialDerivative "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSE m aSimple
-      let b = solveSE m bSimple
+      let a = solveSE m 0.0 aSimple
+      let b = solveSE m 0.0 bSimple
       let t = (-b) / a
       if t < 0.0 then None
       else 
@@ -112,9 +112,9 @@ module Main =
     let dz = partialDerivative "z" e
     let hitFunction (r:Ray) =
       let m = getVarMap r
-      let a = solveSE m aSimple
-      let b = solveSE m bSimple
-      let c = solveSE m cSimple
+      let a = solveSE m 0.0 aSimple
+      let b = solveSE m 0.0 bSimple
+      let c = solveSE m 0.0 cSimple
       if discriminant a b c < 0.0 then None
       else
         let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
@@ -148,26 +148,21 @@ module Main =
     if foundSolution then Some x0
     else None
 
-  let newtonRaph up (g:float) =
-    //let up = (polyToUnipoly p (getVarMap r))
-    newtonRaphson
-      up
-      (unipolyDerivative up)
-      g
-
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
     let dx = partialDerivative "x" e
     let dy = partialDerivative "y" e
     let dz = partialDerivative "z" e
     let hitFunction r =
-      let vars = getVarMap r
-      let up = polyToUnipoly p vars
-      let g = (makeGuess << sturmSeq) up
+      let m = getVarMap r
+      let up = polyToUnipoly p m
+      let up' = unipolyDerivative up
+      let ss = sturmSeq up up'
+      let g = makeGuess ss
       match g with
       | None    -> None
       | Some v  -> 
-          let x = newtonRaph up (v/2.0)
+          let x = newtonRaphson up up' v
           match x with
           | None    -> None
           | Some t  -> 

@@ -30,12 +30,12 @@ let allTest =
     let p = polyToUnipoly ((parseStr >> exprToPoly) "x^4 + 2x^2 + 4x + 1" "x") Map.empty
     let actual = sturmSeq p
     let expected = [UP (Map.empty 
-                          .Add(0, 16.0)
-                          .Add(1, 36.0)); 
+                          .Add(0, -16.0)
+                          .Add(1, -36.0)); 
                     UP (Map.empty
-                          .Add(0, 1.0)
-                          .Add(1, 3.0)
-                          .Add(2, 1.0));
+                          .Add(0, -1.0)
+                          .Add(1, -3.0)
+                          .Add(2, -1.0));
                     UP (Map.empty
                           .Add(0, 4.0)
                           .Add(1, 4.0)
