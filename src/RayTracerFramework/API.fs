@@ -21,13 +21,13 @@ module API =
   type light = Light
   type ambientLight = AmbientLight
   type transformation = Transformation
-  type sampler = SampleGenerator
+  type sampler = Sampler
 
-  let mkRegularSampler (n : int) : sampler = SampleGenerator((fun sm st -> regular sm), n, 1)
-  let mkRandomSampler (n : int) (sets : int) : sampler = SampleGenerator(random, n, sets)
-  let mkNRooksSampler (n : int) (sets : int) : sampler = SampleGenerator(nRooks, n, sets)
-  let mkJitteredSampler (n : int) (sets : int) : sampler = SampleGenerator(jittered, n, sets)
-  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = SampleGenerator(multiJittered, n, sets)
+  let mkRegularSampler (n : int) : sampler = Sampler((fun sm st -> regular sm), n, 1)
+  let mkRandomSampler (n : int) (sets : int) : sampler = Sampler(random, n, sets)
+  let mkNRooksSampler (n : int) (sets : int) : sampler = Sampler(nRooks, n, sets)
+  let mkJitteredSampler (n : int) (sets : int) : sampler = Sampler(jittered, n, sets)
+  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = Sampler(multiJittered, n, sets)
 
   let mkVector (x : float) (y : float) (z : float) : vector = new Vector(x, y, z)
   let mkPoint (x : float) (y : float) (z : float) : point = new Point(x, y, z)
@@ -54,14 +54,14 @@ module API =
     = new Rectangle(bottomLeft, topLeft, bottomRight, t) :> Shape
   let mkTriangle (a:point) (b:point) (c:point) (m : material) : shape = new Triangle(a, b, c, m) :> Shape
   let mkPlane (m : texture) : shape = InfinitePlane(m) :> Shape
-  let mkImplicit (s : string) : baseShape = mkImplicit(s)
+  let mkImplicit (s : string) : baseShape = mkImplicit s
   let mkPLY (filename : string) (smooth : bool) : baseShape = failwith "mkPoly not implemented"
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = HollowCylinder(c, r, h, t) :> Shape
   let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape
       = SolidCylinder(c, r, h, t, top, bottom) :> Shape
   let mkDisk (c : point) (r : float) (t : texture) : shape = failwith "mkDisk not implemented"
-  let mkBaseDisk (c : point) (r : float) : shape = failwith "mkBaseDisc not implemented"
+  let mkBaseDisk (c : point) (r : float) : baseShape = failwith "mkBaseDisc not implemented"
  
   let mkBox (low : point) (high : point) (front : texture) (back : texture) (top : texture) (bottom : texture) (left : texture) (right : texture) : shape =
       Box(low, high, front, back, top, bottom, left, right) :> Shape

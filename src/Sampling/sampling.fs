@@ -2,13 +2,12 @@
 
 open System
 open System.Drawing
-open System.Threading
 
 let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
-type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleSize: int, sampleSetCount: int) =   
+type Sampler(samplingAlgorithm: int -> int -> (float * float) [][], sampleSize: int, sampleSetCount: int) =   
     let samples: (float * float) [][] = samplingAlgorithm sampleSize sampleSetCount
 
     let mutable currentSampleIndex = 0
@@ -100,19 +99,20 @@ let drawSphereSamples (sl:(float * float * float) []) fileName above =
 
 let regular (ni:int) =
     let n = float ni
-    let samples = Array.create ni (0.0, 0.0)
+    let samples = Array.create (ni*ni) (0.0, 0.0)
     let rec innerX x = 
         let rec innerY = function
-            | 0 -> samples.[0] <- (float x/(n+1.0), 1.0/(n+1.0))
+            | 1 -> 
+                samples.[ni*(x-1)] <- (float x/(n+1.0), 1.0/(n+1.0))
             | y -> 
-                samples.[y] <- (float x/(n+1.0), float y/(n+1.0))
-                (innerY (y-1))
+                samples.[(ni*(x-1))+(y-1)] <- (float x/(n+1.0), float y/(n+1.0))
+                innerY (y-1)
         match x with
-        | 0 -> innerY ni
+        | 1 -> innerY ni
         | c ->
-            (innerY ni)
-            (innerX (c-1))
-    innerX (ni-1)
+            innerY ni
+            innerX (c-1)
+    innerX ni
     [|samples|]
 
 let createSampleSets (set:(float * float)[][]) =

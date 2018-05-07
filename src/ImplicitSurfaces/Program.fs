@@ -27,7 +27,7 @@ module Program =
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
       let (lights:Light list) = [light; light2; ambientLight]
-      Scene (s, c, lights)
+      Scene (s, c, lights, ambientLight, 3)
 
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
@@ -38,11 +38,11 @@ module Program =
     let phongYellow = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour(1.,1.,0.))
     let phongRed = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Red)
     let phongGreen = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Green)
-    let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
-    let perfectGreen = PerfectReflectionMaterial(5, matteGreen, Colour.White, 1.)
-    let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
-    let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
-    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 6, 1, 1, 10.)
+    let perfectWhite = PerfectReflectionMaterial(matteWhite, Colour.White, 1.)
+    let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
+    let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
+    let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
+    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 6, 1, 10.)
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     let mkShape (bs:baseShape) m = bs.toShape m
@@ -83,7 +83,7 @@ module Program =
     let boxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.))
     let boxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.))
     let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6))
-    let GlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 1, 5.)
+    let GlossyBoxMat = GlossyMaterial(5., Colour.Red, matteWhite, 10, 1, 5.)
     let sphereMaterialSpecular = new SpecularMaterial(1., new Colour(1., 1., 1.), 10., new Colour(0., 0., 1.))
     //let box = new Box(low, high, boxMaterial, boxMaterial2, boxMaterial3, boxMaterial4, boxMaterial5, boxMaterial6)
 
@@ -106,7 +106,7 @@ module Program =
     //- FINAL
     let lights: Light list      = [lightAmbient; lightTop]
     let spheres: Shape []       = [|sphere1; sphere2; sphere3; sphere4;sphere5|]
-    let scene                   = Scene (spheres, camera, lights)
+    let scene                   = Scene (spheres, camera, lights, lightAmbient, 3)
 
     //scene.Render |> ignore
 
