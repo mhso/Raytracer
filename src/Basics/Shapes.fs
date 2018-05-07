@@ -109,6 +109,9 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
 
+    member this.beta with get() = (this.beta : float) and set(value) = this.beta <- value
+    member this.gamma with get() = (this.gamma : float) and set(value) = this.gamma <- value
+
 
 
 
@@ -143,6 +146,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
                     let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
                     let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                    this.beta <- x
+                    this.gamma <- y
                     let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)

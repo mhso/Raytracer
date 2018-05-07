@@ -3,6 +3,7 @@
 open FParsec
 open System.IO
 open System
+open Tracer.Basics
 
 
 type UserState = unit
@@ -18,6 +19,7 @@ type Vertex(x,y,z,nx, ny, nz, u, v) =
     member this.nz = nz
     member this.u = u
     member this.v = v
+    member this.normal with get() = this.normal and set(value : Vector) = this.normal <- (this.normal |> ( + ) value)
 
 
 let parse parser str = 

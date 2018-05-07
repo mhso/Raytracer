@@ -10,12 +10,15 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
     for i in 0..(ar.Length-1) do 
         let v1 = triangleArray.[faceArray.[i].[1]]
         let p1 = new Point(v1.x.Value,v1.y.Value,v1.z.Value)
-        
         let v2 = triangleArray.[faceArray.[i].[2]]
         let p2 = new Point(v2.x.Value,v2.y.Value,v2.z.Value)
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new Point(v3.x.Value,v3.y.Value,v3.z.Value)
-        ar.[i] <- ((new Triangle(p1,p2,p3, material) :> Shape))
+        let triangle = Triangle(p1,p2,p3, material)
+        v1.normal <- triangle.n
+        v2.normal <- triangle.n
+        v3.normal <- triangle.n
+        ar.[i] <- (triangle)
     ar
 
 let smoothTriangles (tA : Triangle array) = 
@@ -56,7 +59,12 @@ let drawTriangles (filepath:string) (smoothen:bool) (withKDTree : bool)=
                 let mutable smallestTime = 2147483647.
                 for i in 0..(ar.Length-1) do 
                     let s = (ar.[i]).hitFunction r
-                    if (s.Time < smallestTime) then bestHit <- s
+
+                    if (s.Time < smallestTime && s.DidHit) then 
+                        if (smoothen) then
+                            let alpha =  1. - ar.[i].beta - ar.[i].gamma
+                            bestHit <- s
+                        else bestHit <- s
                 bestHit
             member this.getBoundingBox () = failwith "I hate this"
             member this.isInside p = failwith "Need some time to think this through"

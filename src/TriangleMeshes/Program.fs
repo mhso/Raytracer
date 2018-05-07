@@ -24,11 +24,6 @@ let main argv =
     let matteWhite = MatteMaterial(Colour.White)
     let matteBlue = MatteMaterial(Colour.Blue)
     let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
-    let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
-    let perfectGreen = PerfectReflectionMaterial(5, matteGreen, Colour.White, 1.)
-    let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
-    let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
-    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
@@ -52,7 +47,7 @@ let main argv =
     let p2 = Point(0.,4.,0.)
     let p3 = Point(0.,0.,2.)
     let spheres: Shape array     = [|(TriangleMesh.drawTrianglesSpecificNumber 30  @"..\..\..\..\resources\ply\urn2.ply" false false)|]
-    let scene                   = Scene(spheres, camera, lights)
+    let scene                   = Scene(spheres, camera, lights, lightAmbient, 100)
 
     ignore scene.RenderParallel
     //System.Console.ReadKey() |> ignore
