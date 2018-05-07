@@ -164,6 +164,13 @@ let main _ =
                                 sphere91; sphere92; sphere93; sphere94; sphere95; 
                                 sphere96; sphere97; sphere98; sphere99; sphere100; sphere101|]
 
+    //let boxTexture = Textures.mkMatTexture(MatteMaterial(Colour.Red))
+    //let fig5 = Box(Point(1.0,0.6,1.0), Point(6.5,9.0,8.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    //let fig6 = Box(Point(8.0,10.0,8.7), Point(11.4,13.5,15.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    //let fig7 = Box(Point(7.0,3.0,8.4), Point(12.0,7.0,16.5), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    //let fig8 = Box(Point(3.5,10.0,4.8), Point(5.0,11.5,7.3), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    //let box1 = transform fig5 (translate -10. zero 0.)
+    //let testBoxArr:array<Shape> = [|fig5, fig6, fig7, fig8|]
     
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 129

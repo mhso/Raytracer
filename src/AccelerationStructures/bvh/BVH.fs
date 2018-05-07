@@ -162,14 +162,15 @@ module BVH =
     // Function performs recursive searh in the tree, with a maximum distance from the ray origin.
     let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
         if debug then printfn "Call to search with tmax: %f, lenght of array %i" tmax shapes.Length 
-        if debug then printfn "Value of ray: %A" ray
-        if debug then printfn "Value of treeNode: %A" treeNode
+        if debug then printfn "Value of ray GetDirection: %A" ray.GetDirection
+        if debug then printfn "Value of ray GetOrigin: %A" ray.GetOrigin
+        //if debug then printfn "Value of treeNode: %A" treeNode
         let treeNodeBBox = getBbox treeNode
         if debug then printfn "Value of treeNodeBBox: \n %A" treeNodeBBox
         let value = treeNodeBBox.intersect ray
-        if value.IsSome then printfn "search -> Intersect is Some..."
-        if value.IsNone then printfn "search -> Intersect is None..."
-        if debug then printfn "Value of intersect: \n %A" value
+        //if value.IsSome then printfn "search -> Intersect is Some..."
+        //if value.IsNone then printfn "search -> Intersect is None..."
+        if debug then printfn "Value of intersect: \n %A" value.IsSome
         match value with  
         | Some (t, t')  ->  printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
                             if (t<tmax) then 
