@@ -27,9 +27,13 @@ let allTest =
     Assert.Equal (expected, actual, "reducedPolyDerivative: -3x^3 - 3x^2 - 5x - 1 ; p' = -9x^2 - 6x - 5")
 
   let test03 =
-    let p = polyToUnipoly ((parseStr >> exprToPoly) "x^4 + 2x^2 + 4x + 1" "x") Map.empty
-    let actual = sturmSeq p
-    let expected = [UP (Map.empty 
+    let up = polyToUnipoly ((parseStr >> exprToPoly) "x^4 + 2x^2 + 4x + 1" "x") Map.empty
+    let actual = sturmSeq up (unipolyDerivative up)
+    let expected = [UP (Map.empty
+                          .Add(0, (-92. / 81.) + 1.0));
+                          // Oh how I love floating points. The result will print as
+                          //.Add(0, -0.1358024691)); which however doesn't equal itself
+                    UP (Map.empty 
                           .Add(0, -16.0)
                           .Add(1, -36.0)); 
                     UP (Map.empty
@@ -47,14 +51,6 @@ let allTest =
                           .Add(4, 1.0))]
     Assert.Equal (expected, actual, "simple Sturm seq")
 
-  (*let test04 =
-    let ex = (parseStr "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5")
-    let input = substWithRayVars ex
-    let actual = ppPoly "t" (exprToPoly input "t")
-    printfn "%A" actual
-    0*)
-
   test01
   test02
   test03
-  //test04

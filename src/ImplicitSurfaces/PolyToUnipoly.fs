@@ -93,8 +93,7 @@ module PolyToUnipoly =
       | 0 -> uplist
       | _ -> let (_,res) = uplist.[1] % uplist.[0]
              inner ((negateUnipoly res) :: uplist)
-    let res = (inner [up';up]) // p0 will always be the last element in the list
-    List.rev res
+    inner [up';up] // p0 will always be the last element in the list
 
   let countSignChanges uplist x =
     let rec inner fmr cnt = function

@@ -62,7 +62,7 @@ module Program =
     // camera
     let setup =
       let s = [| torus |]
-      let camera = PinholeCamera (Point(-4.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
+      let camera = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
       mkScene' s camera
     
     let sc = setup
