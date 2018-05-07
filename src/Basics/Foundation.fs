@@ -15,7 +15,10 @@ type Material() =
     member this.IsRecursive: bool = this.Bounces > 0
     member this.PreBounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         if light :? AmbientLight then
-            this.AmbientColour shape hitPoint * light.Intensity
+            if light :? AmbientOccluder then
+                Colour.Black
+            else
+                this.AmbientColour shape hitPoint * light.Intensity
         else
             this.Bounce shape hitPoint light
     static member None = BlankMaterial()
@@ -71,7 +74,7 @@ and [<AbstractClass>] Light(colour: Colour, intensity: float) =
 and AmbientLight(colour: Colour, intensity: float) =
     inherit Light(colour, intensity)
 
-    override this.GetColour hitPoint = 
+    default this.GetColour hitPoint = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
     override this.GetDirectionFromPoint hitPoint = 
         raise LightException
@@ -98,3 +101,10 @@ and BlankShape() =
 //- TEXTURES
 and Texture =
     | Texture of (float -> float -> Material)
+
+and AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampling.SampleGenerator) = 
+    inherit AmbientLight(c, intensity)
+    member this.Intensity = intensity
+    member this.MinIntensity = min_intensity
+    member this.Colour = c
+    member this.Sampler = s

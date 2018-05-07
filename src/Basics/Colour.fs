@@ -31,6 +31,9 @@ type Colour (r:float, g:float, b:float)=
         else
           raise ColourException
 
+    member this.Average = 
+        (r + b + g) / 3.
+
     member this.ToColor = 
       System.Drawing.Color.FromArgb(max 0 (min (int (sqrt r*255.0)) 255),
                                     max 0 (min (int (sqrt g*255.0)) 255),
@@ -53,8 +56,12 @@ type Colour (r:float, g:float, b:float)=
     static member (*) (s:float, a:Colour) = a.Scale s
     static member (/) (s:float, a:Colour) = a.Scale(1./s)
     static member (/) (a:Colour, s:float) = a.Scale(1./s)
+    static member (/) (a:Colour, s:int) = a.Scale(1./float(s))
+    static member (/) (s:int, a:Colour) = a.Scale(1./float(s))
+    static member DivideByInt(a: Colour, s: int) = a.Scale(1./float(s))
 
     // Predefined colours
+    static member Zero = Colour(0.,0.,0.)
     static member Black = new Colour(0., 0., 0.)
     static member Red = new Colour(1., 0., 0.)
     static member Blue = new Colour(0., 0., 1.)

@@ -39,10 +39,10 @@ let main _ =
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
     
     let sLr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteRed)
-    let sCr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteGray)
+    let sCr = SphereShape(Point(0., 0., 0.), 3., mkMatTexture matteGray)
     let sRr = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteGreen)
 
-    let boxTex = mkMatTexture matteGreen
+    let boxTex = mkMatTexture phongShades
     let rLr = Box(Point(0., 0., 0.), Point(1., 2., 1.), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
 
     
@@ -50,8 +50,8 @@ let main _ =
     let rC = Transform.transform rLr (translate 0. 1. -1.)
     let rR = Transform.transform rLr (translate 0. 1. 1.)
 
-    let sL = Transform.transform sLr (translate 0. 1. -2.5)
-    let sC = Transform.transform sCr (translate 0. 1. 0.)
+    let sL = Transform.transform sLr (translate 0. 1. 0.)
+    let sC = Transform.transform sCr (translate 0. -3. 0.)
     let sR = Transform.transform sRr (translate 0. 1. 2.5)
     
     let sTop = SphereShape(Point(0., 0., 15.), 5., mkMatTexture matteWhite)
@@ -73,7 +73,8 @@ let main _ =
     let lightFront     = PointLight(Colour.White, 1.5, Point(7.,7.,7.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,1.,0.))
     
-    let lightEnviro    = EnvironmentLight(10000., mkMatTexture emissive, Sampling.SampleGenerator(Sampling.multiJittered, 10, 1))
+    let lightEnviro     = EnvironmentLight(10000., mkMatTexture emissive, Sampling.SampleGenerator(Sampling.multiJittered, 5, 1))
+    let ambientOccluder = AmbientOccluder(1., Colour.White, 0., Sampling.SampleGenerator(Sampling.multiJittered, 101, 1))
     let planeR = InfinitePlane(mkMatTexture matteWhite)
 
     //- LIGHTS
@@ -83,11 +84,11 @@ let main _ =
     //let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5) 
 
     //- FINAL
-    let lights: Light list      = [lightFront;]
-    let spheres: Shape []       = [| planeR; rLr |]
+    let lights: Light list      = [ambientOccluder]
+    let spheres: Shape []       = [| sL; sC |]
     
     let scene                   = Scene(spheres, camera, lights)
 
-    ignore scene.Render
+    ignore scene.RenderParallel
     
     0

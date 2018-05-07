@@ -2,6 +2,7 @@
 
 open System.Drawing
 open System
+open Tracer.Sampling
 
 [<AbstractClass>]
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
@@ -39,15 +40,44 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let normal = hitPoint.Normal
             lights 
-                |> List.fold (fun accColour light -> 
-                    let shadowColour = this.CastShadow hitPoint light shapes
+                |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray shape hitPoint light Colour.Black hitPoint.Material.Bounces shapes hitPoint.Material.BounceMethod
-                    accColour + (colour - shadowColour)) (new Colour(0.,0.,0.))
+                    let occlusion = this.Occlude light hitPoint shapes
+                    let shadowColour = this.CastShadow hitPoint light shapes
+                    acc + (colour + occlusion - shadowColour)) Colour.Black
         else
             // If we did not hit, return the background colour
             bgColor
+
+    member this.Occlude (light: Light) (hitPoint: HitPoint) (shapes: Shape[]) = 
+
+        if light :? AmbientOccluder then
+            let o = light :?> AmbientOccluder
+            let samples = [for i=1 to o.Sampler.SampleCount do yield Sampling.mapToHemisphere (o.Sampler.Next()) 1.]
+            [for (x,y,z) in samples 
+                do 
+                    let w = hitPoint.Normal.Normalise
+                    let v = (up % w).Normalise
+                    let u = w % v
+                    let spV = Tracer.Basics.Point(x,z,y).OrthonormalTransform(u, v, w)
+                    let sp = Tracer.Basics.Point(spV)
+                    yield this.CastAmbientOcclusion sp o hitPoint shapes ] |> List.average
+        else 
+            Colour.Black
+
+        
+
+    member this.CastAmbientOcclusion (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) (shapes: Shape []) = 
+        let direction = (hitPoint.Point - sp).Normalise
+        let origin = hitPoint.EscapedPoint
+        let ray = Ray(origin, direction)
+        let (_,hp:HitPoint) = this.GetFirstShadowHitPoint ray shapes
+        if hp.DidHit then
+            o.MinIntensity * o.Intensity * o.Colour
+        else
+            o.Intensity * o.Colour
+        
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint (ray:Ray) (shapes : Shape []) = 
@@ -108,16 +138,9 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
             let shadowRays = light.GetShadowRay hitPoint
             let isShadow ray = 
                 let (_, hp) = (this.GetFirstShadowHitPoint ray shapes)
-                if hp.DidHit then
-                        Colour.White 
-                    else 
-                        Colour.Black
-            
-            if shadowRays.Length = 0 then 
-                Colour.Black
-            else
-                let totalShadow = Array.fold (fun acc ray -> acc + isShadow ray) Colour.Black shadowRays
-                (totalShadow / float(shadowRays.Length))
+                if hp.DidHit then Colour.White else Colour.Black
+            if shadowRays.Length = 0 then Colour.Black
+            else [for ray in shadowRays do yield isShadow ray] |> List.average
 
     // Will cast a ray recursively
     member this.CastRecursively 
