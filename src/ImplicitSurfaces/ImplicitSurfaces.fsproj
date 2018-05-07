@@ -59,6 +59,8 @@
     <Compile Include="ExprParse.fs" />
     <Compile Include="ExprToPoly.fsi" />
     <Compile Include="ExprToPoly.fs" />
+    <Compile Include="PolyToUnipoly.fsi" />
+    <Compile Include="PolyToUnipoly.fs" />
     <Compile Include="ImplicitSurfaces.fsi" />
     <Compile Include="ImplicitSurfaces.fs" />
     <Compile Include="AssemblyInfo.fs" />
