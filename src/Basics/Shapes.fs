@@ -2,12 +2,20 @@
 open System
 open Transformation
 
+
+
+///////////////////////////////////
+/////////////SHAPES!!!/////////////
+///////////////////////////////////
+
+////TRANSFORMSHAPE////
 type TransformShape (hitFunction) =
     inherit Shape()
     override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
     override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
     default this.hitFunction(r: Ray) = hitFunction r
 
+////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
     member this.bottomleft = bottomLeft
@@ -46,7 +54,8 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                 else HitPoint(r)
 
 
-                                                        
+                      
+////DISC////
 type Disc(center:Point, radius:float, tex:Texture)=
     inherit Shape()
     member this.center = center
@@ -90,7 +99,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
                     else HitPoint(r)
 
 
-
+////TRIANGLE////
 and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     inherit Shape()
     member this.a = a
@@ -150,6 +159,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                             
 
 
+////SPHERE////
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
     member this.Origin = origin //perhaps both should be lower case
@@ -219,7 +229,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
                                                                                             else this.determineHitPoint r t1
 
 
-
+////HOLLOWCYLINDER////
 type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //change back to texture
     inherit Shape()
     member this.center = center
@@ -263,7 +273,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat) 
         else HitPoint (r)
 
-    default this.hitFunction (r:Ray) = 
+    override this.hitFunction (r:Ray) = 
         let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
         let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
         let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
@@ -283,6 +293,8 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                   |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
                                                                                             else this.determineHitPoint r t1
 
+
+////TRANSFORM////                                                                                     
 module Transform =
     let transformRay (r : Ray) t = 
         let o = pointToMatrix r.GetOrigin
@@ -321,6 +333,7 @@ module Transform =
         }
         
 
+////SOLIDCYLINDER////
 type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, top:Texture, bottom:Texture) =
     inherit Shape()
     member this.center = center
@@ -382,6 +395,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
             |(_,_,_) -> HitPoint(r)
 
 
+////BOX////
 type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom:Texture, left:Texture, right:Texture) = 
     inherit Shape()
     member this.low = low
@@ -452,6 +466,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
         else HitPoint(r)
         
 
+////INFINITEPLANE////
 type InfinitePlane(tex:Texture) = 
     inherit Shape()
     member this.tex = tex
