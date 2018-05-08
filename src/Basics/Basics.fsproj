@@ -70,8 +70,8 @@
     <Compile Include="Shapes.fs" />
     <Compile Include="BaseShape.fs" />
     <Compile Include="AdvancedLight.fs" />
-    <Compile Include="KDTree.fs" />
-    <Compile Include="Acceleration.fs" />
+    <Compile Include="Acceleration\KDTree.fs" />
+    <Compile Include="Acceleration\Acceleration.fs" />
     <Compile Include="Camera.fs" />
     <Compile Include="PinholeCamera.fs" />
     <Compile Include="ThinLensCamera.fs" />
