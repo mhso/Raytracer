@@ -2,6 +2,7 @@
 
 open System.Drawing
 open System
+open Tracer.Sampling
 
 [<AbstractClass>]
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
@@ -28,5 +29,4 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.RenderFilepath = "background.bmp"
 
     abstract member CreateRays : int -> int -> Ray list
-
     
