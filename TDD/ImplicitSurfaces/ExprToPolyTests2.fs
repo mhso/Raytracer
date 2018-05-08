@@ -97,6 +97,30 @@ let allTest =
     let expected = [[AExponent("e1",1);AExponent("e1",1);AExponent("e2",1);AExponent("e1",1);AExponent("e2",1)]]
     Assert.Equal (expected, actual, "rewriteExpr11: e1_2 * e2_3 = e1^3*e2^2")
 
+  let test16 =
+    let actual = (parseStr >> exprToPoly) "3x^3 + 3x^2 + 5x + 1" "x" |> polyDerivative
+    let m = Map.empty
+             .Add(2, SE [[ANum 9.0]])
+             .Add(1, SE [[ANum 6.0]])
+             .Add(0, SE [[ANum 5.0]])
+    let expected = P m
+    Assert.Equal (expected, actual, "polyDerivative: 3x^3 + 3x^2 + 5x + 1 ; p' = 9x^2 + 5")
+
+  let test17 =
+    let mutable (m:Map<int, string>) = Map.empty
+    for i in 1 .. 9999 do m <- Map.add i (string i) m
+    let actual = getOrder m
+    let expected = 9999
+    Assert.Equal (expected, actual, "getOrder, returns the largest element (inserted in incremented order)")
+
+  let test18 =
+    let mutable (m:Map<int, string>) = Map.empty
+    let lis = List.rev [1..9999]
+    for i in lis do m <- Map.add i (string i) m
+    let actual = getOrder m
+    let expected = 9999
+    Assert.Equal (expected, actual, "getOrder, returns the largest element (inserted in decremented order)")
+
   test01
   test02
   test03
@@ -112,3 +136,6 @@ let allTest =
   test13
   test14
   test15
+  test16
+  test17
+  test18
