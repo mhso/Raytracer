@@ -93,6 +93,8 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
 and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     inherit Shape()
+    let mutable be : float = 0.0
+    let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
@@ -109,8 +111,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
 
-    member this.beta with get() = (this.beta : float) and set(value) = this.beta <- value
-    member this.gamma with get() = (this.gamma : float) and set(value) = this.gamma <- value
+    member this.beta with get() = be and set(value) = be <- value
+    member this.gamma with get() = ga and set(value) = ga <- value
 
 
 

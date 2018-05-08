@@ -59,7 +59,7 @@
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="PLYParser.fs" />
-    <Compile Include="TriangleMesh.fs" />
+    <Compile Include="TriangleMes.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

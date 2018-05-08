@@ -11,6 +11,7 @@ type Parser<'t> = Parser<'t,UserState>
 
 
 type Vertex(x,y,z,nx, ny, nz, u, v) = 
+    let mutable n : Vector = Vector(0.,0.,0.)
     member this.x = x
     member this.y = y
     member this.z = z
@@ -19,7 +20,9 @@ type Vertex(x,y,z,nx, ny, nz, u, v) =
     member this.nz = nz
     member this.u = u
     member this.v = v
-    member this.normal with get() = this.normal and set(value : Vector) = this.normal <- (this.normal |> ( + ) value)
+    member this.normal
+        with get() = (n : Vector) 
+        and set(value : Vector) = n <- (n |> ( + ) value) 
 
 
 let parse parser str = 
