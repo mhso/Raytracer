@@ -56,8 +56,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="KD_Tree\KD_tree.fs" />
-    <Compile Include="BVH\BVH.fs" />
-    <Compile Include="RG\RegularGrids.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

@@ -44,13 +44,13 @@ module RegularGrids =
  // ######################### BUILD REGULAR GRID #########################
 
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
-    let build (shapes:array<Shape>) : RGrind =
+    let build (shapes:array<Shape>) : RGrid =
 
-        let boxes = convertShapesToBBoxes shapes
-        let lp, hp = findOuterBoundingBoxLowHighPoints boxes
-        let w = Vector(hp.X-lp.Y, hp.Y-lp.Y, hp.Z-lp.Z)
-        let m = 2.0
-
+        let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
+        let lp, hp = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
+        let w = Vector(hp.X-lp.Y, hp.Y-lp.Y, hp.Z-lp.Z) // Vector from low to high of the outer bounding box.
+        let m = 2.0 // m a constant to ajust the size of the grid structure.
+        let n = shapes.Length // Number of shapes.
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
 
         let bbx = nx/w.X
@@ -70,7 +70,7 @@ module RegularGrids =
             for iz=izMin to izMax do
                 for iy=iyMin to iyMax do
                     for ix=ixMin to ixMax do
-
+                        
                 
                 
 
