@@ -9,8 +9,8 @@ val multiJittered : int -> int -> (float * float) [][]
 val mapToDisc : (float * float) -> (float * float)
 val mapToHemisphere : (float * float) -> float -> (float * float * float)
 
-type SampleGenerator =
-    new: samplingAlgorighm:(int -> int -> (float * float) [][]) * sampleCount:int * sampleSetCount:int -> SampleGenerator
+type Sampler =
+    new: samplingAlgorighm:(int -> int -> (float * float) [][]) * sampleCount:int * sampleSetCount:int -> Sampler
     member Current: float * float
     member Next: unit -> float * float
     member SampleCount: int

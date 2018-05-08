@@ -6,6 +6,7 @@ module Program =
   open Tracer.Basics
   open Tracer.ImplicitSurfaces.Main
   open Tracer.Basics
+  open Tracer.Sampling.Sampling
 
   type baseShape = Main.baseShape
   type shape = Main.shape
@@ -35,6 +36,11 @@ module Program =
     let phongYellow = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour(1.,1.,0.))
     let phongRed = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Red)
     let phongGreen = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.Green)
+    let perfectWhite = PerfectReflectionMaterial(matteWhite, Colour.White, 1.)
+    let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
+    let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
+    let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
+    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 6, 1, 10.)
     let emissive = EmissiveMaterial(Colour.White, 1.)
     
     // helper functions
@@ -45,11 +51,13 @@ module Program =
 
     // shapes and their cams
     let sphere1 = mkShape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (texfun matteGreen)
-    let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768)
+    let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768,
+                        Sampler(multiJittered, 4, 87))
 
     let sphere2 = mkShape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (texfun matteRed)
-    let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
-
+    let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500,
+                        Sampler(regular, 1, 1))
+    
     let torus = mkShape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (texfun matteBlue)
     let toruscam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
     

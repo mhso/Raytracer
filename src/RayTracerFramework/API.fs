@@ -7,6 +7,11 @@ open Tracer.ImplicitSurfaces.Main
 open Transformation
 
 module API = 
+
+  //////////////////////
+  // Type definitions //
+  //////////////////////
+
   type dummy = unit
 
   type vector = Vector
@@ -21,25 +26,12 @@ module API =
   type light = Light
   type ambientLight = AmbientLight
   type transformation = Transformation
-  type sampler = SampleGenerator
+  type sampler = Sampler
 
-  // SAMPLER
-  let mkRegularSampler (n : int) : sampler = 
-    new SampleGenerator((fun sm st -> regular sm), n, 1)
-  
-  let mkRandomSampler (n : int) (sets : int) : sampler = 
-    new SampleGenerator(random, n, sets)
-  
-  let mkNRooksSampler (n : int) (sets : int) : sampler = 
-    new SampleGenerator(nRooks, n, sets)
-  
-  let mkJitteredSampler (n : int) (sets : int) : sampler = 
-    new SampleGenerator(jittered, n, sets)
+  ////////////
+  // Basics //
+  ////////////
 
-  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = 
-    new SampleGenerator(multiJittered, n, sets)
-
-  // FUNDAMENTALS
   let mkVector (x : float) (y : float) (z : float) : vector = 
     new Vector(x, y, z)
   
@@ -52,7 +44,29 @@ module API =
   let mkColour (r : float) (g : float) (b : float) : colour = 
     new Colour(r, g, b)
 
-  // MATERIALS
+  //////////////
+  // Samplers //
+  //////////////
+
+  let mkRegularSampler (n : int) : sampler = 
+    new Sampler((fun sm st -> regular sm), n, 1)
+ 
+  let mkRandomSampler (n : int) (sets : int) : sampler = 
+    new Sampler(random, n, sets)
+  
+  let mkNRooksSampler (n : int) (sets : int) : sampler = 
+    new Sampler(nRooks, n, sets)
+  
+  let mkJitteredSampler (n : int) (sets : int) : sampler = 
+    new Sampler(jittered, n, sets)
+  
+  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = 
+    new Sampler(multiJittered, n, sets)
+
+  ///////////////
+  // Materials //
+  ///////////////
+
   let mkMatteMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) : material = 
     failwith "mkMatteMaterial not implemented"
   
@@ -77,14 +91,16 @@ module API =
   let mkTransparent (cf_in : colour) (cf_out : colour) (eta_in : float) (eta_out : float) : material = 
     failwith "mkTransparent not implemented"
 
-  // TEXTURES
   let mkTexture (f : float -> float -> material) : texture = 
     Textures.mkTexture f
   
   let mkMatTexture (m : material) : texture = 
     Textures.mkMatTexture m
 
-  // SHAPES
+  ////////////
+  // Shapes //
+  ////////////
+
   let mkShape (b : baseShape) (t : texture) : shape = 
     b.toShape t
   
@@ -127,7 +143,10 @@ module API =
   let mkBox (low : point) (high : point) (front : texture) (back : texture) (top : texture) (bottom : texture) (left : texture) (right : texture) : shape =
     new Box(low, high, front, back, top, bottom, left, right) :> shape
 
-  // CONSTRUCTIVE SOLID GEOMETRY
+  /////////////////////////////////
+  // Constructive solid geometry //
+  /////////////////////////////////
+
   let group (s1 : shape) (s2 : shape) : shape = 
     new CSG(s1, s2, CSGOperator.Grouping) :> shape
   
@@ -140,7 +159,20 @@ module API =
   let subtraction (s1 : shape) (s2 : shape) : shape = 
     new CSG(s1, s2, CSGOperator.Subtraction) :> shape
 
-  // LIGHTS
+  /////////////
+  // Cameras //
+  /////////////
+
+  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = 
+    new PinholeCamera(pos, look, up, zoom, width, height, pwidth, pheight, s) :> Camera
+
+  let mkThinLensCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (radius : float) (fpDistance : float) (pixel : sampler) (lens : sampler) : camera =
+    new ThinLensCamera(pos, look, up, zoom, width, height, pwidth, pheight, radius, fpDistance, pixel, lens) :> Camera
+  
+  ////////////
+  // Lights //
+  ////////////
+
   let mkLight (p : point) (c : colour) (i : float) : light = 
     new PointLight(c, i, p) :> light
 
@@ -159,14 +191,10 @@ module API =
   let mkAmbientOccluder (c : colour) (l : float) (lmin : float) (s : sampler) : ambientLight = 
     failwith "mkAmbientOccluder not implemented"
 
-  // CAMERAS
-  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = 
-    failwith "mkPinholeCamera not implemented"
-  
-  let mkThinLensCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (radius : float) (fpDistance : float) (pixel : sampler) (lens : sampler) : camera =
-    new ThinLensCamera(pos, look, up, zoom, width, height, pwidth, pheight, radius, fpDistance, pixel, lens) :> Camera
-  
-  // RENDERING
+  /////////////////////
+  // Scene rendering //
+  /////////////////////
+
   let mkScene (s : shape list) (l : light list) (a : ambientLight)(m : int) : scene = 
     failwith "mkScene not implemented"
   
@@ -176,7 +204,10 @@ module API =
   let renderToFile (sc : scene) (c : camera) (path : string) : unit = 
     failwith "renderToFile not implemented"
 
-  // AFFINE TRANSFORMATION
+  /////////////////////
+  // Transformations //
+  /////////////////////
+
   let translate (x : float) (y : float) (z : float) : transformation = 
     translate x y z
 

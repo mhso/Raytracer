@@ -107,7 +107,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
     inherit Material()
     
     let random = new Random()
-    let samplingGenerator = new Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, setCount)
+    let samplingGenerator = new Sampling.Sampler(Sampling.multiJittered, sampleCount, setCount)
 
     // Will reflect a ray along a hemisphere
     default this.BounceMethod hitPoint =
