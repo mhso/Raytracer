@@ -264,14 +264,13 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        if p.Y > -(height/2.0) && p.Y < (height/2.0) then 
-            let uv = this.getTextureCoords (r.PointAtTime t)
-            let u = fst uv
-            let v = snd uv
-            let func = Textures.getFunc tex
-            let mat = func u v 
-            HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat) 
-        else HitPoint (r)
+        let uv = this.getTextureCoords (r.PointAtTime t)
+        let u = fst uv
+        let v = snd uv
+        let func = Textures.getFunc tex
+        let mat = func u v 
+        HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat) 
+        
 
     override this.hitFunction (r:Ray) = 
         let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
@@ -281,7 +280,10 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
         let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
         match D with
-        |(0.0) -> if t1 <= 0.0 then HitPoint(r) else this.determineHitPoint r t1 //if D=0 then t1 = t2
+        |(0.0) -> if t1 <= 0.0 then HitPoint(r)  //if D=0 then t1 = t2
+                  else let p = r.PointAtTime t1
+                       if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
+                       else HitPoint(r)
         (*
         |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
                   |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
@@ -289,10 +291,21 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         *)
         |(D) when D < 0.0 -> HitPoint(r)
         |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
-                                                                                            else this.determineHitPoint r t1
-
+                  |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
+                  |(t1,t2) -> if t2 < t1 && t2 > 0.0 then  /////TODO: fix cylinder bug, it doesnt render the second hit, if the first one is beyond the height of the cylinder
+                                  let p2 = r.PointAtTime t2
+                                  if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
+                                  else let p1 = r.PointAtTime t1
+                                       if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                       else HitPoint(r)
+                              else if t1 > 0.0 then
+                                       let p1 = r.PointAtTime t1
+                                       if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                       else HitPoint(r)
+                                   else 
+                                       let p2 = r.PointAtTime t2
+                                       if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
+                                       else HitPoint(r)
 
 ////TRANSFORM////                                                                                     
 module Transform =
