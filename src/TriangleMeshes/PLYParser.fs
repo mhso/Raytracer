@@ -263,5 +263,4 @@ let parsePLY (filepath:string) =
                 faceArray.[j] <- [intValue faceProperty.[0] ; intValue faceProperty.[1]; intValue faceProperty.[1]; intValue faceProperty.[1]]
             (triangleArray,faceArray)
         | _,_ -> failwith ("Parsing Error: TAMPERED PLY FILE")
-        //printfn "...Parsing Done"
     | false -> failwith ("Not a ply file")
