@@ -259,8 +259,6 @@ module API =
   let transformLight (l : light) (t : transformation) : light = 
     TransformLight.transformLight l t
 
-
-
   /////////////////////////////////
   // extended API for teams of 7 //
   /////////////////////////////////
