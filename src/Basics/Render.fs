@@ -136,7 +136,7 @@ type Render(scene : Scene, camera : Camera) =
             Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
             loadingIndex <- loadingIndex + 1
     
-    member this.StartRender =
+    member this.PreProcessing =
         Console.WriteLine(" 
         
 
@@ -162,7 +162,7 @@ type Render(scene : Scene, camera : Camera) =
         timer.Start()
         accel
 
-    member this.EndRender (renderedImage:Bitmap) =
+    member this.PostProcessing (renderedImage:Bitmap) =
         // Save image
         renderedImage.Save(camera.RenderFilepath)
         
@@ -182,7 +182,7 @@ type Render(scene : Scene, camera : Camera) =
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
         // Create our timer and Acceleration Structure
-        let accel = this.StartRender
+        let accel = this.PreProcessing
         
         let mutable processed = 0.0
         let pos = [for y in 0 .. camera.ResY - 1 do
@@ -212,14 +212,14 @@ type Render(scene : Scene, camera : Camera) =
           for x in 0 .. camera.ResX - 1 do
             renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
-        this.EndRender renderedImage
+        this.PostProcessing renderedImage
 
     member this.Render =
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
         // Create our timer and Acceleration Structure
-        let accel = this.StartRender
+        let accel = this.PreProcessing
 
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
@@ -231,7 +231,7 @@ type Render(scene : Scene, camera : Camera) =
 
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
-        this.EndRender renderedImage
+        this.PostProcessing renderedImage
 
     member this.RenderToFile renderMethod filename =
         renderMethod
