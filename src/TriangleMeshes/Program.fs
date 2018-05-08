@@ -30,8 +30,9 @@ let main argv =
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
-    let shape = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false true matteWhite)
-    //let shape = Transform.transform ico (Transformation.scale 50. 50. 50.)
+    let shape = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" true matteWhite)
+    //let shape = Transform.transform ico (Transformation.scale 4. 4. 4.)
+
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 29
