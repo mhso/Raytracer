@@ -206,7 +206,63 @@ let allTest =
     
     ////CSG TESTS////
 
-    //test isInside functions for CSG
-    //test get BoundingBox for CSG
+    let csgUnion = CSG(sphere, box, Union)
+    let csgIntersection = CSG(sphere, box, Intersection)
+    let csgSubtraction = CSG(sphere, box, Subtraction)
+    let csgGrouping = CSG(sphere, box, Grouping)
+
+    //test for CSG isInside function
+    let pointInside = Point(0.2,0.2,0.2)
+    let pointInside2 = Point(-0.2,-0.2,-0.2)
+    let pointOutside = Point(7.,7.,7.)
+
+    Assert.True(csgUnion.isInside (pointInside), "test isInside function, for point inside CSG Union")
+    Assert.True(not(csgUnion.isInside (pointOutside)), "test isInside function, for point outside CSG Union")
+    Assert.True(csgIntersection.isInside (pointInside), "test isInside function, for point inside CSG Intersection")
+    Assert.True(not(csgIntersection.isInside (pointOutside)), "test isInside function, for point outside CSG Intersection")
+    Assert.True(csgSubtraction.isInside (pointInside2), "test isInside function, for point inside CSG Subtraction")
+    Assert.True(not(csgSubtraction.isInside (pointOutside)), "test isInside function, for point outside CSG Subtraction")
+    Assert.True(csgGrouping.isInside (pointInside), "test isInside function, for point inside CSG Union")
+    Assert.True(not(csgGrouping.isInside (pointOutside)), "test isInside function, for point outside CSG Union")
+
+
+    //Test for CSG getBoundingBox
+    let unionBBox = csgUnion.getBoundingBox ()
+    Assert.Equal(unionBBox.lowPoint.X, -2.000001, "test for CSG Union Bounding box, lowPoint.X")
+    Assert.Equal(unionBBox.lowPoint.Y, -2.000001, "test for CSG Union Bounding box, lowPoint.Y")
+    Assert.Equal(unionBBox.lowPoint.Z, -2.000001, "test for CSG Union Bounding box, lowPoint.Z")
+    Assert.Equal(unionBBox.highPoint.X, 2.000001, "test for CSG Union Bounding box, highPoint.X")
+    Assert.Equal(unionBBox.highPoint.Y, 2.000001, "test for CSG Union Bounding box, highPoint.Y")
+    Assert.Equal(unionBBox.highPoint.Z, 2.000001, "test for CSG Union Bounding box, highPoint.Z")
+
+    let intersectionBBox = csgIntersection.getBoundingBox ()
+    Assert.Equal(intersectionBBox.lowPoint.X, -0.000001, "test for CSG Intersection Bounding box, lowPoint.X")
+    Assert.Equal(intersectionBBox.lowPoint.Y, -0.000001, "test for CSG Intersection Bounding box, lowPoint.Y")
+    Assert.Equal(intersectionBBox.lowPoint.Z, -0.000001, "test for CSG Intersection Bounding box, lowPoint.Z")
+    Assert.Equal(intersectionBBox.highPoint.X, 1.000001, "test for CSG Intersection Bounding box, highPoint.X")
+    Assert.Equal(intersectionBBox.highPoint.Y, 1.000001, "test for CSG Intersection Bounding box, highPoint.Y")
+    Assert.Equal(intersectionBBox.highPoint.Z, 1.000001, "test for CSG Intersection Bounding box, highPoint.Z")
+
+    let subtractionBBox = csgSubtraction.getBoundingBox ()
+    Assert.Equal(subtractionBBox.lowPoint.X, -2.000001, "test for CSG Subtraction Bounding box, lowPoint.X")
+    Assert.Equal(subtractionBBox.lowPoint.Y, -2.000001, "test for CSG Subtraction Bounding box, lowPoint.Y")
+    Assert.Equal(subtractionBBox.lowPoint.Z, -2.000001, "test for CSG Subtraction Bounding box, lowPoint.Z")
+    Assert.Equal(subtractionBBox.highPoint.X, 2.000001, "test for CSG Subtraction Bounding box, highPoint.X")
+    Assert.Equal(subtractionBBox.highPoint.Y, 2.000001, "test for CSG Subtraction Bounding box, highPoint.Y")
+    Assert.Equal(subtractionBBox.highPoint.Z, 2.000001, "test for CSG Subtraction Bounding box, highPoint.Z")
+
+    let groupingBBox = csgGrouping.getBoundingBox ()
+    Assert.Equal(groupingBBox.lowPoint.X, -2.000001, "test for CSG Grouping Bounding box, lowPoint.X")
+    Assert.Equal(groupingBBox.lowPoint.Y, -2.000001, "test for CSG Grouping Bounding box, lowPoint.Y")
+    Assert.Equal(groupingBBox.lowPoint.Z, -2.000001, "test for CSG Grouping Bounding box, lowPoint.Z")
+    Assert.Equal(groupingBBox.highPoint.X, 2.000001, "test for CSG Grouping Bounding box, highPoint.X")
+    Assert.Equal(groupingBBox.highPoint.Y, 2.000001, "test for CSG Grouping Bounding box, highPoint.Y")
+    Assert.Equal(groupingBBox.highPoint.Z, 2.000001, "test for CSG Grouping Bounding box, highPoint.Z")
+
+
+
+
+    //test isInside functions for CSG - Done
+    //test get BoundingBox for CSG - Done
     //test hitFunctions for CSG
 
