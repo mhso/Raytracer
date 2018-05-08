@@ -70,14 +70,16 @@
     <Compile Include="Shapes.fs" />
     <Compile Include="BaseShape.fs" />
     <Compile Include="AdvancedLight.fs" />
+    <Compile Include="Acceleration\KDTree.fs" />
+    <Compile Include="Acceleration\Acceleration.fs" />
     <Compile Include="Camera.fs" />
     <Compile Include="PinholeCamera.fs" />
     <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Scene.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

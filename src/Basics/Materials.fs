@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 open System
-open Tracer.Sampling
+open Tracer.Sampling.Sampling
 open System.Drawing
 
 //- MATTE MATERIAL
@@ -107,7 +107,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
     inherit Material()
     
     let random = new Random()
-    let samplingGenerator = new Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, setCount)
+    let sampler = multiJittered sampleCount setCount
 
     // Will reflect a ray along a hemisphere
     default this.BounceMethod hitPoint =
@@ -116,7 +116,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
         let rays = Array.create sampleCount Ray.None
 
         for i = 0 to sampleCount-1 do
-            let sp = Tracer.Basics.Point(Sampling.mapToHemisphere (samplingGenerator.Next()) sharpness)
+            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) sharpness)
             let m = direction + 2. * (normal * -direction) * normal
             let up = new Vector(0., 1., 0.)
             let w = m.Normalise

@@ -5,7 +5,7 @@ open System.IO
 
 [<EntryPoint>]
 let main _ = 
-    
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
@@ -16,6 +16,7 @@ let main _ =
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
     
+
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red)
     let matteGreen = MatteMaterial(Colour.Green)
@@ -73,7 +74,7 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 10 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -88,10 +89,12 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightFront]
-    let spheres: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
+    let shapes: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
 
-    let scene                   = Scene(spheres, camera, lights, lightAmbient, maxReflectionBounces)
+    let scene                   = Scene(shapes, camera, lights, lightAmbient, maxReflectionBounces)
 
-    ignore scene.Render
+    let acceleration = Acceleration.createAcceleration shapes
+    ignore (scene.Render acceleration)
     
+
     0

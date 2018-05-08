@@ -110,7 +110,7 @@ and BlankShape() =
 and Texture =
     | Texture of (float -> float -> Material)
 
-and AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampling.SampleGenerator) = 
+and AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampling.Sampler) = 
     inherit AmbientLight(c, intensity)
     member this.Intensity = intensity
     member this.MinIntensity = min_intensity

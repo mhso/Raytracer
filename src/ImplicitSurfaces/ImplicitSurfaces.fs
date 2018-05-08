@@ -178,12 +178,11 @@ module Main =
         { new baseShape() with
             member this.toShape tex =
               let mat = (Textures.getFunc tex) 1. 1.
-              let newhf r =
-                match hitfunction r with
-                | None        -> hitPoint (r)
-                | Some (t,v)  -> hitPoint (r, t, v, mat)
               { new shape() with
-                  member this.hitFunction r = newhf r
+                  member this.hitFunction r = 
+                    match hitfunction r with
+                    | None        -> hitPoint (r)
+                    | Some (t,v)  -> hitPoint (r, t, v, mat, this)
                   member this.getBoundingBox () = failwith "I hate this"
                   member this.isInside p = failwith "I hate this"
                   //member this.getTextureCoords hp = (1.,1.) // or none, or idk
