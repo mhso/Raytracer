@@ -25,8 +25,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     member this.width = bottomRight.X - bottomLeft.X
     member this.height = topLeft.Y - bottomLeft.Y
     member this.normal:Vector = new Vector(0.0, 0.0, 1.0)
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = 
+    member this.bBox = 
         let e = 0.000001
         let lx = (min bottomLeft.X (min topLeft.X bottomRight.X)) - e
         let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
@@ -38,7 +37,8 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    //member this.getTextureCoords (p:Point) = ((p.X / this.width), (p.Y / this.height))
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
         match r with
@@ -55,7 +55,6 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                     HitPoint(r, t, this.normal, mat, this, u, v) 
                 else HitPoint(r)
 
-
                       
 ////DISC////
 type Disc(center:Point, radius:float, tex:Texture)=
@@ -63,8 +62,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
     member this.center = center
     member this.radius = radius // must not be a negative number
     member this.tex = tex
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () =  //no point on the disc should be larger than the center point + the radius...
+    member this.bBox =
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - radius) - e
@@ -76,14 +74,12 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    (*
-    override this.getTextureCoords (p:Point) = 
-        let u = (p.X + radius)/(2.*radius)
-        let v = (p.Y + radius)/(2.*radius)
-        (u, v)
-    *)
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+
+    override this.getBoundingBox () = this.bBox
 
     member this.normal: Vector = new Vector(0.0, 0.0, 1.0)
+
     override this.hitFunction (r:Ray) = 
         match r with
             |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
@@ -119,12 +115,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
 
-
-
-
-
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = 
+    member this.bBox =
         let e = 0.000001
         let lx = (min a.X (min b.X c.X)) - e
         let ly = (min a.Y (min b.Y c.Y)) - e
@@ -135,9 +126,11 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+
+    override this.getBoundingBox () = this.bBox
     
-
-
     //the many let statements are for simplifying cramers rule
     override this.hitFunction (r:Ray) = 
         let pc = (r.GetDirection.X)
@@ -167,11 +160,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.tex = tex
-
-    override this.isInside (p:Point) =
-        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2.
-        if x < (radius**2.) then true else false
-    override this.getBoundingBox () =  //no point on the sphere should be larger than the center point + the radius...
+    member this.bBox = //no point on the sphere should be larger than the center point + the radius...
         let e = 0.000001
         let lx = (origin.X - radius) - e
         let ly = (origin.Y - radius) - e
@@ -182,6 +171,11 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let hz = (origin.Z + radius) + e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+
+    override this.isInside (p:Point) =
+        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2.
+        if x < (radius**2.) then true else false
+    override this.getBoundingBox () = this.bBox    
 
     member this.NormalAtPoint (p:Point) = 
         (p - origin).Normalise
@@ -204,34 +198,22 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let mat = func u v 
         HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
 
-    (*
-    member this.GetDiscriminant (r:Ray) = 
-        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
-        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
-        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
-        let D = (b**2.)-4.*a*c 
-        D
-    *)
-
     override this.hitFunction (r:Ray) = 
-        let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
-        let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
-        let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
-        let D = (b**2.)-4.*a*c 
-        let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
-        let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
-        match D with
-        |(0.0) -> if t1 > 0.0 then this.determineHitPoint r t1 else HitPoint(r)
-                    (*
-                  match (t1,t2) with //if D = 0 then t1 = t2, clean code...
-                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t2
-                  *)
-        |(D) when D < 0.0 -> HitPoint(r)
-        |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
-                                                                                            else this.determineHitPoint r t1
+        if (this.bBox.intersect r).IsSome then
+            let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
+            let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
+            let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
+            let D = (b**2.)-4.*a*c 
+            let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
+            let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+            match D with
+            |(0.0) -> if t1 > 0.0 then this.determineHitPoint r t1 else HitPoint(r)
+            |(D) when D < 0.0 -> HitPoint(r)
+            |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                      |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                      |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
+                                                                                                else this.determineHitPoint r t1
+        else HitPoint(r)
 
 
 ////HOLLOWCYLINDER////
@@ -241,9 +223,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.radius = radius
     member this.height = height
     member this.tex = tex
-
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = 
+    member this.bBox = 
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
@@ -255,9 +235,12 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+
+    override this.getBoundingBox () = this.bBox
+
     member this.NormalAtPoint (p:Point):Vector =
         new Vector(p.X/radius, 0.0, p.Z/radius)
-    
     
     member this.getTextureCoords (p:Point) =
         let n = (this.NormalAtPoint p)
@@ -277,39 +260,41 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat, this, u, v) 
 
     override this.hitFunction (r:Ray) = 
-        let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
-        let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
-        let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
-        let D = (b**2.0) - 4.0*a*c
-        let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
-        let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
-        match D with
-        |(0.0) -> if t1 <= 0.0 then HitPoint(r)  //if D=0 then t1 = t2
-                  else let p = r.PointAtTime t1
-                       if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
-                       else HitPoint(r)
-        (*
-        |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
-                  |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t
-        *)
-        |(D) when D < 0.0 -> HitPoint(r)
-        |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                  |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
-                  |(t1,t2) -> if t2 < t1 && t2 > 0.0 then  /////TODO: fix cylinder bug, it doesnt render the second hit, if the first one is beyond the height of the cylinder
-                                  let p2 = r.PointAtTime t2
-                                  if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
-                                  else let p1 = r.PointAtTime t1
-                                       if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                       else HitPoint(r)
-                              else if t1 > 0.0 then
-                                       let p1 = r.PointAtTime t1
-                                       if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                       else HitPoint(r)
-                                   else 
-                                       let p2 = r.PointAtTime t2
-                                       if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                       else HitPoint(r)
+        if (this.bBox.intersect r).IsSome then
+            let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
+            let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
+            let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
+            let D = (b**2.0) - 4.0*a*c
+            let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
+            let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+            match D with
+            |(0.0) -> if t1 <= 0.0 then HitPoint(r)  //if D=0 then t1 = t2
+                      else let p = r.PointAtTime t1
+                           if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
+                           else HitPoint(r)
+            (*
+            |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
+                      |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                      |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t
+            *)
+            |(D) when D < 0.0 -> HitPoint(r)
+            |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                      |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
+                      |(t1,t2) -> if t2 < t1 && t2 > 0.0 then  /////TODO: fix cylinder bug, it doesnt render the second hit, if the first one is beyond the height of the cylinder
+                                      let p2 = r.PointAtTime t2
+                                      if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
+                                      else let p1 = r.PointAtTime t1
+                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                           else HitPoint(r)
+                                  else if t1 > 0.0 then
+                                           let p1 = r.PointAtTime t1
+                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                           else HitPoint(r)
+                                       else 
+                                           let p2 = r.PointAtTime t2
+                                           if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
+                                           else HitPoint(r)
+        else HitPoint(r)
 
 ////TRANSFORM////                                                                                     
 module Transform =
@@ -371,14 +356,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
         Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
     //builds the hollow cylinder
     member this.hollowCylinder = HollowCylinder(center, radius, height, cylinder)
-
-    override this.isInside (p:Point) = 
-        if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
-            if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
-            else false
-        else false
-
-    override this.getBoundingBox () = 
+    member this.bBox =
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
@@ -390,25 +368,35 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    override this.hitFunction (r:Ray) = 
-        // look for hitPoints
-        let hpTop = this.topDisc.hitFunction r
-        let hpBottom = this.bottomDisc.hitFunction r
-        let hpCylinder = this.hollowCylinder.hitFunction r
-        //extract time from hitPoints
-        let tTop = if hpTop.DidHit then hpTop.Time else infinity
-        let tBottom = if hpBottom.DidHit then hpBottom.Time else infinity
-        let tCylinder = if hpCylinder.DidHit then hpCylinder.Time else infinity
+    override this.isInside (p:Point) = 
+        if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
+            if -(height/2.) <= p.Y && p.Y <= (height/2.) then true //checks if the point lies between the 2 discs, so not above or below the cylinder
+            else false
+        else false
 
-        //Compare t values
-        if tTop = tBottom && tBottom = tCylinder then HitPoint(r) 
-        else
-            match (tTop, tBottom, tCylinder) with
-            |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
-            |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
-            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
-            |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
-            |(_,_,_) -> HitPoint(r)
+    override this.getBoundingBox () = this.bBox
+
+    override this.hitFunction (r:Ray) = 
+        if (this.bBox.intersect(r)).IsSome then 
+            // look for hitPoints
+            let hpTop = this.topDisc.hitFunction r
+            let hpBottom = this.bottomDisc.hitFunction r
+            let hpCylinder = this.hollowCylinder.hitFunction r
+            //extract time from hitPoints
+            let tTop = if hpTop.DidHit then hpTop.Time else infinity
+            let tBottom = if hpBottom.DidHit then hpBottom.Time else infinity
+            let tCylinder = if hpCylinder.DidHit then hpCylinder.Time else infinity
+
+            //Compare t values
+            if tTop = tBottom && tBottom = tCylinder then HitPoint(r) 
+            else
+                match (tTop, tBottom, tCylinder) with
+                |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
+                |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
+                |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
+                |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
+                |(_,_,_) -> HitPoint(r)
+        else HitPoint(r)
 
 
 ////BOX////
@@ -444,12 +432,17 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
         mat
 
     override this.hitFunction (r:Ray) = 
-        let tx = if r.GetDirection.X >= 0.0 then (low.X - r.GetOrigin.X)/r.GetDirection.X else (high.X - r.GetOrigin.X)/r.GetDirection.X
-        let tx' = if r.GetDirection.X >= 0.0 then (high.X - r.GetOrigin.X)/r.GetDirection.X else (low.X - r.GetOrigin.X)/r.GetDirection.X
-        let ty = if r.GetDirection.Y >= 0.0 then (low.Y - r.GetOrigin.Y)/r.GetDirection.Y else (high.Y - r.GetOrigin.Y)/r.GetDirection.Y
-        let ty' = if r.GetDirection.Y >= 0.0 then (high.Y - r.GetOrigin.Y)/r.GetDirection.Y else (low.Y - r.GetOrigin.Y)/r.GetDirection.Y
-        let tz = if r.GetDirection.Z >= 0.0 then (low.Z - r.GetOrigin.Z)/r.GetDirection.Z else (high.Z - r.GetOrigin.Z)/r.GetDirection.Z
-        let tz' = if r.GetDirection.Z >= 0.0 then (high.Z - r.GetOrigin.Z)/r.GetDirection.Z else (low.Z - r.GetOrigin.Z)/r.GetDirection.Z
+
+        let boolX = r.GetDirection.X >= 0.0
+        let boolY = r.GetDirection.Y >= 0.0
+        let boolZ = r.GetDirection.Z >= 0.0
+        
+        let tx = if boolX then (low.X - r.GetOrigin.X)/r.GetDirection.X else (high.X - r.GetOrigin.X)/r.GetDirection.X
+        let tx' = if boolX then (high.X - r.GetOrigin.X)/r.GetDirection.X else (low.X - r.GetOrigin.X)/r.GetDirection.X
+        let ty = if boolY then (low.Y - r.GetOrigin.Y)/r.GetDirection.Y else (high.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let ty' = if boolY then (high.Y - r.GetOrigin.Y)/r.GetDirection.Y else (low.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let tz = if boolZ then (low.Z - r.GetOrigin.Z)/r.GetDirection.Z else (high.Z - r.GetOrigin.Z)/r.GetDirection.Z
+        let tz' = if boolZ then (high.Z - r.GetOrigin.Z)/r.GetDirection.Z else (low.Z - r.GetOrigin.Z)/r.GetDirection.Z
         
 
         let t = max tx (max ty tz)
@@ -483,6 +476,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             HitPoint(r, t, Vector(0.0, 0.0, 1.0), (this.getMatFromTex front u v), this, u, v)
+                |(_,_,_) -> failwith "shouldn't reach this point"
             else
                 match (tx', ty', tz') with
                 |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> if r.GetDirection.X > 0.0 then 
@@ -509,6 +503,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                                                                     let u = (r.PointAtTime(t).X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                                     HitPoint(r, t', Vector(0.0, 0.0, -1.0), (this.getMatFromTex back u v), this, u, v)
+                |(_,_,_) -> failwith "shouldn't reach this point"
         else HitPoint(r)
         
 

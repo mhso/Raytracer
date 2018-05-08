@@ -70,7 +70,7 @@ module Program =
     let heart = mkShape (mkImplicit "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") (texfun (MatteMaterial(Colour(Color.DarkRed))))
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500)
 
-    let sc = mkScene' torus toruscam
+    let sc = mkScene' sphere1 sphere1cam
     sc.RenderParallel |> ignore
 
     0
