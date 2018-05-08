@@ -59,7 +59,6 @@
     <Compile Include="BVH\BVH.fs" />
     <Compile Include="RG\RegularGrids.fs" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
