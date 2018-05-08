@@ -91,7 +91,7 @@ let main _ =
     let lights: Light list      = [lightAmbient; lightFront]
     let shapes: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
 
-    let scene                   = Scene(shapes, camera, lights, lightAmbient, maxReflectionBounces)
+    let scene = Scene(shapes, camera, lights, lightAmbient, maxReflectionBounces)
 
     let acceleration = Acceleration.createAcceleration shapes
     ignore (scene.Render acceleration)

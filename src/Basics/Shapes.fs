@@ -517,7 +517,7 @@ type InfinitePlane(tex:Texture) =
     inherit Shape()
     member this.tex = tex
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
+    override this.getBoundingBox () = BBox(Point(-2147483648., -2147483648., -2147483648.), Point(2147483647., 2147483647., 2147483647.))
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Y / r.GetDirection.Y) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
