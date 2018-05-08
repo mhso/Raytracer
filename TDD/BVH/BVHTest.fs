@@ -5,22 +5,29 @@ open Tracer.BVH
 open Assert
 
 let allTest = 
+    // Used for debug, will print to console etc. 
+    let debug = true
 
-    let createShapeAndBBoxArr =
-        let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White)))
-        let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue)))
-        let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red)))
-        let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green)))
-
-        let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
+    // ----------------------------- Common data -----------------------------
+    let createShapeAndBBoxArr (shapeArr: Shape array) =
         let bboxArr : BBox[] = Array.zeroCreate (shapeArr.Length)
-        //printfn "shapeArr.Length: %i" shapeArr.Length
-        //printfn "bboxArr.Length: %i" bboxArr.Length
         for i in 0..shapeArr.Length-1 do
             bboxArr.[i] <- shapeArr.[i].getBoundingBox()
-        //let bboxArr : BBox[] = [for i in 0..ShapeArr.Lenght do shapeArr.[i].getBoundingBox]
         shapeArr, bboxArr
+    
+    // Figures/Shapes
+    let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White)))
+    let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue)))
+    let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red)))
+    let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green)))
 
+    let boxTexture = Textures.mkMatTexture(MatteMaterial(Colour.Red))
+    let fig5 = Box(Point(1.0,0.6,1.0), Point(6.5,9.0,8.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    let fig6 = Box(Point(8.0,10.0,8.7), Point(11.4,13.5,15.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    let fig7 = Box(Point(7.0,3.0,8.4), Point(12.0,7.0,16.5), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+    let fig8 = Box(Point(3.5,10.0,4.8), Point(5.0,11.5,7.3), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
+
+    // Bounding boxes
     let bBox01 = BBox (Point(1., 0.6, -1.), Point(6., 9., -8.9))
     let bBox02 = BBox (Point(7., 3., -8.4), Point(12., 7., -16.6))
     let bBox03 = BBox (Point(8., 10., -8.9), Point(11.4, 13.5, -15.7))
@@ -76,20 +83,11 @@ let allTest =
     testFindLargestBoundingBoxSideLengths
 
 // ----------------------------- TEST BEGIN -----------------------------
-
     let testBuildBVHTree = 
-        let shapeArr, bboxArr = createShapeAndBBoxArr 
+        let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
+        let shapeArr, bboxArr = createShapeAndBBoxArr shapeArr
         let tree = buildBVHTree shapeArr
-        //printfn "BVH Tree:\n %O" tree
 
-        let expectedSmall = 
-            (Node
-                  (Node
-                     (Leaf ([0],BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([1],BBox (Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
-                      BBox (Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),
-                   Node
-                     (Leaf ([2],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),Leaf ([3],BBox(Point(1.,0.6,-1.), Point(6.,9.,-8.9))),
-                      BBox(Point(1.,0.6,-1.), Point(12.,9.,-16.6)),1),BBox(Point(1.,0.6,-1.), Point(12.,13.5,-16.6)),1))
         let expected =
                 (Node
                   (Node
@@ -118,13 +116,24 @@ let allTest =
 
 // ----------------------------- TEST BEGIN -----------------------------
     let testTraverse = 
-        let ray = Ray(Point(9.0,9.0,2.0), Vector(-2.,-3.,1.))
-        let shapeArr, bboxArr = createShapeAndBBoxArr
+        let ray = Ray(Point(3.0,4.0,3.0), Vector(1.,1.,-1.))
+        let shapeBoxArr = [|(fig5:>Shape); (fig6:>Shape); (fig7:>Shape); (fig8:>Shape)|]
+        let shapeArr, bboxArr = createShapeAndBBoxArr shapeBoxArr
         let tree = buildBVHTree (shapeArr)
         let result = traverse tree ray shapeArr infinity
-        printfn "shapeArr: %A \n\n" shapeArr
-        printfn "bboxArr: %A \n\n" bboxArr
-
-        let expected = Some ((SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White))):>Shape).hitFunction ray)
-        Assert.Equal (expected,result,"testTraverse")
+        if debug then printfn "shapeArr: %A \n\n" shapeArr
+        if debug then printfn "bboxArr: %A \n\n" bboxArr
+        Assert.True (result.IsSome,"testTraverse")
     testTraverse
+
+    //BBox Intersect test
+    //let bBox = BBox(Point(0.999999,0.599999,7.300001), Point(12.000001,13.500001,8.699999))
+    //let rayInside = Ray(Point(3.,4.,3.), Vector(0.577350269189626,0.577350269189626,-0.577350269189626))
+    //let hitInside = bBox.intersect(rayInside)
+    //Assert.True(hitInside.IsSome, "BVH -> test on BBox intersect, for point inside BBox")
+    //let rayOutside = Ray(Point(1.5,1.5,1.5), Vector(-0.5,-0.5,-0.5))
+    //let hitOutside = bBox.intersect(rayOutside)
+    //Assert.True(hitOutside.IsSome, "BVH -> test on BBox intersect, for point outside BBox")
+    //let rayOutsideMiss = Ray(Point(1.5,1.5,1.5), Vector(0.5,0.5,0.5))
+    //let hitOutsideMiss = bBox.intersect(rayOutsideMiss)
+    //Assert.True(hitOutsideMiss.IsNone, "BVH -> test on BBox not intersect, for point outside BBox")
