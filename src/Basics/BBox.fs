@@ -4,7 +4,7 @@ type BBox(lowPoint:Point, highPoint:Point) =
     member this.lowPoint = lowPoint
     member this.highPoint = highPoint
     override this.ToString() =
-            "BBox(Max: "+lowPoint.ToString()+", Min: "+highPoint.ToString()+")"
+            "BBox(Max: "+highPoint.ToString()+", Min: "+lowPoint.ToString()+")"
     override this.GetHashCode() =
         hash (lowPoint, highPoint)
     override this.Equals(x) = 

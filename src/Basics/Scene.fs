@@ -5,6 +5,7 @@ open System.Drawing
 open System.Diagnostics
 open System.Threading.Tasks
 open System.Threading
+open Acceleration
 
 type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : AmbientLight, maxBounces) = 
 
@@ -20,9 +21,9 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
     member this.BackgroundColour = backgroundColour 
     member this.MaxBounces = maxBounces
             
-    member this.Cast ray =
+    member this.Cast accel ray =
         // Get the hitpoint
-        let hitPoint: HitPoint = this.GetFirstHitPoint ray
+        let hitPoint: HitPoint = this.GetFirstHitPointWithAccel accel ray
 
         // Check if we hit
         if hitPoint.DidHit then
@@ -36,6 +37,9 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
         else
             // If we did not hit, return the background colour
             this.BackgroundColour
+
+    member this.GetFirstHitPointWithAccel (accel:IAcceleration) (ray:Ray) = 
+        traverseIAcceleration accel ray shapes
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint (ray:Ray) : HitPoint = 
@@ -168,7 +172,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
 
         System.Console.ReadKey () |> ignore
 
-    member this.RenderParallel = 
+    member this.RenderParallel accel = 
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
@@ -184,7 +188,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
           // Shoot rays and save the resulting colors, using parallel computations.
           Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
-            let cols = List.map (fun ray -> (this.Cast ray)) rays
+            let cols = List.map (fun ray -> (this.Cast accel ray)) rays
             let colour = (List.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
@@ -204,7 +208,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
 
         this.EndRender renderedImage
 
-    member this.Render =
+    member this.Render accel =
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
@@ -215,7 +219,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
                 this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
-                let colours = List.map (fun ray -> (this.Cast ray)) rays
+                let colours = List.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (List.fold (+) Colour.Black colours)/float colours.Length
 
                 renderedImage.SetPixel(x, y, colour.ToColor)

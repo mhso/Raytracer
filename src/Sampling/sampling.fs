@@ -2,22 +2,27 @@
 
 open System
 open System.Drawing
+open System.Threading
+open System.Threading.Tasks
 
 let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
-type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], sampleCount: int, sampleSetCount: int) =   
-    let samples: (float * float) [][] = samplingAlgorithm sampleCount sampleSetCount
-
-    let mutable currentSampleIndex = 0
-    let mutable currentSample: (float * float) = (0.,0.)
+type Sampler(samples : (float*float)[][]) =
+    let sampleSetCount = samples.Length
+    let sampleIndices = Array.create 500 0
+    let mutable currentSample: (float * float) = (0., 0.)
+    let sampleCount = samples.[0].Length
 
     member this.Next() = 
-        let setIndex = round(float(currentSampleIndex) / float(sampleCount)) % float(sampleSetCount)
+        let threadIndex = Thread.CurrentThread.GetHashCode()
+
+        let currentSampleIndex = sampleIndices.[threadIndex]
+        let setIndex = (currentSampleIndex / sampleCount) % sampleSetCount
         let sampleIndex = currentSampleIndex % sampleCount
-        let sample = samples.[Convert.ToInt32 setIndex].[sampleIndex]
-        currentSampleIndex <- currentSampleIndex + 1
+        let sample = samples.[setIndex].[sampleIndex]
+        sampleIndices.[threadIndex] <- currentSampleIndex + 1
         currentSample <- sample
         sample
 
@@ -25,95 +30,27 @@ type SampleGenerator(samplingAlgorithm: int -> int -> (float * float) [][], samp
         currentSample
 
     member this.SampleCount = sampleCount
-
-let drawSamples (sl:(float * float) []) sampleMethod fileName =
-    let size = 400
-    let dotSize = 4
-    let img = new Bitmap(size, size)
-    for i in [0..size-1] do
-            for j in [0..size-1] do
-                img.SetPixel(i, j, Color.White)
-    let drawGrid n thickness =
-        for i in [1..n-1] do
-            for j in [0..size-1] do
-                for k in [(-thickness/2)..(thickness/2)] do
-                    img.SetPixel(((size/n)*i)+k, j, Color.Black)
-                    img.SetPixel(j, ((size/n)*i)+k, Color.Black)
-    if sl.Length < 64 then
-        if sampleMethod = "jittered" then drawGrid (int (Math.Sqrt(float sl.Length))) 1
-        else if sampleMethod = "nrooks" then drawGrid sl.Length 1
-        else if sampleMethod = "multi" then
-            drawGrid (int (Math.Sqrt(float sl.Length))) 2
-            drawGrid sl.Length 1
-    for (sx, sy) in sl do
-        let x = int (float size*sx)
-        let y = int (float size*sy)
-        for i in [x-(dotSize/2)..x+(dotSize/2)] do
-            for j in [y-(dotSize/2)..y+(dotSize/2)] do
-                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
-    img.Save(fileName)  
-
-let drawCircle (img:Bitmap) size = 
-    let SIZE_HALVED = float size/2.0
-    for i in 1..int 360 do
-        let theta = float i
-        let x  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Cos(theta))
-        let y  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Sin(theta))
-        for i in [x-1..x+1] do
-            for j in [y-1..y+1] do
-                img.SetPixel(i, j, Color.Black)
-
-let drawDiscSamples  (sl:(float * float) []) fileName =
-    let size = 400
-    let dotSize = 4
-    let img = new Bitmap(size, size)
-    for i in 0..size-1 do
-            for j in [0..size-1] do
-                img.SetPixel(i, j, Color.White)
-    drawCircle img size
-    for (sx, sy) in sl do
-        let x = int (float (size)*((sx+1.0)/2.0))
-        let y = int (float (size)*((sy+1.0)/2.0))
-        for i in [x-(dotSize/2)..x+(dotSize/2)] do
-            for j in [y-(dotSize/2)..y+(dotSize/2)] do
-                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
-    img.Save(fileName)  
-
-let drawSphereSamples (sl:(float * float * float) []) fileName above =
-    let size = 400
-    let dotSize = 4
-    let img = new Bitmap(size, size)
-    for i in 0..size-1 do
-            for j in [0..size-1] do
-                img.SetPixel(i, j, Color.White)
-    drawCircle img size
-    for (sx, sy, sz) in sl do
-        let x = int (float (size)*((sx+1.0)/2.0))
-        let sv = if above then sy else sz
-        let y = int (float (size)*((sv+1.0)/2.0))
-        for i in [x-(dotSize/2)..x+(dotSize/2)] do
-            for j in [y-(dotSize/2)..y+(dotSize/2)] do
-                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
-    img.Save(fileName)
+    member this.SetCount = sampleSetCount
 
 let regular (ni:int) =
     let n = float ni
-    let samples = Array.create ni (0.0, 0.0)
+    let samples = Array.create (ni*ni) (0.0, 0.0)
     let rec innerX x = 
         let rec innerY = function
-            | 0 -> samples.[0] <- (float x/(n+1.0), 1.0/(n+1.0))
+            | 1 -> 
+                samples.[ni*(x-1)] <- (float x/(n+1.0), 1.0/(n+1.0))
             | y -> 
-                samples.[y] <- (float x/(n+1.0), float y/(n+1.0))
-                (innerY (y-1))
+                samples.[(ni*(x-1))+(y-1)] <- (float x/(n+1.0), float y/(n+1.0))
+                innerY (y-1)
         match x with
-        | 0 -> innerY ni
+        | 1 -> innerY ni
         | c ->
-            (innerY ni)
-            (innerX (c-1))
-    innerX (ni-1)
-    [|samples|]
+            innerY ni
+            innerX (c-1)
+    innerX ni
+    new Sampler([|samples|])
 
-let createSampleSets (set:(float * float)[][]) =
+let createSampler (set:(float * float)[][]) =
     let rand = new Random() // We create a new Random here, for help with testing.
     for i in 0..set.Length-1 do
         let samples = set.[i]
@@ -128,7 +65,7 @@ let createSampleSets (set:(float * float)[][]) =
             let temp = set.[r]
             set.[r] <- set.[i]
             set.[i] <- temp
-    set
+    new Sampler(set)
 
 let random n sn =
     let ns = n*n
@@ -144,7 +81,7 @@ let random n sn =
         sets.[k] <- samples
         if k > 0 then loop (k-1)
     loop (sn-1)
-    createSampleSets sets
+    createSampler sets
 
 let getJitteredValue (grid:int) (max:int) = (rand.NextDouble()/float max) + ((1.0/float max) * float grid)
 
@@ -167,7 +104,7 @@ let jittered n sn =
         sets.[k] <- samples
         if k > 0 then loop (k-1)
     loop (sn-1)
-    createSampleSets sets
+    createSampler sets
 
 let getGrid (v:float) max = int(v*(float max))
 
@@ -223,7 +160,7 @@ let nRooks n sn =
         sets.[k] <- shuffleDiagonals samples
         if k > 0 then loop (k-1)
     loop (sn-1)
-    createSampleSets sets
+    createSampler sets
 
 let shuffleMultiPDF (samples:(float * float) []) n =
     for j in 0..n-1 do
@@ -282,7 +219,7 @@ let multiJittered n sn =
         sets.[k] <- shuffleMulti samples n
         if k > 0 then loop (k-1)
     loop (sn-1)
-    createSampleSets sets
+    createSampler sets
 
 let mapToDisc (x, y) =
     let x, y = (2.0*x-1.0, 2.0*y-1.0)
@@ -301,6 +238,79 @@ let mapToHemisphere (x, y) e =
     let theta = Math.Acos((1.0-y)**E_VAL)
     (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
 
+let drawSamples (sampler:Sampler) sampleMethod fileName =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in [0..size-1] do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    let drawGrid n thickness =
+        for i in [1..n-1] do
+            for j in [0..size-1] do
+                for k in [(-thickness/2)..(thickness/2)] do
+                    img.SetPixel(((size/n)*i)+k, j, Color.Black)
+                    img.SetPixel(j, ((size/n)*i)+k, Color.Black)
+    if sampler.SampleCount < 64 then
+        if sampleMethod = "jittered" then drawGrid (int (Math.Sqrt(float sampler.SampleCount))) 1
+        else if sampleMethod = "nrooks" then drawGrid sampler.SampleCount 1
+        else if sampleMethod = "multi" then
+            drawGrid (int (Math.Sqrt(float sampler.SampleCount))) 2
+            drawGrid sampler.SampleCount 1
+    for _ in 0..sampler.SampleCount-1 do
+        let sx, sy = sampler.Next()
+        let x = int (float size*sx)
+        let y = int (float size*sy)
+        for i in [x-(dotSize/2)..x+(dotSize/2)] do
+            for j in [y-(dotSize/2)..y+(dotSize/2)] do
+                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
+    img.Save(fileName)  
+
+let drawCircle (img:Bitmap) size = 
+    let SIZE_HALVED = float size/2.0
+    for i in 1..int 360 do
+        let theta = float i
+        let x  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Cos(theta))
+        let y  =  int(SIZE_HALVED + (SIZE_HALVED-2.0) * Math.Sin(theta))
+        for i in [x-1..x+1] do
+            for j in [y-1..y+1] do
+                img.SetPixel(i, j, Color.Black)
+
+let drawDiscSamples (sampler:Sampler) fileName =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in 0..size-1 do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    drawCircle img size
+    for _ in 0..sampler.SampleCount-1 do
+        let sx, sy = mapToDisc (sampler.Next())
+        let x = int (float (size)*((sx+1.0)/2.0))
+        let y = int (float (size)*((sy+1.0)/2.0))
+        for i in [x-(dotSize/2)..x+(dotSize/2)] do
+            for j in [y-(dotSize/2)..y+(dotSize/2)] do
+                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
+    img.Save(fileName)  
+
+let drawSphereSamples (sampler:Sampler) e fileName above =
+    let size = 400
+    let dotSize = 4
+    let img = new Bitmap(size, size)
+    for i in 0..size-1 do
+            for j in [0..size-1] do
+                img.SetPixel(i, j, Color.White)
+    drawCircle img size
+    for _ in 0..sampler.SampleCount-1 do
+        let sx, sy, sz = mapToHemisphere (sampler.Next()) e
+        let x = int (float (size)*((sx+1.0)/2.0))
+        let sv = if above then sy else sz
+        let y = int (float (size)*((sv+1.0)/2.0))
+        for i in [x-(dotSize/2)..x+(dotSize/2)] do
+            for j in [y-(dotSize/2)..y+(dotSize/2)] do
+                if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
+    img.Save(fileName)
+
 (*for i in 0..1920/127 do
     for j in 0..1080/127 do
         ignore (nRooks 256 127)*)
@@ -317,16 +327,16 @@ let main argsv =
     let fileName = "sampletest.png"
     let samples = 
         match method with
-            | "regular" -> (regular amount).[0]
-            | "random"  -> (random amount sets).[0]
-            | "jittered" -> (jittered amount sets).[0]
-            | "nrooks"  -> (nRooks amount sets).[0]
-            | "multi"   -> (multiJittered amount sets).[0]
-            | _ -> (regular 4).[0]
+            | "regular" -> regular amount
+            | "random"  -> random amount sets
+            | "jittered" -> jittered amount sets
+            | "nrooks"  -> nRooks amount sets
+            | "multi"   -> multiJittered amount sets
+            | _ -> regular 4
     if argsv.Length > 3 then
-        if argsv.[3] = "disc" then drawDiscSamples (Array.map mapToDisc samples) fileName
+        if argsv.[3] = "disc" then drawDiscSamples samples fileName
         else if argsv.[3] = "sphere" then
             let e = if argsv.Length = 5 then float (Int32.Parse argsv.[4]) else 0.0
-            drawSphereSamples (Array.map (fun (x, y) -> (mapToHemisphere (x, y) e)) samples) fileName true
+            drawSphereSamples samples e fileName true
     else drawSamples samples method fileName
     0

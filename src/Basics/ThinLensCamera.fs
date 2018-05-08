@@ -14,8 +14,8 @@ type ThinLensCamera
         resY: int,
         r: float,
         f: float,
-        viewSamples : SampleGenerator,
-        lensSamples : SampleGenerator
+        viewSamples : Sampler,
+        lensSamples : Sampler
     ) = 
     inherit Camera(position, lookat, up, zoom, width, height, resX, resY)    
     default this.CreateRays x y =
