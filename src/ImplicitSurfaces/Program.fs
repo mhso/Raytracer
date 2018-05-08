@@ -5,8 +5,8 @@ module Program =
   open System.Drawing
   open Tracer.Basics
   open Tracer.ImplicitSurfaces.Main
-  open Tracer.Basics
   open Tracer.Sampling.Sampling
+  open Tracer.ImplicitSurfaces.AltRender
 
   type baseShape = Main.baseShape
   type shape = Main.shape
@@ -15,12 +15,12 @@ module Program =
   let main _ = 
 
     // the scene
-    let mkScene' s (c:Camera) =
+    let mkScene' s =
       let light = PointLight (Colour.White, 0.5, Point(4.0, 2.0, 4.0))
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
-      let (lights:Light list) = [light;light2;ambientLight]
-      Scene ([|s|], c, lights, ambientLight, 8)
+      let (lights:Light list) = [light;light2]
+      Scene ([s], lights, ambientLight, 8)
 
     // colours
     let aqua = Colour (Color.Aqua)
@@ -76,7 +76,7 @@ module Program =
     let heart = mkShape (mkImplicit "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") (texfun (MatteMaterial(Colour(Color.DarkRed))))
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-    let sc = mkScene' torus toruscam
-    sc.RenderParallel |> ignore
+    let render = AltRender(mkScene' torus, toruscam)
+    render.RenderParallel |> ignore
 
     0

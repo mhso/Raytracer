@@ -121,7 +121,7 @@ module API =
     new Triangle(a, b, c, m) :> shape
 
   let mkPlane (m : texture) : shape = 
-    InfinitePlane(m) :> shape
+    new InfinitePlane(m) :> shape
 
   let mkImplicit (s : string) : baseShape = 
     mkImplicit s
@@ -130,10 +130,10 @@ module API =
     failwith "mkPoly not implemented"
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
-    HollowCylinder(c, r, h, t) :> shape
+    new HollowCylinder(c, r, h, t) :> shape
 
-  let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape
-      = SolidCylinder(c, r, h, t, top, bottom) :> shape
+  let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape = 
+    new SolidCylinder(c, r, h, t, top, bottom) :> shape
 
   let mkDisk (c : point) (r : float) (t : texture) : shape = 
     new Disc(c, r, t) :> shape
