@@ -33,43 +33,47 @@ let getJitteredEvaluation (samples:(float*float) []) =
 
 let allTest =
     let jittered_JitteredPropertyIsMaintained =
-        let sets = jittered 4 1
-        let expected, actual = getJitteredEvaluation sets.[0]
+        let sampler = multiJittered 4 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
+        let expected, actual = getJitteredEvaluation samples
         Assert.Equal (expected, actual, "jittered_JitteredPropertyIsMaintained")
 
     let nRooks_NRooksPropertyIsMaintained =
         setRandomSeed 42 // With this seed, nRooks property will be challenged.
-        let sets = nRooks 8 1
-        let samples = sets.[0]
+        let sampler = nRooks 8 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
         let mutable result = true
-        for i in 0..samples.Length-1 do
+        for i in 0..sampler.SampleCount-1 do
             if isRookThreatened samples i then result <- false
         Assert.True (result, "nRooks_NRooksPropertyIsMaintained")
 
     let multiJittered_JitteredPropertyIsMaintained =
-        let sets = multiJittered 4 1
-        let expected, actual = getJitteredEvaluation sets.[0]
+        let sampler = multiJittered 4 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
+        let expected, actual = getJitteredEvaluation samples
         Assert.Equal (expected, actual, "multiJittered_JitteredPropertyIsMaintained")
 
     let multiJittered_NRooksPropertyIsMaintained =
         setRandomSeed 42 // With this seed, nRooks property will be challenged.
-        let sets = multiJittered 4 1
-        let samples = sets.[0]
+        let sampler = multiJittered 4 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
         let mutable result = true
-        for i in 0..samples.Length-1 do
+        for i in 0..sampler.SampleCount-1 do
             if isRookThreatened samples i then result <- false
         Assert.True (result, "multiJittered_NRooksPropertyIsMaintained")
 
     let sampleSets_SetsAreShuffled = 
         setRandomSeed 19
-        let sets1 = multiJittered 2 2
+        let sampler = multiJittered 2 2
+        let sets1 = [|for j in 0..sampler.SetCount-1 do yield [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]|]
         let sample1_1 = Array.sort sets1.[0]
         let sample1_2 = Array.sort sets1.[1]
         
         System.Threading.Thread.Sleep(50) // Sleep so random changes (THIS SUCKS!!!)
         
         setRandomSeed 19
-        let sets2 = multiJittered 2 2
+        let sampler = multiJittered 2 2
+        let sets2 = [|for j in 0..sampler.SetCount-1 do yield [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]|]
         let sample2_1 = Array.sort sets2.[0]
         let sample2_2 = Array.sort sets2.[1]
 
@@ -77,17 +81,19 @@ let allTest =
         Assert.Equal (sample1_2, sample2_2, "sampleSets_SetsAreShuffled2")
 
     let sampleSets_SetsAreCorrectSize = 
-        let sets = multiJittered 2 4
-        Assert.Equal (4, sets.Length, "sampleSets_SetsAreCorrectSize")
+        let sampler = multiJittered 2 4
+        Assert.Equal (4, sampler.SetCount, "sampleSets_SetsAreCorrectSize")
 
     let sampleSets_SamplesAreShuffled =
         setRandomSeed 19
-        let samples1 = (multiJittered 16 1).[0]
+        let sampler = multiJittered 4 2
+        let samples1 = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
 
         System.Threading.Thread.Sleep(50) // Sleep so random changes (THIS SUCKS!!!)
 
         setRandomSeed 19
-        let samples2 = (multiJittered 16 1).[0]
+        let sampler = multiJittered 4 2
+        let samples2 = [|for i in 0..sampler.SampleCount-1 do yield sampler.Next()|]
 
         Assert.True (not (samples1 = samples2), "sampleSets_SamplesAreShuffled1")
         let samples1 = Array.sort samples1
@@ -95,11 +101,12 @@ let allTest =
         Assert.Equal (samples1, samples2, "sampleSets_SamplesAreShuffled2")
     
     let sampleSets_SamplesAreCorrectSize =
-        let samples = (multiJittered 4 1).[0]
-        Assert.Equal (16, samples.Length, "sampleSets_SamplesAreCorrectSize")
+        let sampler = multiJittered 4 1
+        Assert.Equal (16, sampler.SampleCount-1, "sampleSets_SamplesAreCorrectSize")
 
     let mapToDisc_SamplesAreInCorrectQuadrants =
-        let samples = (multiJittered 2 1).[0]
+        let sampler = multiJittered 16 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield (mapToDisc (sampler.Next()))|]
         let toDisc = Array.map mapToDisc samples
         let validArr = [|(true, true);(false, false);(true, false);(false, true)|]
         let result = Array.forall (fun (b1, b2) -> 
@@ -107,7 +114,8 @@ let allTest =
         Assert.True (result, "mapToDisc_SamplesAreInCorrectQuadrants")
 
     let mapToDisc_SamplesAreInValidRange =
-        let samples = (multiJittered 16 1).[0]
+        let sampler = multiJittered 16 1
+        let samples = [|for i in 0..sampler.SampleCount-1 do yield (mapToDisc (sampler.Next()))|]
         let toDisc = Array.map mapToDisc samples
         let result = Array.forall (fun (x, y) -> 
                                             x > -0.9 && y > -0.9 || 
@@ -117,13 +125,13 @@ let allTest =
         Assert.True (result, "mapToDisc_SamplesAreInValidRange")
 
     let Sampler_SamplerReturnsNextSample =
-        let sampler = new Sampler(multiJittered, 8, 1)
+        let sampler = multiJittered 8 1
 
         let next = sampler.Next()
         Assert.True (next > (0., 0.), "Sampler_SamplerReturnsNextSample")
 
     let Sampler_SamplerReturnsCurrentSample =
-        let sampler = new Sampler(multiJittered, 8, 1)
+        let sampler = multiJittered 8 1
 
         let next = sampler.Next()
         let current = sampler.Current
