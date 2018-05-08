@@ -80,7 +80,8 @@ module API =
   let mkAmbientLight (c : colour) (i : float) : ambientLight = new AmbientLight(c, i)
   let mkAmbientOccluder (c : colour) (l : float) (lmin : float) (s : sampler) : ambientLight = failwith "mkAmbientOccluder not implemented"
 
-  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = failwith "mkPinholeCamera not implemented"
+  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = 
+    new PinholeCamera(pos, look, up, zoom, width, height, pwidth, pheight, s) :> Camera
   let mkThinLensCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (radius : float) (fpDistance : float) (pixel : sampler) (lens : sampler) : camera =
     new ThinLensCamera(pos, look, up, zoom, width, height, pwidth, pheight, radius, fpDistance, pixel, lens) :> Camera
 

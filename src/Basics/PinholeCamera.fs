@@ -1,8 +1,10 @@
 ﻿namespace Tracer.Basics
 
+open Tracer.Sampling.Sampling
+
 type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point,
                     up: Vector, zoom: float, width: float, height: float, 
-                    resX: int, resY: int) =
+                    resX: int, resY: int, sampler : Sampler) =
     inherit Camera(position, lookat, up, zoom, width, height, resX, resY)
     member this.RenderFilepath = "background.bmp"
 

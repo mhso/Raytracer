@@ -2,6 +2,8 @@
 
 open System
 open System.Drawing
+open System.Threading
+open System.Threading.Tasks
 
 let mutable rand = new Random()
 
@@ -10,15 +12,18 @@ let setRandomSeed seed = rand <- new Random(seed)
 type Sampler(samplingAlgorithm: int -> int -> (float * float) [][], sampleSize: int, sampleSetCount: int) =   
     let samples: (float * float) [][] = samplingAlgorithm sampleSize sampleSetCount
 
-    let mutable currentSampleIndex = 0
+    let sampleIndices = Array.create 500 0
     let mutable currentSample: (float * float) = (0., 0.)
     let sampleCount = samples.[0].Length
 
     member this.Next() = 
+        let threadIndex = Thread.CurrentThread.GetHashCode()
+
+        let currentSampleIndex = sampleIndices.[threadIndex]
         let setIndex = (currentSampleIndex / sampleCount) % sampleSetCount
         let sampleIndex = currentSampleIndex % sampleCount
         let sample = samples.[setIndex].[sampleIndex]
-        currentSampleIndex <- currentSampleIndex + 1
+        sampleIndices.[threadIndex] <- currentSampleIndex + 1
         currentSample <- sample
         sample
 
