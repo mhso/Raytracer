@@ -78,6 +78,7 @@
     <Compile Include="PinholeCamera.fs" />
     <Compile Include="ThinLensCamera.fs" />
     <Compile Include="Scene.fs" />
+    <Compile Include="Render.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

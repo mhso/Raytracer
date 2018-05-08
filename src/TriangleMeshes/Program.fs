@@ -5,6 +5,7 @@ open FParsec
 open Tracer.Basics
 open Tracer.Sampling
 open Tracer.Sampling
+open Tracer.Sampling.Sampling
 
 [<EntryPoint>]
 let main argv = 
@@ -37,9 +38,10 @@ let main argv =
     let CAM_SETS = 29
     let VIEW_SAMPLES = 8
     let DISC_SAMPLES = 8
-
+    
     //- CAMERA
-    let camera         = PinholeCamera(Point (4.0, 8.0, 20.0), Point(0.,0.,0.), Vector(0.,1.,0.), 4., 2.5,2.5,1000,1000, Sampling.multiJittered 2 2)
+    let camera         = PinholeCamera(Point (4.0, 8.0, 20.0), Point(0.,0.,0.), Vector(0.,1.,0.), 4., 2.5,2.5,1000,1000, multiJittered 2 2)
+
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
