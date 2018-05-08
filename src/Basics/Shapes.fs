@@ -104,12 +104,15 @@ type Disc(center:Point, radius:float, tex:Texture)=
 ////TRIANGLE////
 and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     inherit Shape()
+    let mutable be : float = 0.0
+    let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    member this.n = this.u.CrossProduct this.v
 
     //the many members are for simplifying cramers rule and hit function
     member this.pa = ((a.X)-(b.X))
@@ -118,6 +121,9 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.f = ((a.Y)-(c.Y))
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
+
+    member this.beta with get() = be and set(value) = be <- value
+    member this.gamma with get() = ga and set(value) = ga <- value
 
 
 
@@ -153,6 +159,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
                     let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
                     let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                    this.beta <- x
+                    this.gamma <- y
                     let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
