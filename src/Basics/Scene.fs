@@ -23,7 +23,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             
     member this.Cast accel ray =
         // Get the hitpoint
-        let hitPoint: HitPoint = this.GetFirstHitPoint ray
+        let hitPoint: HitPoint = this.GetFirstHitPointWithAccel accel ray
 
         // Check if we hit
         if hitPoint.DidHit then
