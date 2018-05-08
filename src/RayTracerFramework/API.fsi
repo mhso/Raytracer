@@ -23,7 +23,7 @@ module API =
   type light = Light
   type ambientLight = AmbientLight
   type transformation = Transformation
-  type sampler = SampleGenerator
+  type sampler = Sampler
   
   ////////////
   // Basics //
