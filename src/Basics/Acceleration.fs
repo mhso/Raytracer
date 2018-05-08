@@ -9,7 +9,7 @@ module Acceleration =
                        | BVH of float // Swap with actual BVH
                        | RG of float // Swap with actual RG
 
-    let createAcceleration acceleration (shapes:array<Shape>) = 
+    let createAcceleration (shapes:array<Shape>) = 
         match acceleration with
         | "KDTree" -> KDTree(buildKDTree shapes)
         | "BVH"    -> failwith "Not Implemented"
