@@ -116,4 +116,17 @@ let allTest =
                                             x > -0.9 && y < 0.9) toDisc
         Assert.True (result, "mapToDisc_SamplesAreInValidRange")
 
+    let Sampler_SamplerReturnsNextSample =
+        let sampler = new Sampler(multiJittered, 8, 1)
+
+        let next = sampler.Next()
+        Assert.True (next > (0., 0.), "Sampler_SamplerReturnsNextSample")
+
+    let Sampler_SamplerReturnsCurrentSample =
+        let sampler = new Sampler(multiJittered, 8, 1)
+
+        let next = sampler.Next()
+        let current = sampler.Current
+        Assert.Equal (next, current, "Sampler_SamplerReturnsCurrentSample")
+
     ()
