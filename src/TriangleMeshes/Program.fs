@@ -62,5 +62,5 @@ let main argv =
     //let scene                   = Scene(spheres, camera, lights)
 
     //ignore scene.Render
-    System.Console.ReadKey() |> ignore
+    ////System.Console.ReadKey() |> ignore
     0
