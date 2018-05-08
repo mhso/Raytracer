@@ -16,6 +16,12 @@ module Acceleration =
         | "RG"     -> failwith "Not Implemented"
         | _        -> failwith "Unknown Acceleration Structure..."
 
+    let getAccelBoundingBox (accel:IAcceleration) = 
+        match accel with
+        | KDTree(kdTree) -> kdTree.bBox
+        | BVH(bvh)       -> failwith "Not Implemented"
+        | RG(rg)         -> failwith "Not Implemented"
+
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with
         | KDTree(kdTree) -> traverseKDTree kdTree ray shapes
