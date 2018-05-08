@@ -10,26 +10,23 @@ let main _ =
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 640
-    let resY = 480
+    let resX = 1920
+    let resY = 1080
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
     
 
     //- MATERIALS
-    let matteRed = MatteMaterial(Colour.Red)
-    let matteGreen = MatteMaterial(Colour.Green)
-    let matteYellow = MatteMaterial(Colour(1.,1.,0.))
-    let matteWhite = MatteMaterial(Colour.White)
-    let matteBlue = MatteMaterial(Colour.Blue)
-    let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
-    let perfectWhite = PerfectReflectionMaterial(matteWhite, Colour.White, 1.)
-    let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
-    let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
-    let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
-    let perfectBlue = PerfectReflectionMaterial(matteBlue, Colour.Red, 1.)
-    let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 127, 100.)
+    let matteRed = MatteMaterial(Colour.White, 1., Colour.Red, 1.)
+    let matteGreen = MatteMaterial(Colour.White, 1., Colour.Green, 1.)
+    let matteYellow = MatteMaterial(Colour.White, 1., Colour.Yellow, 1.)
+    let matteWhite = MatteMaterial(Colour.White, 1., Colour.White, 1.)
+    let matteBlue = MatteMaterial(Colour.White, 1., Colour.White, 1.)
+    let perfectRed = MatteReflectiveMaterial(Colour.White, 1., Colour.Red, 1., Colour.White, 1.)
+    let perfectGreen = MatteReflectiveMaterial(Colour.White, 1., Colour.Red, 1., Colour.White, 1.)
+    let perfectYellow = MatteReflectiveMaterial(Colour.White, 1., Colour.Yellow, 1., Colour.White, 1.)
+    let perfectBlue = MatteReflectiveMaterial(Colour.White, 1., Colour.Blue, 1., Colour.White, 1.)
     let emissive = EmissiveMaterial(Colour.White, 10000.)
     
 
@@ -64,7 +61,7 @@ let main _ =
     let checker x y =
         let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
         if (int (abs' x) + int (abs' y)) % 2 = 0
-        then new MatteMaterial(new Colour(0., 0., 0.)) :> Material
+        then matteRed :> Material
         else perfectYellow :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 

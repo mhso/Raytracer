@@ -128,7 +128,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             let isShadow ray = 
                 let (hp) = (this.GetFirstShadowHitPoint ray)
                 if hp.DidHit then
-                        Colour.White 
+                        Colour.White - ambient.GetColour hitPoint
                     else 
                         Colour.Black
             
@@ -142,16 +142,17 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
     member this.CastRecursively 
         (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) (reflectionFunction: HitPoint -> Ray[]) : Colour =
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + hitPoint.Material.PreBounce shape hitPoint light
+            acc + hitPoint.Material.PreBounce(shape, hitPoint, light, ambient)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + hitPoint.Material.PreBounce shape hitPoint light
+            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light, ambient)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 
                     let outHitPoint = this.GetFirstHitPointExcept outRay.[i] shape
                     if outHitPoint.DidHit then
-                        this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        let recursiveColour = this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        hitPoint.Material.ReflectionFactor * recursiveColour
                     else
                         Colour.Black
             baseColour + (outColour / float(outRay.Length))

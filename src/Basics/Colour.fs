@@ -23,11 +23,11 @@ type Colour (r:float, g:float, b:float)=
         "["+r.ToString()+","+g.ToString()+","+b.ToString()+"]"
     member this.Scale (s:float) = 
         if s < 0.0 then Colour.White
-        else new Colour(r*s,g*s,b*s)
+        else Colour(r*s,g*s,b*s)
     member this.Merge (w: float) (c: Colour) =
         let w' = 1.0 - w
         if w >= 0.0 && w <= 1.0 then
-          new Colour(w*r + w'*c.R, w*g + w'*c.G, w*b + w'*c.B)
+          Colour(w*r + w'*c.R, w*g + w'*c.G, w*b + w'*c.B)
         else
           raise ColourException
 
@@ -43,15 +43,15 @@ type Colour (r:float, g:float, b:float)=
         let newR = (System.Math.Pow (float c.R / 255.0, 2.0))
         let newG = (System.Math.Pow (float c.G / 255.0, 2.0))
         let newB = (System.Math.Pow (float c.B / 255.0, 2.0))
-        new Colour(newR, newG, newB)
+        Colour(newR, newG, newB)
 
-    static member (+) (a:Colour, b:Colour) = new Colour(a.R + b.R, a.G + b.G, a.B + b.B)
+    static member (+) (a:Colour, b:Colour) = Colour(a.R + b.R, a.G + b.G, a.B + b.B)
     static member (-) (a:Colour, b:Colour) =
         let r = max 0. (a.R-b.R)
         let g = max 0. (a.G-b.G)
         let b = max 0. (a.B-b.B)
         Colour(r,g,b)
-    static member (*) (a:Colour, b:Colour) = new Colour(a.R * b.R, a.G * b.G, a.B * b.B)
+    static member (*) (a:Colour, b:Colour) = Colour(a.R * b.R, a.G * b.G, a.B * b.B)
     static member (*) (a:Colour, s:float) = a.Scale s
     static member (*) (s:float, a:Colour) = a.Scale s
     static member (/) (s:float, a:Colour) = a.Scale(1./s)
@@ -62,8 +62,9 @@ type Colour (r:float, g:float, b:float)=
 
     // Predefined colours
     static member Zero = Colour(0.,0.,0.)
-    static member Black = new Colour(0., 0., 0.)
-    static member Red = new Colour(1., 0., 0.)
-    static member Blue = new Colour(0., 0., 1.)
-    static member Green = new Colour(0., 1., 0.)
-    static member White = new Colour(1.,1.,1.)
+    static member Black = Colour(0., 0., 0.)
+    static member Red = Colour(1., 0., 0.)
+    static member Blue = Colour(0., 0., 1.)
+    static member Green = Colour(0., 1., 0.)
+    static member White = Colour(1.,1.,1.)
+    static member Yellow = Colour(1.,1.,0.)
