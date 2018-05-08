@@ -6,6 +6,7 @@ module Program =
   open Tracer.Basics
   open Tracer.ImplicitSurfaces.Main
   open Tracer.Basics
+  open Tracer.Sampling.Sampling
 
   type baseShape = Main.baseShape
   type shape = Main.shape
@@ -18,8 +19,7 @@ module Program =
       let light = PointLight (Colour.White, 0.5, Point(4.0, 2.0, 4.0))
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
-
-      let (lights:Light list) = [light;light2]
+      let (lights:Light list) = [light;light2;ambientLight]
       Scene ([|s|], c, lights, ambientLight, 8)
 
     // colours
@@ -52,10 +52,11 @@ module Program =
     // shapes and their cams
     let sphere1 = mkShape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (texfun matteGreen)
     let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768,
-                        new Sampler(multiJittered, 4, 87))
+                        Sampler(multiJittered, 4, 87))
 
     let sphere2 = mkShape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (texfun matteRed)
-    let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
+    let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500,
+                        Sampler(regular, 1, 1))
     
     let torus = mkShape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (texfun matteBlue)
     let toruscam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500)
