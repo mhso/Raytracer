@@ -21,13 +21,13 @@ module API =
   type light = Light
   type ambientLight = AmbientLight
   type transformation = Transformation
-  type sampler = SampleGenerator
+  type sampler = Sampler
 
-  let mkRegularSampler (n : int) : sampler = SampleGenerator((fun sm st -> regular sm), n, 1)
-  let mkRandomSampler (n : int) (sets : int) : sampler = SampleGenerator(random, n, sets)
-  let mkNRooksSampler (n : int) (sets : int) : sampler = SampleGenerator(nRooks, n, sets)
-  let mkJitteredSampler (n : int) (sets : int) : sampler = SampleGenerator(jittered, n, sets)
-  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = SampleGenerator(multiJittered, n, sets)
+  let mkRegularSampler (n : int) : sampler = Sampler((fun sm st -> regular sm), n, 1)
+  let mkRandomSampler (n : int) (sets : int) : sampler = Sampler(random, n, sets)
+  let mkNRooksSampler (n : int) (sets : int) : sampler = Sampler(nRooks, n, sets)
+  let mkJitteredSampler (n : int) (sets : int) : sampler = Sampler(jittered, n, sets)
+  let mkMultiJitteredSampler (n : int) (sets : int) : sampler = Sampler(multiJittered, n, sets)
 
   let mkVector (x : float) (y : float) (z : float) : vector = new Vector(x, y, z)
   let mkPoint (x : float) (y : float) (z : float) : point = new Point(x, y, z)
@@ -80,7 +80,8 @@ module API =
   let mkAmbientLight (c : colour) (i : float) : ambientLight = new AmbientLight(c, i)
   let mkAmbientOccluder (c : colour) (l : float) (lmin : float) (s : sampler) : ambientLight = failwith "mkAmbientOccluder not implemented"
 
-  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = failwith "mkPinholeCamera not implemented"
+  let mkPinholeCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (s : sampler) : camera = 
+    new PinholeCamera(pos, look, up, zoom, width, height, pwidth, pheight, s) :> Camera
   let mkThinLensCamera (pos : point) (look : point) (up : vector) (zoom : float) (width : float) (height : float) (pwidth : int) (pheight : int) (radius : float) (fpDistance : float) (pixel : sampler) (lens : sampler) : camera =
     new ThinLensCamera(pos, look, up, zoom, width, height, pwidth, pheight, radius, fpDistance, pixel, lens) :> Camera
 

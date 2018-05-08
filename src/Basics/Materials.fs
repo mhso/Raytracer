@@ -98,7 +98,7 @@ type PerfectReflectionMaterial(baseMaterial: Material, reflectionColour: Colour,
     default this.AmbientColour shape hitPoint = baseMaterial.AmbientColour shape hitPoint     
     default this.BounceMethod h = 
         let rayDirection = (h.Ray.GetDirection + (-2. * (h.Normal * h.Ray.GetDirection)) * h.Normal)
-        [| Ray(h.Point, rayDirection) |]
+        [| Ray(h.EscapedHitpoint, rayDirection) |]
     default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
         baseMaterial.Bounce shape hitPoint light
     default this.IsRecursive = true
@@ -107,7 +107,7 @@ type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, base
     inherit Material()
     
     let random = new Random()
-    let samplingGenerator = new Sampling.SampleGenerator(Sampling.multiJittered, sampleCount, setCount)
+    let samplingGenerator = new Sampling.Sampler(Sampling.multiJittered, sampleCount, setCount)
 
     // Will reflect a ray along a hemisphere
     default this.BounceMethod hitPoint =

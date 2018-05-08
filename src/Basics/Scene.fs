@@ -5,6 +5,7 @@ open System.Drawing
 open System.Diagnostics
 open System.Threading.Tasks
 open System.Threading
+open Acceleration
 
 type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : AmbientLight, maxBounces) = 
 
@@ -20,9 +21,9 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
     member this.BackgroundColour = backgroundColour 
     member this.MaxBounces = maxBounces
             
-    member this.Cast ray =
+    member this.Cast accel ray =
         // Get the hitpoint
-        let (shape, (hitPoint: HitPoint)) = this.GetFirstHitPoint ray
+        let hitPoint: HitPoint = this.GetFirstHitPointWithAccel accel ray
 
         // Check if we hit
         if hitPoint.DidHit then
@@ -31,62 +32,62 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             lights 
                 |> List.fold (fun accColour light -> 
                     let shadowColour = this.CastShadow hitPoint light
-                    let colour = this.CastRecursively ray shape hitPoint light Colour.Black this.MaxBounces hitPoint.Material.BounceMethod
+                    let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.MaxBounces hitPoint.Material.BounceMethod
                     accColour + (colour - shadowColour)) (new Colour(0.,0.,0.))
         else
             // If we did not hit, return the background colour
             this.BackgroundColour
 
+    member this.GetFirstHitPointWithAccel (accel:IAcceleration) (ray:Ray) = 
+        traverseIAcceleration accel ray shapes
+
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
-    member this.GetFirstHitPoint (ray:Ray) = 
+    member this.GetFirstHitPoint (ray:Ray) : HitPoint = 
 
         // Get all hit points
         let pointsThatHit = 
-            [for s in shapes do yield (s, s.hitFunction ray )]
-                |> List.filter (fun (_,hp:HitPoint) -> hp.DidHit)
+            [for s in shapes do yield s.hitFunction ray]
+                |> List.filter (fun hp -> hp.DidHit)
         
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
-            (Shape.None, HitPoint(ray))
+            HitPoint(ray)
         else
             // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
+            pointsThatHit |> List.minBy (fun hp -> hp.Time)
 
-    member this.GetFirstShadowHitPoint (ray:Ray) = 
+    member this.GetFirstShadowHitPoint (ray:Ray) : HitPoint = 
         
         // Get all hit points
         let pointsThatHit = 
-            [for s in shapes do yield (s, s.hitFunction ray )]
-                |> List.filter (fun (_,hp:HitPoint) -> hp.DidHit)
-                |> List.filter (fun (_,hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
+            [for s in shapes do yield s.hitFunction ray]
+                |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
+                |> List.filter (fun (hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
         
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
-            (Shape.None, HitPoint(ray))
+            HitPoint(ray)
         else
             // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
+            pointsThatHit |> List.minBy (fun hp -> hp.Time)
 
 
     member this.GetFirstHitPointExcept (ray: Ray) (except: Shape) = 
 
         // Get all hit points
         let pointsThatHit = 
-            [for s in shapes do yield (s, s.hitFunction ray)]
-                |> List.filter (fun (_,hp) -> hp.DidHit)
-                |> List.filter (fun (shape,_) -> 
-                    let eq = Object.ReferenceEquals(shape, except)
-                    not eq)
+            [for s in shapes do yield (s.hitFunction ray)]
+                |> List.filter (fun (hp) -> hp.DidHit && not (Object.ReferenceEquals(hp.Shape, except)))
 
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
-            (Shape.None, new HitPoint(ray))
+            new HitPoint(ray)
         else
             // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun (_,hp) -> hp.Time)
+            pointsThatHit |> List.minBy (fun (hp) -> hp.Time)
 
     // Returns the average shadow for a hitpoint and a light source
     member this.CastShadow (hitPoint: HitPoint) (light: Light) = 
@@ -95,7 +96,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
         else
             let shadowRays = light.GetShadowRay hitPoint
             let isShadow ray = 
-                let (_, hp) = (this.GetFirstShadowHitPoint ray)
+                let (hp) = (this.GetFirstShadowHitPoint ray)
                 if hp.DidHit then
                         Colour.White 
                     else 
@@ -118,9 +119,9 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 
-                    let (outShape, outHitPoint) = this.GetFirstHitPointExcept outRay.[i] shape
+                    let outHitPoint = this.GetFirstHitPointExcept outRay.[i] shape
                     if outHitPoint.DidHit then
-                        this.CastRecursively outRay.[i] outShape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
                     else
                         Colour.Black
             baseColour + (outColour / float(outRay.Length))
@@ -171,7 +172,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
 
         System.Console.ReadKey () |> ignore
 
-    member this.RenderParallel = 
+    member this.RenderParallel accel = 
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
@@ -187,7 +188,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
           // Shoot rays and save the resulting colors, using parallel computations.
           Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
-            let cols = List.map (fun ray -> (this.Cast ray)) rays
+            let cols = List.map (fun ray -> (this.Cast accel ray)) rays
             let colour = (List.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
@@ -207,7 +208,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
 
         this.EndRender renderedImage
 
-    member this.Render =
+    member this.Render accel =
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
@@ -218,7 +219,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
                 this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
-                let colours = List.map (fun ray -> (this.Cast ray)) rays
+                let colours = List.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (List.fold (+) Colour.Black colours)/float colours.Length
 
                 renderedImage.SetPixel(x, y, colour.ToColor)

@@ -7,13 +7,14 @@ open System
 
 
 let allTest = 
-    printfn "Shape Tests"
     let rectangle = new Rectangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
     let disc = new Disc(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
     let triangle = new Triangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), MatteMaterial(Colour(1.,1.,1.)))
     let sphere = new SphereShape(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
     let hollowCylinder = new HollowCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    //let solidCylinder = NotImplementedException
+    let solidCylinder = new SolidCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))),
+                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))),
+                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
     let box = new Box(Point(0.,0.,0.), Point(1.,1.,1.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
                                                         Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
                                                         Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
@@ -48,6 +49,10 @@ let allTest =
     Assert.Equal(hollowCylinder.radius, 2., "hollowCylinder.radius")
     Assert.Equal(hollowCylinder.height, 4., "hollowCylinder.height")
 
+    Assert.Equal(solidCylinder.center, Point(0.,0.,0.), "solidCylinder.center")
+    Assert.Equal(solidCylinder.radius, 2., "solidCylinder.radius")
+    Assert.Equal(solidCylinder.height, 4., "solidCylinder.height")
+
     Assert.Equal(box.low, Point(0.,0.,0.), "box.low")
     Assert.Equal(box.low, Point(0.,0.,0.), "box.high")
 
@@ -70,6 +75,85 @@ let allTest =
     Assert.Equal(baseHollowCylinder.center, Point(0.,0.,0.), "baseHollowCylinder.center")
     Assert.Equal(baseHollowCylinder.radius, 2., "baseHollowCylinder.radius")
     Assert.Equal(baseHollowCylinder.height, 4., "baseHollowCylinder.height")
+
+    //Tests for Bounding boxes being correctly returned with, getBoundingBox()
+    let recBBox = rectangle.getBoundingBox ()
+    Assert.Equal(recBBox.lowPoint.X, -0.000001, "test for rectangle Bounding box, lowPoint.X")
+    Assert.Equal(recBBox.lowPoint.Y, -0.000001, "test for rectangle Bounding box, lowPoint.Y")
+    Assert.Equal(recBBox.lowPoint.Z, -0.000001, "test for rectangle Bounding box, lowPoint.Z")
+    Assert.Equal(recBBox.highPoint.X, 1.000001, "test for rectangle Bounding box, highPoint.X")
+    Assert.Equal(recBBox.highPoint.Y, 1.000001, "test for rectangle Bounding box, highPoint.Y")
+    Assert.Equal(recBBox.highPoint.Z, 0.000001, "test for rectangle Bounding box, highPoint.Z")
+
+    let discBBox = disc.getBoundingBox ()
+    Assert.Equal(discBBox.lowPoint.X, -2.000001, "test for disc Bounding box, lowPoint.X")
+    Assert.Equal(discBBox.lowPoint.Y, -2.000001, "test for disc Bounding box, lowPoint.Y")
+    Assert.Equal(discBBox.lowPoint.Z, -0.000001, "test for disc Bounding box, lowPoint.Z")
+    Assert.Equal(discBBox.highPoint.X, 2.000001, "test for disc Bounding box, highPoint.X")
+    Assert.Equal(discBBox.highPoint.Y, 2.000001, "test for disc Bounding box, highPoint.Y")
+    Assert.Equal(discBBox.highPoint.Z, 0.000001, "test for disc Bounding box, highPoint.Z")
+
+    let triBBox = triangle.getBoundingBox ()
+    Assert.Equal(triBBox.lowPoint.X, -0.000001, "test for triangle Bounding box, lowPoint.X")
+    Assert.Equal(triBBox.lowPoint.Y, -0.000001, "test for triangle Bounding box, lowPoint.Y")
+    Assert.Equal(triBBox.lowPoint.Z, -0.000001, "test for triangle Bounding box, lowPoint.Z")
+    Assert.Equal(triBBox.highPoint.X, 1.000001, "test for triangle Bounding box, highPoint.X")
+    Assert.Equal(triBBox.highPoint.Y, 1.000001, "test for triangle Bounding box, highPoint.Y")
+    Assert.Equal(triBBox.highPoint.Z, 0.000001, "test for triangle Bounding box, highPoint.Z")
+
+    let sphereBBox = sphere.getBoundingBox ()
+    Assert.Equal(sphereBBox.lowPoint.X, -2.000001, "test for sphere Bounding box, lowPoint.X")
+    Assert.Equal(sphereBBox.lowPoint.Y, -2.000001, "test for sphere Bounding box, lowPoint.Y")
+    Assert.Equal(sphereBBox.lowPoint.Z, -2.000001, "test for sphere Bounding box, lowPoint.Z")
+    Assert.Equal(sphereBBox.highPoint.X, 2.000001, "test for sphere Bounding box, highPoint.X")
+    Assert.Equal(sphereBBox.highPoint.Y, 2.000001, "test for sphere Bounding box, highPoint.Y")
+    Assert.Equal(sphereBBox.highPoint.Z, 2.000001, "test for sphere Bounding box, highPoint.Z")
+
+    let hollowBBox = hollowCylinder.getBoundingBox ()
+    Assert.Equal(hollowBBox.lowPoint.X, -2.000001, "test for hollowCylinder Bounding box, lowPoint.X")
+    Assert.Equal(hollowBBox.lowPoint.Y, -2.000001, "test for hollowCylinder Bounding box, lowPoint.Y")
+    Assert.Equal(hollowBBox.lowPoint.Z, -2.000001, "test for hollowCylinder Bounding box, lowPoint.Z")
+    Assert.Equal(hollowBBox.highPoint.X, 2.000001, "test for hollowCylinder Bounding box, highPoint.X")
+    Assert.Equal(hollowBBox.highPoint.Y, 2.000001, "test for hollowCylinder Bounding box, highPoint.Y")
+    Assert.Equal(hollowBBox.highPoint.Z, 2.000001, "test for hollowCylinder Bounding box, highPoint.Z")
+
+    let solidBBox = solidCylinder.getBoundingBox ()
+    Assert.Equal(solidBBox.lowPoint.X, -2.000001, "test for solidCylinder Bounding box, lowPoint.X")
+    Assert.Equal(solidBBox.lowPoint.Y, -2.000001, "test for solidCylinder Bounding box, lowPoint.Y")
+    Assert.Equal(solidBBox.lowPoint.Z, -2.000001, "test for solidCylinder Bounding box, lowPoint.Z")
+    Assert.Equal(solidBBox.highPoint.X, 2.000001, "test for solidCylinder Bounding box, highPoint.X")
+    Assert.Equal(solidBBox.highPoint.Y, 2.000001, "test for solidCylinder Bounding box, highPoint.Y")
+    Assert.Equal(solidBBox.highPoint.Z, 2.000001, "test for solidCylinder Bounding box, highPoint.Z")
+
+    let boxBBox = box.getBoundingBox ()
+    Assert.Equal(boxBBox.lowPoint.X, -0.000001, "test for box Bounding box, lowPoint.X")
+    Assert.Equal(boxBBox.lowPoint.Y, -0.000001, "test for box Bounding box, lowPoint.Y")
+    Assert.Equal(boxBBox.lowPoint.Z, -0.000001, "test for box Bounding box, lowPoint.Z")
+    Assert.Equal(boxBBox.highPoint.X, 1.000001, "test for box Bounding box, highPoint.X")
+    Assert.Equal(boxBBox.highPoint.Y, 1.000001, "test for box Bounding box, highPoint.Y")
+    Assert.Equal(boxBBox.highPoint.Z, 1.000001, "test for box Bounding box, highPoint.Z")
+
+
+    //BBox Intersect test
+    let bBox = BBox(Point(0.,0.,0.), Point(1.,1.,1.))
+    let rayInside = Ray(Point(0.5,0.5,0.5), Vector(0.5,0.5,0.5))
+    let hitInside = bBox.intersect(rayInside)
+    Assert.True(hitInside.IsSome, "test on BBox intersect, for point inside BBox")
+    let rayOutside = Ray(Point(1.5,1.5,1.5), Vector(-0.5,-0.5,-0.5))
+    let hitOutside = bBox.intersect(rayOutside)
+    Assert.True(hitOutside.IsSome, "test on BBox intersect, for point outside BBox")
+    let rayOutsideMiss = Ray(Point(1.5,1.5,1.5), Vector(0.5,0.5,0.5))
+    let hitOutsideMiss = bBox.intersect(rayOutsideMiss)
+    Assert.True(hitOutsideMiss.IsNone, "test on BBox not intersect, for point outside BBox")
+
+
+    //isInside function for shapes
+    Assert.True(sphere.isInside (Point(0.,0.,0.)), "test isInside function, for point inside sphere")
+    Assert.True(not(sphere.isInside (Point(7.,7.,7.))), "test isInside function, for point outside sphere")
+    Assert.True(solidCylinder.isInside (Point(0.,0.,0.)), "test isInside function, for point inside solidCylinder")
+    Assert.True(not(solidCylinder.isInside (Point(7.,7.,7.))), "test isInside function, for point outside solidCylinder")
+    Assert.True(box.isInside (Point(0.5,0.5,0.5)), "test isInside function, for point inside box")
+    Assert.True(not(box.isInside (Point(7.,7.,7.))), "test isInside function, for point outside box")
 
 
     //Tests that hitFunctions act as expected
@@ -112,12 +196,17 @@ let allTest =
     Assert.Equal(toHollowCylinder.height, 4., "hollowCylinder.height")
 
 
-    //Tests for finding texture coordinates
-    
-
     //test that all shapes hitfunctions act as expected
-    //test that shapes are built as expected
-    //test that BaseShapes are built as expected
-    //test BaseShape to Shape functions
+    //test that shapes are built as expected - Done
+    //test that BaseShapes are built as expected - Done
+    //test BaseShape to Shape functions - Done
+    //test isInside function - Done
+    //test getBoundingBox functions - Done
+
     
+    ////CSG TESTS////
+
+    //test isInside functions for CSG
+    //test get BoundingBox for CSG
+    //test hitFunctions for CSG
 
