@@ -79,6 +79,8 @@ module BVH =
         bboxArr
 
  // ######################### BUILD BVH TREE #########################
+
+    // Build BVH tree from a list of shapes.
     let buildBVHTree (shapes:array<Shape>) : BVHtree = 
         if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
@@ -201,7 +203,7 @@ module BVH =
                   None
     
     // Function for traversal of the tree.
-    let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) = 
+    let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) = 
         if debug then printfn "Call to traverse..."
         search treeNode ray shapes infinity
         
