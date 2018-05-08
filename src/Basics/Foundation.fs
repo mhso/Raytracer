@@ -30,23 +30,32 @@ and BlankMaterial() =
     default this.IsRecursive = false
       
 //- HITPOINT
-and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: bool) = 
+and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: Shape, u: float, v:float, didHit: bool) = 
     
     member this.Ray: Ray = ray
     member this.Time: float = time
     member this.Point: Point = ray.PointAtTime time
-    member this.EscapedPoint: Point = (ray.PointAtTime time) + this.Normal * 0.000001
-    member this.DidHit: bool = didHit
-    member this.Normal: Vector = if ray.GetDirection * normal > 0. then -normal else normal
-    member this.Material: Material = material
-    
+    member this.EscapedPoint: Point = (ray.PointAtTime time) + normal * 0.000001
+    member this.DidHit = didHit
+    member this.Normal = normal
+    member this.Material = material
+    member this.U = u
+    member this.V = v
+    member this.UV = (u,v)
+    member this.Shape = shape
+
     // For hit rays
-    new(ray: Ray, time:float, normal: Vector, material: Material) = 
-        HitPoint(ray, time, normal, material, true)
+    new(ray: Ray, time:float, normal: Vector, material: Material, shape: Shape) = 
+        HitPoint(ray, time, normal, material, shape, 0., 0., true)
+
+    new(ray: Ray, time:float, normal:Vector, material:Material, shape:Shape, u:float, v:float) = 
+        HitPoint(ray, time, normal, material, shape, u, v, true)
 
     // For missed rays
-    new(ray: Ray) = HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, false)
-    new(point: Point) = HitPoint(Ray.None, 0., point.ToVector, Material.None, false)
+    new(ray: Ray) = 
+        HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
+    new(point: Point) = 
+        HitPoint(Ray.None, 0., point.ToVector, Material.None, Shape.None, 0., 0., false)
 
 //- LIGHT
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =

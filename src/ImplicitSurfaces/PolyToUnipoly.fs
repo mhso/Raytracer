@@ -9,7 +9,7 @@ module PolyToUnipoly =
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
   type unipoly = UP of Map<int, float>
 
-  let epsilon = 10.**(-10.) // we consider this to be as good as zero. Might wanna adjust this...
+  let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
 
   // only works if the poly terms only consists of ANums
   let polyToUnipoly (P m:poly) vars =
@@ -121,4 +121,4 @@ module PolyToUnipoly =
         | 0 -> binarySearch mid fmr fmr (count - 1)
         | _ -> binarySearch lo mid hi (count - 1)
 
-    binarySearch 0.0 100.0 0.0 15
+    binarySearch 0.0 100.0 0.0 50

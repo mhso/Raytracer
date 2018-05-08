@@ -10,8 +10,8 @@ let main _ =
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 1920
-    let resY = 1080
+    let resX = 640
+    let resY = 480
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -79,7 +79,7 @@ let main _ =
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
 
     //- LIGHTS
-    let lightFront     = DirectionalLight(Colour.White, 0.5, Vector(0., 0., -1.))
+    let lightFront     = PointLight(Colour.White, 0.5, Point(7., 7., 7.))
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
