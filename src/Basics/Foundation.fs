@@ -27,15 +27,20 @@ and BlankMaterial() =
     default this.IsRecursive = false
       
 //- HITPOINT
-and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: bool) = 
+and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: Shape, u: float, v:float, didHit: bool) = 
     
     member this.Ray = ray
     member this.Time = time
     member this.Point: Point = ray.PointAtTime time
+    member this.EscapedHitpoint: Point = (ray.PointAtTime time) + normal
     member this.DidHit = didHit
     member this.Normal = normal
     member this.Material = material
-    
+    member this.U = u
+    member this.V = v
+    member this.UV = (u,v)
+    member this.Shape = shape
+
     override this.Equals(other) =
         match other with
         | :? HitPoint as h ->
@@ -49,11 +54,15 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, didHit: 
     member this.GetHashCode = 
         hash (this.Ray, this.Time, this.Point, this.DidHit, this.Normal, this.Material)
     // For hit rays
-    new(ray: Ray, time:float, normal: Vector, material: Material) = 
-        HitPoint(ray, time, normal, material, true)
+    new(ray: Ray, time:float, normal: Vector, material: Material, shape: Shape) = 
+        HitPoint(ray, time, normal, material, shape, 0., 0., true)
+
+    new(ray: Ray, time:float, normal:Vector, material:Material, shape:Shape, u:float, v:float) = 
+        HitPoint(ray, time, normal, material, shape, u, v, true)
 
     // For missed rays
-    new(ray: Ray) = HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, false)
+    new(ray: Ray) = 
+        HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
 
 //- LIGHT
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =
