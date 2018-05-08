@@ -1,5 +1,5 @@
 ﻿namespace Tracer.Basics
-open Tracer.Sampling
+open Tracer.Sampling.Sampling
 open System
 
 [<AbstractClass>]
@@ -56,11 +56,11 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
 type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
-    let sampler = Sampling.Sampler(Sampling.multiJittered, sampleCount, sampleSetCount)
+    let sampler = multiJittered sampleCount sampleSetCount
 
     override this.SamplePoint point = 
         let sp = sampler.Next()
-        let (x,y) = Sampling.mapToDisc sp
+        let (x,y) = mapToDisc sp
         Point(x * disc.radius, y * disc.radius, disc.center.Z)
     override this.SamplePointNormal point = 
         disc.normal
@@ -72,7 +72,7 @@ type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: i
 type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
-    let sampler = Sampling.Sampler(Sampling.multiJittered, sampleCount, sampleSetCount)
+    let sampler = multiJittered sampleCount sampleSetCount
 
     override this.SamplePoint point = 
         let (x,y) = sampler.Next()
@@ -87,10 +87,10 @@ type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, samp
 type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sampleCount: int, sampleSetCount: int) = 
     inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
 
-    let sampler = Sampling.Sampler(Sampling.multiJittered, sampleCount, sampleSetCount)
+    let sampler = multiJittered sampleCount sampleSetCount
 
     override this.SamplePoint point = 
-        let hem_sp = Point((Sampling.mapToHemisphere (sampler.Next()) 50.))
+        let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
         let d_c_p = (point - sphere.Origin).Normalise
         let up = new Vector(0., 1., 0.)
         let w = d_c_p.Normalise
