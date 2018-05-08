@@ -80,9 +80,10 @@ let main _ =
     let lightFront     = PointLight(Colour.White, 0.5, Point(7., 7., 7.))
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
-    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
-    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
+    let sampler        = Sampler multiJittered
+    let lightSphere    = SphereAreaLight(emissive, sC, sampler)
+    let lightDisc      = DiscAreaLight(emissive, discC, sampler)
+    let lightRect      = RectangleAreaLight(emissive, rectC, sampler)
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightFront]

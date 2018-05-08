@@ -4,8 +4,11 @@ open Tracer.Sampling.Sampling
 open System
 
 [<AbstractClass>]
-type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCount: int) = 
+type AreaLight(surfaceMaterial: EmissiveMaterial, sampler: Sampler) = 
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
+
+    let sampleCount = sampler.SampleCount
+    let sampleSetCount = sampler.SetCount
 
     override this.GetColour hitPoint = 
         let point = hitPoint.Point
@@ -57,10 +60,9 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
     abstract member SamplePointNormal: Point -> Vector
     abstract member Density: float
 
-type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: int, sampleSetCount: int) = 
-    inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
-
-    let sampler = multiJittered sampleCount sampleSetCount
+type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampler: Sampler) = 
+    inherit AreaLight (surfaceMaterial, sampler)
+    
 
     override this.SamplePoint point = 
         let sp = sampler.Next()
@@ -73,11 +75,9 @@ type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: Disc, sampleCount: i
     override this.FlushSample() = 
         ignore sampler.Next
 
-type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, sampleCount: int, sampleSetCount: int) = 
-    inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
-
-    let sampler = multiJittered sampleCount sampleSetCount
-
+type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, sampler: Sampler) = 
+    inherit AreaLight (surfaceMaterial, sampler)
+    
     override this.SamplePoint point = 
         let (x,y) = sampler.Next()
         Point(x * rect.width, y * rect.height, 0.)
@@ -88,11 +88,9 @@ type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: Rectangle, samp
     override this.FlushSample() = 
         ignore sampler.Next
 
-type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sampleCount: int, sampleSetCount: int) = 
-    inherit AreaLight (surfaceMaterial, sampleCount, sampleSetCount)
-
-    let sampler = multiJittered sampleCount sampleSetCount
-
+type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sampler: Sampler) = 
+    inherit AreaLight (surfaceMaterial, sampler)
+    
     override this.SamplePoint point = 
         let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
         let d_c_p = (point - sphere.Origin).Normalise
@@ -129,11 +127,8 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
     member this.Sampler = sampler
 
     override this.GetColour hitPoint = 
-        if hitPoint.Point.ToVector.Magnitude < radius then 
-            colour
-        else 
-            printfn "no"
-            Colour.Black
+        if hitPoint.Point.ToVector.Magnitude < radius then colour
+        else Colour.Black
         
     override this.GetDirectionFromPoint hitPoint = 
         hitPoint.Normal
