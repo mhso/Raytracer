@@ -2,6 +2,7 @@
 
 open Tracer.Sampling.Sampling
 open Tracer.Basics
+open Tracer.Basics.Render
 open Tracer.BaseShape
 open Tracer.ImplicitSurfaces.Main
 open Transformation
@@ -196,13 +197,15 @@ module API =
   /////////////////////
 
   let mkScene (s : shape list) (l : light list) (a : ambientLight)(m : int) : scene = 
-    failwith "mkScene not implemented"
+    new Scene(s, l, a, m)
   
   let renderToScreen (sc : scene) (c : camera) : unit = 
-    failwith "renderToScreen not implemented"
+    let render = new Render(sc, c)
+    render.RenderToScreen render.RenderParallel
 
   let renderToFile (sc : scene) (c : camera) (path : string) : unit = 
-    failwith "renderToFile not implemented"
+    let render = new Render(sc, c)
+    render.RenderToFile render.RenderParallel path
 
   /////////////////////
   // Transformations //
