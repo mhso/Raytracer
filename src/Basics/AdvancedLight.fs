@@ -8,7 +8,7 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
 
     override this.GetColour point = 
         let x = 
-            [for i in [0..sampleCount] do 
+            [for i in [0..sampleCount] do
                 let sp = this.SamplePoint point
                 let n = this.SamplePointNormal sp
                 yield 

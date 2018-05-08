@@ -18,7 +18,7 @@ module Program =
       let light = PointLight (Colour.White, 0.5, Point(4.0, 2.0, 4.0))
       let light2 = PointLight (Colour.White, 0.5, Point(-4.0, 2.0, 4.0))
       let ambientLight = AmbientLight(Colour.White, 0.1)
-      let (lights:Light list) = [light;light2]
+      let (lights:Light list) = [light;light2;ambientLight]
       Scene ([|s|], c, lights, ambientLight, 8)
 
     // colours
