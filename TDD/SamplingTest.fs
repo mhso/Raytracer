@@ -102,7 +102,7 @@ let allTest =
     
     let sampleSets_SamplesAreCorrectSize =
         let sampler = multiJittered 4 1
-        Assert.Equal (16, sampler.SampleCount-1, "sampleSets_SamplesAreCorrectSize")
+        Assert.Equal (16, sampler.SampleCount, "sampleSets_SamplesAreCorrectSize")
 
     let mapToDisc_SamplesAreInCorrectQuadrants =
         let sampler = multiJittered 16 1

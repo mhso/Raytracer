@@ -1,6 +1,6 @@
 ﻿module RegularGridsTest
 
-open RegularGrids
+open Tracer.RegularGrids
 open Assert
 let allTest = 
     let clampTest_X_lessThan_0_Return_0 = 

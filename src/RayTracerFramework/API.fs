@@ -49,19 +49,19 @@ module API =
   //////////////
 
   let mkRegularSampler (n : int) : sampler = 
-    new Sampler((fun sm st -> regular sm), n, 1)
+    regular n
  
   let mkRandomSampler (n : int) (sets : int) : sampler = 
-    new Sampler(random, n, sets)
+    random n sets
   
   let mkNRooksSampler (n : int) (sets : int) : sampler = 
-    new Sampler(nRooks, n, sets)
+    nRooks n sets
   
   let mkJitteredSampler (n : int) (sets : int) : sampler = 
-    new Sampler(jittered, n, sets)
+    jittered n sets
   
   let mkMultiJitteredSampler (n : int) (sets : int) : sampler = 
-    new Sampler(multiJittered, n, sets)
+    multiJittered n sets
 
   ///////////////
   // Materials //
