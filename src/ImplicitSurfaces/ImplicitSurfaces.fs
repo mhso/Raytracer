@@ -126,27 +126,23 @@ module Main =
     hitFunction
 
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
-  let newtonRaphson f f' g =
-    let tolerance = 10.**(-7.) // 7 digit accuracy is desired
-    let epsilon = 10.**(-14.) // Don't want to divide by a number smaller than this
-    let maxIterations = 20 // Don't allow the iterations to continue indefinitely
-    let mutable foundSolution = false // Have not yet converged to a solution
-    let mutable x0 = g // the initial value/guess
-
-    for i in [1 .. maxIterations] do
-      let y = solveUnipoly f x0
-      let y' = solveUnipoly f' x0
-      if abs y' < epsilon then () // break
+  // but adapted to a functional, immutable, approach
+  let newtonRaphson f f' initial =
+    let tolerance = 0.000001 // 7 digit accuracy is desired
+    let epsilon = 0.0000000000001 // Don't want to divide by a number smaller than this
+    let rec inner g iter =
+      if iter < 0 then None
       else
-        let x1 = x0 - (y / y')
-        if abs (x1 - x0) <= (tolerance * abs x1) then
-          foundSolution <- true
-          // break
-        else foundSolution <- foundSolution
-        x0 <- x1
-    // I still need to do some work. For instance, I would like to do recursion instead of a for-loop
-    if foundSolution then Some x0
-    else None
+        let y  = solveUnipoly f g
+        let y' = solveUnipoly f' g
+        if abs y' < epsilon then None
+        else
+          let g' = g - (y / y')
+          if abs (g' - g) <= (tolerance * abs g')
+            then Some g'
+          else
+            inner g' (iter - 1)
+    inner initial 20
 
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
