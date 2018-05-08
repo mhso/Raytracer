@@ -1,7 +1,7 @@
 ﻿module TriangleMes
 
 open Tracer.Basics
-open Acceleration.KD_tree
+open Tracer.Basics.Acceleration
 open System.Threading.Tasks
 open PLYParser
 open Tracer.BaseShape
@@ -29,23 +29,20 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
     ar
         
 
-let drawTriangles (filepath:string) (smoothen:bool) (withKDTree : bool) (mat : Material) = 
+let drawTriangles (filepath:string) (smoothen:bool) (withAcceleration : bool) (mat : Material) = 
     let test = parsePLY filepath
     let triangleArray = fst test
     let faceArray = snd test
 
     let material = mat
     let ar = createTriangles triangleArray faceArray material smoothen
-    
-    //if (smoothen) then 
-    //    let newAr = smoothTriangles ar
 
-    if (withKDTree) then 
-        let kdTree = buildKDTree (ar)
+    if (withAcceleration) then 
+        let accel = Acceleration.createAcceleration(ar)
         let sh = {new Shape() with
             member this.hitFunction r = 
-                traverseKDTree kdTree r ar
-            member this.getBoundingBox () = failwith "I hate this"
+                traverseIAcceleration accel r ar
+            member this.getBoundingBox () = BBox (Point(-1.,-1.,-1.),Point(1.,1.,1.))
             member this.isInside p = failwith "Maybe kdTree has some function for this"
         }
         sh
@@ -66,15 +63,15 @@ let drawTriangles (filepath:string) (smoothen:bool) (withKDTree : bool) (mat : M
                             let nc = (triangle.c :?> TriPoint).v.normal.Normalise
                             let V = (( * ) alpha na) |> ( + ) (( * ) triangle.beta nb) |> ( + ) (( * ) triangle.gamma nc)
                             let normal = V.Normalise
-                            bestHit <- HitPoint(r, s.Time, normal, material)
+                            bestHit <- HitPoint(r, s.Time, normal, material, s.Shape)
                         else bestHit <- s
                 bestHit
-            member this.getBoundingBox () = failwith "I hate this"
+            member this.getBoundingBox () = BBox (Point(-1.,-1.,-1.),Point(1.,1.,1.))
             member this.isInside p = failwith "Need some time to think this through"
         }
         sh
 
-let drawTrianglesSpecificNumber numberOfShapes (filepath:string) (smoothen:bool) (withKDTree : bool)= 
+let drawTrianglesSpecificNumber numberOfShapes (filepath:string) (smoothen:bool) (withAcceleration : bool)= 
     let test = parsePLY filepath
     let triangleArray = fst test
     let faceArray = snd test
@@ -94,11 +91,11 @@ let drawTrianglesSpecificNumber numberOfShapes (filepath:string) (smoothen:bool)
         v3.normal <- triangle.n
         ar.[i] <- (triangle :> Shape)
 
-    if (withKDTree) then 
-        let kdTree = buildKDTree (ar)
+    if (withAcceleration) then 
+        let accel = createAcceleration(ar)
         let sh = {new Shape() with
             member this.hitFunction r = 
-                traverseKDTree kdTree r ar
+                traverseIAcceleration accel r ar
             member this.getBoundingBox () = failwith "I hate this"
             member this.isInside p = failwith "Maybe kdTree has some function for this"
         }
@@ -121,7 +118,7 @@ let drawTrianglesSpecificNumber numberOfShapes (filepath:string) (smoothen:bool)
                             let normal = V.Normalise
                             if (i = 0) then 
                                 printfn "old normal %A current normal %A" s.Normal normal
-                            bestHit <- HitPoint(r, s.Time, normal, material)
+                            bestHit <- HitPoint(r, s.Time, normal, material, s.Shape)
                         else
                             bestHit <- s
                 bestHit

@@ -3,11 +3,14 @@
 
 open FParsec
 open Tracer.Basics
+open Tracer.Sampling
+open Tracer.Sampling
 
 [<EntryPoint>]
 let main argv = 
     //let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\urn2.ply"
     //only used to draw the triangles
+    Acceleration.setAcceleration (Acceleration.Acceleration.KDTree)
     let position = Point(0.,0.,0.)
     let lookat = Point(3.,3.,3.)
     let up = Vector(0.,1.,0.)
@@ -28,7 +31,7 @@ let main argv =
 
     //- SHAPES
     let ico = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\icosahedron.ply" false false matteWhite)
-    let shape = Transform.transform ico (Transformation.scale 4. 4. 4.)
+    let shape = Transform.transform ico (Transformation.scale 3. 3. 3.)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 29
@@ -36,7 +39,7 @@ let main argv =
     let DISC_SAMPLES = 8
 
     //- CAMERA
-    let camera         = PinholeCamera(Point (4.0, 8.0, 20.0), Point(0.,0.,0.), Vector(0.,1.,0.), 4., 2.5,2.5,1000,1000)
+    let camera         = PinholeCamera(Point (4.0, 8.0, 20.0), Point(0.,0.,0.), Vector(0.,1.,0.), 4., 2.5,2.5,1000,1000, new Sampling.Sampler(Sampling.multiJittered, 2, 2))
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
@@ -56,6 +59,8 @@ let main argv =
     let spheres: Shape array     = [|shape|]
     let scene                   = Scene(spheres, camera, lights, lightAmbient, 2)
 
-    ignore scene.RenderParallel
+
+    let acceleration = Acceleration.createAcceleration spheres
+    ignore (scene.RenderParallel acceleration)
     //System.Console.ReadKey() |> ignore
     0
