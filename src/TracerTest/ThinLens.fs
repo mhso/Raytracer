@@ -62,7 +62,7 @@ module ThinLens =
   let render : Target list = 
     List.map (Util.mkTarget "thinLens")
       [(renderPlaneCloseRegular, "renderPlaneCloseRegular"); 
-       (  , "renderPlaneCenterRegular"); 
+       (renderPlaneCenterRegular, "renderPlaneCenterRegular"); 
        (renderPlaneFarRegular, "renderPlaneFarRegular");
        (renderPlaneCloseRandom, "renderPlaneCloseRandom"); 
        (renderPlaneCenterRandom, "renderPlaneCenterRandom"); 
