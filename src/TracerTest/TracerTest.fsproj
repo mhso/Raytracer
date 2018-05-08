@@ -89,6 +89,13 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RayTracerFramework\Raytracer.fsproj">
+      <Name>Raytracer</Name>
+      <Project>{92ae911b-8e25-405a-a804-046e4d018f0d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
