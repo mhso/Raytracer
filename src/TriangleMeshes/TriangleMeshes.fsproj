@@ -83,11 +83,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AccelerationStructures\AccelerationStructures.fsproj">
-      <Name>AccelerationStructures</Name>
-      <Project>{b75213c8-4330-4978-be05-b56e118f5122}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>

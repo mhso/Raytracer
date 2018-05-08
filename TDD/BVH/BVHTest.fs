@@ -120,7 +120,7 @@ let allTest =
         let shapeBoxArr = [|(fig5:>Shape); (fig6:>Shape); (fig7:>Shape); (fig8:>Shape)|]
         let shapeArr, bboxArr = createShapeAndBBoxArr shapeBoxArr
         let tree = buildBVHTree (shapeArr)
-        let result = traverse tree ray shapeArr infinity
+        let result = traverse tree ray shapeArr
         if debug then printfn "shapeArr: %A \n\n" shapeArr
         if debug then printfn "bboxArr: %A \n\n" bboxArr
         Assert.True (result.IsSome,"testTraverse")

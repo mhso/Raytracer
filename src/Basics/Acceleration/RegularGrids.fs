@@ -10,14 +10,14 @@ module RegularGrids =
         match x with
         | x when x<0. -> 0.
         | x when x>b -> b
-        | _ -> x
+        | _ -> System.Math.Floor(x)
 
     let calcEdgeLength (wx:float) (wy:float) (wz:float) (n:float) : float = System.Math.Pow (((wx*wy*wz)/n),(1./3.))
 
     let calcAxisCell (m:float) (w:float) (s:float) : float = System.Math.Floor ((m*w)/s)+1.
 
-    let calcAxisCells (wx:float) (wy:float) (wz:float) (m:float) (n:float) = 
-        let s =  calcEdgeLength wx wy wz n
+    let calcAxisCells (wx:float) (wy:float) (wz:float) (m:float) (n:int) = 
+        let s =  calcEdgeLength wx wy wz (float(n))
         let nx = calcAxisCell m wx s
         let ny = calcAxisCell m wy s
         let nz = calcAxisCell m wz s
@@ -44,7 +44,7 @@ module RegularGrids =
  // ######################### BUILD REGULAR GRID #########################
 
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
-    let build (shapes:array<Shape>) : RGrid =
+    let build (shapes:array<Shape>) =
 
         let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
         let lp, hp = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
@@ -58,25 +58,22 @@ module RegularGrids =
         let bbz = nz/w.Z
 
         for shape in shapes do 
-            let bb = BBox shape.getBoundingBox
-            let ixMin = clamp((bb.lowPoint.X-lp.X)*bbx, nx-1)
-            let iyMin = clamp((bb.lowPoint.Y-lp.Y)*bby, ny-1)
-            let izMin = clamp((bb.lowPoint.Z-lp.Z)*bbz, nz-1)
+            let bb = shape.getBoundingBox()
+            let ixMin = int(clamp((bb.lowPoint.X-lp.X)*bbx, nx-1.))
+            let iyMin = int(clamp((bb.lowPoint.Y-lp.Y)*bby, ny-1.))
+            let izMin = int(clamp((bb.lowPoint.Z-lp.Z)*bbz, nz-1.))
 
-            let ixMax = clamp((bb.highPoint.X-lp.X)*bbx, nx-1)
-            let iyMax = clamp((bb.highPoint.Y-lp.Y)*bby, ny-1)
-            let izMax = clamp((bb.highPoint.Z-lp.Z)*bbz, nz-1)
+            let ixMax = int(clamp((bb.highPoint.X-lp.X)*bbx, nx-1.))
+            let iyMax = int(clamp((bb.highPoint.Y-lp.Y)*bby, ny-1.))
+            let izMax = int(clamp((bb.highPoint.Z-lp.Z)*bbz, nz-1.))
 
             for iz=izMin to izMax do
                 for iy=iyMin to iyMax do
                     for ix=ixMin to ixMax do
-                        
+                        printfn "Do stuff"
                 
                 
-
-
-
-
+                
         
   // ######################### TRAVERSAL BVH TREE #########################
     // Function for traversal of the grid.
