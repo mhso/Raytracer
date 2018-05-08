@@ -187,8 +187,17 @@ module KD_tree =
             let shape = shapes.[i]
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
             shapeBoxList.[i] <- newShapeBox
+        let newShapeBoxList = (shapeBoxList |> Array.toList)
         printfn "KD-build Initialized..."
-        createKDTreeFromList (shapeBoxList |> Array.toList)
+        if shapeBoxList.Length < 11 then 
+            let (MaxX, MinX) = findMaxMin newShapeBoxList 0
+            let (MaxY, MinY) = findMaxMin newShapeBoxList 1
+            let (MaxZ, MinZ) = findMaxMin newShapeBoxList 2
+            let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
+            let KDMinXYZ = Point(MinX, MinY, MinZ)
+            KDTree(BBox(KDMinXYZ, KDMaxXYZ), newShapeBoxList) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
+        else
+            createKDTreeFromList newShapeBoxList
 
     let findRayDirectionFromA (a:int) (r:Ray) =
         match a with
