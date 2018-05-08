@@ -49,7 +49,8 @@ module RegularGrids =
         let boxes = convertShapesToBBoxes shapes
         let lp, hp = findOuterBoundingBoxLowHighPoints boxes
         let w = Vector(hp.X-lp.Y, hp.Y-lp.Y, hp.Z-lp.Z)
-        
+        let m = 2.0
+
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
 
         let bbx = nx/w.X
