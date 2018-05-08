@@ -42,7 +42,7 @@ let drawTriangles (filepath:string) (smoothen:bool) (withAcceleration : bool) (m
         let sh = {new Shape() with
             member this.hitFunction r = 
                 traverseIAcceleration accel r ar
-            member this.getBoundingBox () = BBox (Point(-1.,-1.,-1.),Point(1.,1.,1.))
+            member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
             member this.isInside p = failwith "Maybe kdTree has some function for this"
         }
         sh

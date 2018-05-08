@@ -30,8 +30,8 @@ let main argv =
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
-    let ico = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\icosahedron.ply" false false matteWhite)
-    let shape = Transform.transform ico (Transformation.scale 3. 3. 3.)
+    let ico = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny10k.ply" false true matteWhite)
+    //let shape = Transform.transform ico (Transformation.scale 3. 3. 3.)
 
     //- THIN LENS SAMPLE SETTINGS
     let CAM_SETS = 29
@@ -56,7 +56,7 @@ let main argv =
 
 
 
-    let spheres: Shape array     = [|shape|]
+    let spheres: Shape array     = [|ico|]
     let scene                   = Scene(spheres, camera, lights, lightAmbient, 2)
 
 
