@@ -8,7 +8,7 @@ open Tracer.Basics.Render
 [<EntryPoint>]
 let main _ = 
     // General settings
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.BVH
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)

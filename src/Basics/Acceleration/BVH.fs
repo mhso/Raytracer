@@ -4,7 +4,11 @@ module BVH =
     open Tracer.Basics
     
     // Used for debug, will print to console etc. 
-    let debug = true
+    let debug = false
+    let debug2 = false
+    let debug3 = false
+    let debug4 = false
+    let debug5 = true
 
      // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
@@ -38,10 +42,10 @@ module BVH =
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
         let lowX = Array.fold (fun acc (box:BBox) -> if box.lowPoint.X < acc then box.lowPoint.X else acc) infinity boxes
         let lowY = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Y < acc then box.lowPoint.Y else acc) infinity boxes
-        let lowZ = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Z > acc then box.lowPoint.Z else acc) -infinity boxes
+        let lowZ = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Z < acc then box.lowPoint.Z else acc) infinity boxes
         let highX = Array.fold (fun acc (box:BBox) -> if box.highPoint.X > acc then box.highPoint.X else acc) -infinity boxes
         let highY = Array.fold (fun acc (box:BBox) -> if box.highPoint.Y > acc then box.highPoint.Y else acc) -infinity boxes
-        let highZ = Array.fold (fun acc (box:BBox) -> if box.highPoint.Z < acc then box.highPoint.Z else acc) infinity boxes
+        let highZ = Array.fold (fun acc (box:BBox) -> if box.highPoint.Z > acc then box.highPoint.Z else acc) -infinity boxes
         
         Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
     
@@ -93,7 +97,7 @@ module BVH =
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
             let box = BBox (lowPoint, highPoint)
             let depthLevel = depthLevel + 1
-            //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
+            if debug then printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
             match intIndexes with
             | [] -> failwith " innerNode -> Empty array"
@@ -108,10 +112,12 @@ module BVH =
                             box, 
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
-                //printfn "Add new inner Leaf... Value: %O" c
+                if debug then printfn "Add new inner Leaf... Value: %O" c
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNode boxIntList 0
+
+        
  
  
   // ######################### TRAVERSAL BVH STRUCTURE #########################
@@ -147,7 +153,7 @@ module BVH =
 
     // Functions finds closest hit of a ray in structure.
     let closestHit (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>)  =
-        if debug then printfn "Call to closestHit..."
+        if debug3 then printfn "Call to closestHit..."
         match structure with
         |   Leaf (shapesRef, _) ->  let mutable closestHit = None
                                     let mutable closestDist = infinity
@@ -158,54 +164,55 @@ module BVH =
                                             closestDist <- dist
                                             closestHit <- Some hit
                                     if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
-                                    closestHit.Value
+                                    closestHit
         | _ ->  if debug then printfn "closestHit -> None..."
-                None.Value
+                None
 
     // Function performs recursive searh in the structrue, with a maximum distance from the ray origin.
     let rec search (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
         if debug then printfn "Call to search with tmax: %f, lenght of array %i" tmax shapes.Length 
-        if debug then printfn "Value of ray GetDirection: %A" ray.GetDirection
-        if debug then printfn "Value of ray GetOrigin: %A" ray.GetOrigin
+        if debug then printfn "Value of ray GetOrigin: %A GetDirection: %A" ray.GetOrigin ray.GetDirection
         //if debug then printfn "Value of structure: %A" structure
         let nodeBBox = getBbox structure
-        if debug then printfn "Value of nodeBBox: \n %A" nodeBBox
+        if debug2 then printfn "Value of nodeBBox: \n %A" nodeBBox
         let value = nodeBBox.intersect ray
-        //if value.IsSome then printfn "search -> Intersect is Some..."
-        //if value.IsNone then printfn "search -> Intersect is None..."
-        if debug then printfn "Value of intersect: \n %A" value.IsSome
+        if debug3 then printfn "Value of intersect: \n %A" value.IsSome
         match value with  
-        | Some (t, t')  ->  printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
+        | Some (t, t')  ->  if debug3 then printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
                             if (t<tmax) then 
+                                if debug3 then printfn "Value -> Some -> (t<tmax)... Structure: %A" structure 
                                 if isLeaf structure then
-                                    if debug then printfn "(t<tmax) and isLeaf..."
+                                    if debug4 then printfn "(t<tmax) and isLeaf..."
                                     let checkForHit = (closestHit structure ray shapes)
                                     match checkForHit with
-                                    | hitFound -> 
-                                        if hitFound.Time < tmax then hitFound
-                                        else None.Value
-                                    | _ -> None.Value
+                                    | Some hitFound -> 
+                                        if hitFound.Time < tmax then Some hitFound
+                                        else None
+                                    | _ -> None
                                 else 
+                                    if debug4 then printfn "Value -> Some -> and NOT isLeaf..."
                                     match structure with
                                     | Node (left, right, _, _) ->
+                                        if debug4 then printfn "Value -> Some -> Left structure: %A" left
+                                        if debug4 then printfn "Value -> Some -> Right structure: %A" right 
                                         let first = search left ray shapes tmax
                                         let second = search right ray shapes tmax
                                         match first with
-                                        | hitFound1 ->
+                                        | Some hitFound1 ->
                                                 let result2 = search structure ray shapes hitFound1.Time
                                                 match result2 with
-                                                | hitFound2 -> hitFound2
-                                                | _ -> hitFound1
-            
+                                                | Some hitFound2 -> Some hitFound2
+                                                | _ -> Some hitFound1            
                                         | _ -> second
-                                    | _ -> None.Value
-                            else None.Value
+                                    | _ -> None
+                            else None
         | None -> if debug then printfn "search -> match value -> None"
-                  None.Value
+                  None
     
     // Function for traversal of the structure.
     let traverse (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>) = 
-        if debug then printfn "Call to traverse..."
-        search structure ray shapes infinity
-        
-        
+        printfn "traverse structure: %A" structure
+        let result = search structure ray shapes infinity
+        match result with
+        | Some r -> (search structure ray shapes infinity).Value
+        | None -> HitPoint ray
