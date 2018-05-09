@@ -123,7 +123,7 @@ let allTest =
         let result = traverse tree ray shapeArr
         if debug then printfn "shapeArr: %A \n\n" shapeArr
         if debug then printfn "bboxArr: %A \n\n" bboxArr
-        Assert.True (result.IsSome,"testTraverse")
+        Assert.True (result.DidHit,"testTraverse")
     testTraverse
 
     //BBox Intersect test

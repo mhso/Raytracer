@@ -55,7 +55,7 @@ module RegularGrids =
         let n = shapes.Length // Number of shapes.
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
 
-        let gridArr = [for x in ]
+        //let gridArr = [for x in ]
 
         let bbx = calcBbox nx w.X
         let bby = calcBbox ny w.Y
