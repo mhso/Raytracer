@@ -69,32 +69,35 @@ module KD_tree =
                                    this.shapeList = tree.shapeList
                                    
             | _ -> false
-    
 
-    let rec qsort (xs:list<ShapeBBox>) axis =
-        match xs with
-        | [] -> []
-        | x :: xs -> 
-            let small, large = 
-                match axis with 
-                | 0 -> let filterSmall = fun (e:ShapeBBox) -> e.highPoint.X <= x.highPoint.X
-                       let filterLarger = fun (e:ShapeBBox) -> e.highPoint.X >  x.highPoint.X
-                       filterSmall, filterLarger
-                | 1 -> let filterSmall = fun (e:ShapeBBox) -> e.highPoint.Y <= x.highPoint.Y
-                       let filterLarger = fun (e:ShapeBBox) -> e.highPoint.Y >  x.highPoint.Y
-                       filterSmall, filterLarger
-                | 2 -> let filterSmall = fun (e:ShapeBBox) -> e.highPoint.Z <= x.highPoint.Z
-                       let filterLarger = fun (e:ShapeBBox) -> e.highPoint.Z >  x.highPoint.Z
-                       filterSmall, filterLarger
-            let smaller = qsort (xs |> List.filter(small)) axis
-            let larger  = qsort (xs |> List.filter(large)) axis
-            smaller @ [x] @ larger
+
+    let rec quickselect k (list:list<ShapeBBox>) axis = 
+        match list with
+        | [] -> failwith "Cannot take largest element of empty list."
+        | [a] -> a
+        | x::xs ->
+            match axis with
+            | 0 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.X < x.highPoint.X) xs
+                    let l = List.length ys
+                    if k < l then quickselect k ys axis
+                    elif k > l then quickselect (k-l-1) zs axis
+                    else x
+            | 1 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Y < x.highPoint.Y) xs
+                    let l = List.length ys
+                    if k < l then quickselect k ys axis
+                    elif k > l then quickselect (k-l-1) zs axis
+                    else x
+            | 2 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Z < x.highPoint.Z) xs
+                    let l = List.length ys
+                    if k < l then quickselect k ys axis
+                    elif k > l then quickselect (k-l-1) zs axis
+                    else x
 
 
     let findMaxMin (xs:list<ShapeBBox>) axis = 
         match xs with
-        | []    -> (infinity, infinity)
-        | x::xs -> 
+        | [] -> (0., 0.)
+        | _  -> 
             let rec find (xs:list<ShapeBBox>) (max:float) (min:float) (axis:int) =
                 match xs with
                 | []    -> (max, min)
@@ -112,7 +115,7 @@ module KD_tree =
                            else if x.highPoint.Z > max then find xs x.highPoint.Z min axis
                            else if x.lowPoint.Z < min then find xs max x.lowPoint.Z axis
                            else find xs max min axis
-            find xs x.highPoint.X x.lowPoint.X axis
+            find xs 0. 0. axis
 
 
     // Long ugly function with lots of if-statements to check which axis to split on.
@@ -142,6 +145,15 @@ module KD_tree =
         | 1 -> point.Y
         | 2 -> point.Z
 
+    let partitionAfterSelect (boxes:list<ShapeBBox>) (splitBox:ShapeBBox) axis = 
+        match axis with
+        | 0 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.X < splitBox.highPoint.X)
+               ((f @ [splitBox]), s)
+        | 1 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Y < splitBox.highPoint.Y)
+               ((f @ [splitBox]), s)
+        | 2 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Z < splitBox.highPoint.Z)
+               ((f @ [splitBox]), s)
+
 
     let rec createKDTreeFromList (boxes:list<ShapeBBox>) = 
         match boxes with
@@ -150,11 +162,8 @@ module KD_tree =
             let (MaxX, MinX) = findMaxMin boxes 0
             let (MaxY, MinY) = findMaxMin boxes 1
             let (MaxZ, MinZ) = findMaxMin boxes 2
-            //printfn "Max: %A, Min: %A" MaxX MinX
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
-            //if boxes.Length < 10 then KDTree(BBox(KDMinXYZ, KDMaxXYZ), boxes) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
-            //else
             let XDistance = MaxX - MinX
             let YDistance = MaxY - MinY
             let ZDistance = MaxZ - MinZ
@@ -162,42 +171,40 @@ module KD_tree =
                 let buildNodeWithSpecifiedAxis boxes axis = 
                     if List.length boxes <= 1 then new KDTree(BBox(KDMinXYZ, KDMaxXYZ), boxes)
                     else
-                    let oldBoxes = boxes
-                    let SortedBoxes = qsort boxes axis
-                    let length = List.length SortedBoxes
-                    let (first, second) = List.splitAt ((length/2)) SortedBoxes
+                    let splitBox = quickselect ((List.length boxes)/2) boxes axis
+                    let (first, second) = partitionAfterSelect boxes splitBox axis
                     let splitValue = findPointAxis (first.[(List.length first)-1].highPoint) axis
                     let newSecond = second
                     let firstlength = float(List.length first)
                     let secondLength = float(List.length second)
                     let newFirst = first @ (List.filter(fun n -> (findPointAxis(n.lowPoint) axis) < splitValue) second)
-                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode oldBoxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                    else if List.length newFirst = List.length oldBoxes && List.length newSecond = List.length oldBoxes then new KDTree(BBox(KDMinXYZ, KDMaxXYZ),oldBoxes)
-                    else if List.length newFirst = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newFirst), createKDTreeFromList(newSecond))
-                    else if List.length newSecond = List.length oldBoxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newSecond))
+                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                    else if List.length newFirst = List.length boxes && List.length newSecond = List.length boxes then new KDTree(BBox(KDMinXYZ, KDMaxXYZ),boxes)
+                    else if List.length newFirst = List.length boxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newFirst), createKDTreeFromList(newSecond))
+                    else if List.length newSecond = List.length boxes then new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), new KDTree(BBox(KDMinXYZ, KDMaxXYZ),newSecond))
                     else new KDTree(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), createKDTreeFromList(newSecond))
                 if axis <= 2 then buildNodeWithSpecifiedAxis boxes axis
                 else new KDTree(BBox(KDMinXYZ, KDMaxXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
     let buildKDTree (shapes:array<Shape>) = 
-        let shapeBoxList = Array.zeroCreate(shapes.Length)
+        let shapeBoxArray = Array.zeroCreate(shapes.Length)
         for i in 0..(shapes.Length-1) do
             let id = i
             let shape = shapes.[i]
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
-            shapeBoxList.[i] <- newShapeBox
-        let newShapeBoxList = (shapeBoxList |> Array.toList)
+            shapeBoxArray.[i] <- newShapeBox
+        let ShapeBoxList = (shapeBoxArray |> Array.toList)
         printfn "KD-build Initialized..."
-        if shapeBoxList.Length < 11 then 
-            let (MaxX, MinX) = findMaxMin newShapeBoxList 0
-            let (MaxY, MinY) = findMaxMin newShapeBoxList 1
-            let (MaxZ, MinZ) = findMaxMin newShapeBoxList 2
+        if shapeBoxArray.Length < 11 then 
+            let (MaxX, MinX) = findMaxMin ShapeBoxList 0
+            let (MaxY, MinY) = findMaxMin ShapeBoxList 1
+            let (MaxZ, MinZ) = findMaxMin ShapeBoxList 2
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
-            KDTree(BBox(KDMinXYZ, KDMaxXYZ), newShapeBoxList) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
+            KDTree(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
         else
-            createKDTreeFromList newShapeBoxList
+            createKDTreeFromList ShapeBoxList
 
     let findRayDirectionFromA (a:int) (r:Ray) =
         match a with

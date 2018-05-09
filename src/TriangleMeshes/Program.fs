@@ -4,17 +4,21 @@ open Tracer.Sampling.Sampling
 open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
     // General settings
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,2.,5.)
-    let lookat = Point(0.,2.,0.)
+    //let position = Point(-30.,140.,-200.) //Position for Armadillo
+    let position = Point(0.,1.,1.) //Position for Happy
+    //let lookat = Point(0.,0.,0.)
+    let lookat = Point(0.,0.1,0.) //LookAt for happy
     let up = Vector(0.,1.,0.)
-    let zoom = 1.
-    let resX = 500
-    let resY = 350
+    //let zoom = 1. //Normal zoom
+    let zoom = 5. //Zoom for Happy
+    let resX = 800
+    let resY = 600
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -87,7 +91,7 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" false)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" false)
     let urn = i.toShape(matGreenTex)
 
     //- CAMERA
@@ -108,11 +112,13 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
+    let directLight = DirectionalLight(Colour.White, 0.9, Vector(1., 1., 1.))
+
     //- FINAL
-    let lights: Light list      = [lightSphere]
+    let lights: Light list      = [directLight]
     let shapes: Shape list      = [urn]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
