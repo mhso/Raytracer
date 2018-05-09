@@ -8,7 +8,7 @@ open Tracer.Basics.Render
 [<EntryPoint>]
 let main _ = 
     // General settings
-    Acceleration.setAcceleration Acceleration.Acceleration.BVH
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
@@ -75,6 +75,11 @@ let main _ =
     let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), matYellowTex, matYellowTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
     let thinBoxR = Box(Point(2., 0., -1.), Point(4., 3., 0.), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
 
+    let center = Point(0.,0.,0.)
+    let radius = 0.5
+    let height = 2.0
+    let tex = Textures.mkMatTexture(matteBlue)
+    let cylinder = HollowCylinder(center, radius, height, tex)
 
     let sTop = SphereShape(Point(0., 0., 10.), 5., Textures.mkMatTexture matteWhite)
     let discC = Disc(Point(0., 0., 0.), 4., Textures.mkMatTexture emissive)
@@ -106,7 +111,8 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightSphere]
-    let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    //let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    let shapes: Shape list = [cylinder]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
