@@ -168,6 +168,8 @@ and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
 ////SPHERE////
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
+
+    let pidivided = 1.0 / Math.PI
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.tex = tex
@@ -197,7 +199,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
         let u = phi / (2. * Math.PI)
-        let v = 1.0-(theta / Math.PI)
+        let v = 1.0-(theta * pidivided)
         (u, v) 
 
     member this.determineHitPoint (r:Ray) (t:float) = 

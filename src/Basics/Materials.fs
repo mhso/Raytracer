@@ -14,6 +14,7 @@ type MatteMaterial
     ) = 
     inherit Material()
     
+    let pidivided = 1. / Math.PI
     member this.MatteCoefficient = matteCoefficient
     member this.MatteColour = matteColour
     default this.AmbientColour = ambientColour * ambientCoefficient
@@ -33,7 +34,7 @@ type MatteMaterial
 
         // Determine the colour
         if n * ld > 0. then
-            let diffuse = (kd * cd) / Math.PI
+            let diffuse = (kd * cd) / pidivided
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
             let matte = diffuse * volume * roundness   
