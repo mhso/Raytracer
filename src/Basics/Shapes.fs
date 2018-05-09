@@ -102,16 +102,17 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
 
 ////TRIANGLE////
-and Triangle(a:Point, b:Point, c:Point, mat:Material)=
+and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
     inherit Shape()
     let mutable be : float = 0.0
     let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
-    member this.mat = mat
+    member this.tex = tex
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+
     member this.n = this.u.CrossProduct this.v
 
     //the many members are for simplifying cramers rule and hit function
@@ -124,10 +125,6 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
 
     member this.beta with get() = be and set(value) = be <- value
     member this.gamma with get() = ga and set(value) = ga <- value
-
-
-
-
 
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
     override this.getBoundingBox () = 
@@ -149,6 +146,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let pc = (r.GetDirection.X)
         let g = (r.GetDirection.Y)
         let k = (r.GetDirection.Z)
+        let func = Textures.getFunc tex
+        let mat = func 1.0 1.0 //Should be fixed
 
 
         match r with

@@ -7,11 +7,11 @@ open PLYParser
 open Tracer.BaseShape
 
 type TriPoint (v : Vertex) = 
-    inherit Point(v.x.Value,v.y.Value,v.z.Value)
+    inherit Point(v.x,v.y,v.z)
     member this.v : Vertex = v
 
 
-let createTriangles (triangleArray : Vertex array) (faceArray : int list array) material (smooth:bool) = 
+let createTriangles (triangleArray : Vertex array) (faceArray : int list array) (smooth:bool) (hasNormalWithin : bool)= 
     let ar = Array.zeroCreate(faceArray.Length)
     for i in 0..(ar.Length-1) do 
         let v1 = triangleArray.[faceArray.[i].[1]]
@@ -20,41 +20,63 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
         let p2 = new TriPoint(v2)
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new TriPoint(v3)
-        let triangle = Triangle((p1 :> Point) ,(p2 :> Point) ,(p3 :> Point), material)
-        if (smooth) then
+        let triangle = new BaseTriangle((p1 :> Point) ,(p2 :> Point) ,(p3 :> Point))
+        if (smooth && not hasNormalWithin) then
             v1.normal <- triangle.n
             v2.normal <- triangle.n
             v3.normal <- triangle.n
-        ar.[i] <- (triangle :> Shape)
+        ar.[i] <- (triangle)
     ar
         
 
-let drawTriangles (filepath:string) (smoothen:bool) (mat : Material) = 
+let drawTriangles (filepath:string) (smoothen:bool) = 
     let test = parsePLY filepath
     let triangleArray = fst test
     let faceArray = snd test
+    let hasNormalWithin = triangleArray.[0].nx.IsSome
+    let hasTexture = triangleArray.[0].u.IsSome
 
-    let material = mat
-    let ar = createTriangles triangleArray faceArray material smoothen
+    let ar = createTriangles triangleArray faceArray smoothen hasNormalWithin
 
-    let accel = Acceleration.createAcceleration(ar)
-    let sh = {new Shape() with
-        member this.hitFunction r = 
-            let hit = traverseIAcceleration accel r ar
-            if(smoothen) then
-                match hit.Shape with
-                | :? Triangle -> 
-                    let triangle = hit.Shape :?> Triangle
-                    let alpha =  1. - triangle.beta - triangle.gamma
-                    let na = (triangle.a :?> TriPoint).v.normal.Normalise
-                    let nb = (triangle.b :?> TriPoint).v.normal.Normalise
-                    let nc = (triangle.c :?> TriPoint).v.normal.Normalise
-                    let V = (( * ) alpha na) |> ( + ) (( * ) triangle.beta nb) |> ( + ) (( * ) triangle.gamma nc)
-                    let normal = V.Normalise
-                    HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
-                | _ -> hit
-            else hit
-        member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
-        member this.isInside p = failwith "Maybe kdTree has some function for this"
+    let baseShape = {new BaseShape() with
+        member this.toShape(tex) = 
+            let newTriangle = Array.zeroCreate(ar.Length)
+            for i in 0..(ar.Length-1) do
+                newTriangle.[i] <- (ar.[i]).toShape(tex)
+            let accel = Acceleration.createAcceleration(newTriangle)
+            let shape = {new Shape() with
+                member this.hitFunction r = 
+                    let hit = traverseIAcceleration accel r newTriangle
+                    if(smoothen) then
+                        match hit.Shape with
+                        | :? Triangle -> 
+                            let triangle = hit.Shape :?> Triangle
+                            let alpha =  1. - triangle.beta - triangle.gamma
+                            let vertexNormal = 
+                                if (hasNormalWithin) then 
+                                    let na = 
+                                        let triangle = (triangle.a :?> TriPoint).v
+                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                    let nb = 
+                                        let triangle = (triangle.b :?> TriPoint).v
+                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                    let nc =
+                                        let triangle = (triangle.b :?> TriPoint).v
+                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                    [|na;nb;nc|]
+                                else
+                                    let na = (triangle.a :?> TriPoint).v.normal.Normalise
+                                    let nb = (triangle.b :?> TriPoint).v.normal.Normalise
+                                    let nc = (triangle.c :?> TriPoint).v.normal.Normalise
+                                    [|na;nb;nc|]
+                            let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) triangle.beta vertexNormal.[1]) |> ( + ) (( * ) triangle.gamma vertexNormal.[2]))
+                            let normal = V.Normalise
+                            HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
+                        | _ -> hit
+                    else hit
+                member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
+                member this.isInside p = failwith "Maybe kdTree has some function for this"
+            }
+            shape
     }
-    sh
+    baseShape

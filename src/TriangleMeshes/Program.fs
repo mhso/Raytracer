@@ -5,6 +5,8 @@ open FParsec
 open Tracer.Basics
 open Tracer.Sampling
 open Tracer.Sampling
+open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main argv = 
@@ -30,7 +32,8 @@ let main argv =
     let emissive = EmissiveMaterial(Colour.White, 1.)
 
     //- SHAPES
-    let shape = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" true matteWhite)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" false)
+    let shape = i.toShape(Textures.mkMatTexture matteRed)
     //let shape = Transform.transform ico (Transformation.scale 4. 4. 4.)
 
 
