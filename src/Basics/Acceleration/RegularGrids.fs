@@ -53,6 +53,8 @@ module RegularGrids =
         let n = shapes.Length // Number of shapes.
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
 
+        //let gridArr = Array.zeroCreate nx
+
         let bbx = nx/w.X
         let bby = ny/w.Y
         let bbz = nz/w.Z

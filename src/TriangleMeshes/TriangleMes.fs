@@ -76,7 +76,7 @@ let drawTrianglesSpecificNumber numberOfShapes (filepath:string) (smoothen:bool)
     let triangleArray = fst test
     let faceArray = snd test
 
-    let material = MatteMaterial(Colour.Red)
+    let material = MatteMaterial(Colour.Red, 1., Colour.Red, 1.)
     let ar = Array.zeroCreate(numberOfShapes)
     for i in 0..(numberOfShapes-1) do 
         let v1 = triangleArray.[faceArray.[i].[1]]
