@@ -59,11 +59,6 @@ let main _ =
     let matBlueTex = mkMatTexture matteBlue
     let matYellowTex = mkMatTexture matteYellow
 
-    let perfRedTex = mkMatTexture perfectRed
-    let perfYellowTex = mkMatTexture perfectYellow
-    let perfGreenTex = mkMatTexture perfectGreen
-    let perfBlueTex = mkMatTexture perfectBlue
-
     let sL = SphereShape(Point(-1., 0., -1.), 1., mkMatTexture matteRed)
     let sC = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
     let sR = SphereShape(Point(1., 0., 1.), 1., mkMatTexture matteGreen)
@@ -85,10 +80,10 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
-    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
+    let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
+                            multiJittered VIEW_SAMPLES CAM_SETS,
+                            multiJittered LENS_SAMPLES CAM_SETS)
 
     //- LIGHTS
     let lightFront     = PointLight(Colour.White, 0.5, Point(7., 7., 7.))
