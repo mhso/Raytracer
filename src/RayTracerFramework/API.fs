@@ -69,25 +69,25 @@ module API =
   ///////////////
 
   let mkMatteMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) : material = 
-    failwith "mkMatteMaterial not implemented"
+    MatteMaterial(ca, ka, cd, kd) :> material
   
   let mkPhongMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (exp : int) : material = 
-    failwith "mkPhongMaterial not implemented"
+    PhongMaterial(ca, ka, cd, kd, cs, ks, exp) :> material
   
   let mkMatteReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cr : colour) (kr : float) : material = 
-    new PerfectReflectionMaterial (mkMatteMaterial ca ka cd kd, cr, kr) :> material
+    MatteReflectiveMaterial(ca, ka, cd, kd, cr, kr) :> material
   
   let mkMatteGlossyReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cr : colour) (kr : float) (exps : int) (s : sampler) : material = 
-    failwith "mkMatteGlossyReflectiveMaterial not implemented"
+    MatteGlossyReflectiveMaterial(ca, ka, cd, kd, cr, kr, exps, s) :> material
   
   let mkPhongReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (cr : colour) (kr : float) (exps : int) : material = 
-    new PerfectReflectionMaterial (mkPhongMaterial ca ka cd kd cs ks exps, cr, kr) :> material
+    PhongReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps) :> material
   
   let mkPhongGlossyReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (cr : colour) (kr : float) (exps : int) (expr : int) (s : sampler) : material = 
-    failwith "mkPhongGlossyReflectiveMaterial not implemented"
+    PhongGlossyReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps, expr, s) :> material
   
   let mkEmissive (c : colour) (i : float) : material = 
-    new EmissiveMaterial(c, i) :> material
+    EmissiveMaterial(c, i) :> material
 
   let mkTransparent (cf_in : colour) (cf_out : colour) (eta_in : float) (eta_out : float) : material = 
     failwith "mkTransparent not implemented"
