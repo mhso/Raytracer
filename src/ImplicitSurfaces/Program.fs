@@ -33,11 +33,10 @@ module Program =
     // Helper functions
     let mkshape (bs:baseShape) t = bs.toShape t
 
-
     // Shapes, cams, and colours
     let sphere1mat = PhongMaterial (aqua, 0.2, aqua, 0.8, white, 0.7, 100)
     let sphere1 = mkshape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (mkMatTexture sphere1mat)
-    //let sphere1 = SphereShape(Point.Zero, 1.0, mkMatTexture sphere1mat)
+    let sphere1 = SphereShape(Point.Zero, 1.0, mkMatTexture sphere1mat)
     let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, multiJittered 4 87)
 
     let sphere2mat = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
@@ -56,7 +55,7 @@ module Program =
       let sc = rs2 + "^2"
       let eqn = sx + " + " + sy + " + " + sz + " + " + sc 
       mkshape (mkImplicit eqn) (mkMatTexture sphere2mat)
-    let torus2cam = PinholeCamera (Point(0.0, 4.0, 0.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
+    let torus2cam = PinholeCamera (Point(10.0, 14.0, 10.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
     let testshapemat = MatteMaterial (Colour(Color.Gold), 1.0, Colour(Color.Gold), 1.0)
     let testshape = mkshape (mkImplicit "(x - 2)^2(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (mkMatTexture testshapemat)

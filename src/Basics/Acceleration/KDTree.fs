@@ -188,7 +188,6 @@ module KD_tree =
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
             shapeBoxList.[i] <- newShapeBox
         let newShapeBoxList = (shapeBoxList |> Array.toList)
-        printfn "KD-build Initialized..."
         if shapeBoxList.Length < 11 then 
             let (MaxX, MinX) = findMaxMin newShapeBoxList 0
             let (MaxY, MinY) = findMaxMin newShapeBoxList 1
@@ -229,9 +228,6 @@ module KD_tree =
     let order (d:float, left:KDTree, right:KDTree) =
         if d > 0. then (left, right)
         else (right, left)
-
-
-
 
     let rec searchKDTree ((tree:KDTree), (ray:Ray), (t:float), (t':float), (shapes:array<Shape>)) = 
         if tree.isLeaf then 

@@ -20,14 +20,14 @@ type Render(scene : Scene, camera : Camera) =
             filtershapes nobb (c::bb) cr
           with 
             | _ -> filtershapes (c::nobb) bb cr                   
-
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
 
+    // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
 
@@ -48,7 +48,7 @@ type Render(scene : Scene, camera : Camera) =
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude light hitPoint
-                    let shadowColour = Colour.Black//this.CastShadow hitPoint light
+                    let shadowColour = this.CastShadow hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
             ambientLight + totalLight
         else
@@ -109,8 +109,6 @@ type Render(scene : Scene, camera : Camera) =
             [for s in this.Scene.Shapes do yield s.hitFunction ray]
                 |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
                 |> List.filter (fun (hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
-        
-
 
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
@@ -205,7 +203,7 @@ type Render(scene : Scene, camera : Camera) =
                                  ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                          ░                                        
                                                                                                   ")
-          Console.WriteLine("                                                   Building KD-Trees..")
+          Console.WriteLine("                                                   Building Acceleration Structure..")
         else ()
         
         let kdTimer = Stopwatch.StartNew()
@@ -217,10 +215,11 @@ type Render(scene : Scene, camera : Camera) =
           Console.WriteLine()
         else ()
 
-        timer.Start()
         accel
 
     member this.PostProcessing (renderedImage:Bitmap) =
+        timer.Stop()
+
         // Save image
         renderedImage.Save(camera.RenderFilepath)
         
@@ -228,7 +227,6 @@ type Render(scene : Scene, camera : Camera) =
         Process.Start(camera.RenderFilepath) |> ignore
 
         // Printing how much time was spent rendering
-        timer.Stop()
         printfn ""
         printfn ""
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
@@ -242,6 +240,8 @@ type Render(scene : Scene, camera : Camera) =
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         
+        timer.Start()
+
         let mutable processed = 0.0
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
@@ -256,11 +256,16 @@ type Render(scene : Scene, camera : Camera) =
             let colour = (List.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
-            mutex.WaitOne() |> ignore
-            bmColourArray.[y,x] <- colour
-            processed <- processed + 1.0
-            this.CalculateProgress processed total
-            mutex.ReleaseMutex() |> ignore
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              mutex.ReleaseMutex() |> ignore
           ) |> ignore
         finally
           mutex.Dispose() |> ignore

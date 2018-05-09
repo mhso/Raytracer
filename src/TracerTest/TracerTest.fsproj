@@ -56,15 +56,14 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Util.fs" />
     <Compile Include="Light.fs" />
     <Compile Include="Material.fs" />
     <Compile Include="Meshes.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="Shapes.fs" />
     <Compile Include="Texture.fs" />
     <Compile Include="ThinLens.fs" />
     <Compile Include="Transparency.fs" />
-    <Compile Include="Util.fs" />
     <Compile Include="AffineTransformations.fs" />
     <Compile Include="AmbientOcclusion.fs" />
     <Compile Include="AreaLight.fs" />
@@ -72,6 +71,7 @@
     <Compile Include="ImplicitSurfaces.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="Program.fs" />
     <Compile Include="GeneralTest.fs" />
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +83,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
       <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
@@ -90,9 +91,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Basics\Basics.fsproj">
+      <Name>Basics</Name>
+      <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\RayTracerFramework\Raytracer.fsproj">
       <Name>Raytracer</Name>
       <Project>{92ae911b-8e25-405a-a804-046e4d018f0d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Sampling\Sampling.fsproj">
+      <Name>Sampling</Name>
+      <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

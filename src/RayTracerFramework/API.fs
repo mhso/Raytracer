@@ -6,6 +6,7 @@ open Tracer.Basics.Render
 open Tracer.BaseShape
 open Tracer.ImplicitSurfaces.Main
 open Transformation
+open Tracer.Basics.Acceleration
 
 module API = 
 
@@ -118,7 +119,8 @@ module API =
     new Rectangle(bottomLeft, topLeft, bottomRight, t) :> shape
   
   let mkTriangle (a:point) (b:point) (c:point) (m : material) : shape = 
-    new Triangle(a, b, c, m) :> shape
+    failwith "needs to take material, not texture"
+    //new Triangle(a, b, c, m) :> shape
 
   let mkPlane (m : texture) : shape = 
     new InfinitePlane(m) :> shape
@@ -271,8 +273,7 @@ module API =
   /////////////////////////////////
 
   /// Type of acceleration structure
-  type Acceleration = Acceleration.Acceleration
-  //KDTree | RegularGrid | BVH
+  type Acceleration = KDTree | BVH | RG
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 

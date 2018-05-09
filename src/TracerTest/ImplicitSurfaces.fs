@@ -115,8 +115,6 @@ module ImplicitSurfaces =
     { camera = mkPinholeCamera (mkPoint 16.0 16.0 16.0) (mkPoint 0.0 -0.5 0.0) (mkVector -1.0 1.0 -1.0) 16.0 4.0 4.0 500 500 (mkRegularSampler 1)
       scene = mkScene' s}
 
- let test = (T "x" + " + " + T "y" + " + " + T "z")
-
   let render =
     List.map (Util.mkTarget "implicitSurfaces")
       [(heart, "heart");
