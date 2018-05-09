@@ -5,6 +5,7 @@ open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
 open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
@@ -93,8 +94,11 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" false)
-    let urn = i.toShape(matGreenTex)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny.ply" false)
+    let shape = i.toShape(matGreenTex)
+    let shape2 = 
+        let move = Transformation.translate 0.15 0. 0.
+        Transform.transform shape move
 
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
@@ -114,11 +118,11 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
-    let directLight = DirectionalLight(Colour.White, 0.9, Vector(1., 1., 1.))
+    let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
 
     //- FINAL
     let lights: Light list      = [directLight]
-    let shapes: Shape list      = [urn]
+    let shapes: Shape list      = [shape; shape2]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
