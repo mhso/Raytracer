@@ -19,7 +19,10 @@ module Acceleration =
 
     let getAccelBoundingBox (accel:IAcceleration) = 
         match accel with
-        | KDTree(kdTree) -> kdTree.bBox
+        | KDTree(kdTree) -> 
+            match kdTree with
+            | KDTree.Leaf(bBox, shapes) -> bBox
+            | KDTree.Node(axis, value, bBox, left, right) -> bBox
         | BVHStructure(bvh)       -> failwith "Not Implemented"
         | RG(rg)         -> failwith "Not Implemented"
 
