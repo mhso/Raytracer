@@ -8,19 +8,19 @@ exception LightException
 //- MATERIAL
 [<AbstractClass>]
 type Material() = 
-    abstract member Bounce: Shape * HitPoint * Light * AmbientLight -> Colour
+    abstract member Bounce: Shape * HitPoint * Light -> Colour
     abstract member BounceMethod: HitPoint -> Ray[]
     abstract member IsRecursive : bool
     abstract member ReflectionFactor : Colour
-    member this.PreBounce (shape: Shape, hitPoint: HitPoint, light: Light, ambientLight: AmbientLight) = 
+    member this.PreBounce (shape: Shape, hitPoint: HitPoint, light: Light) = 
         if light :? AmbientLight then Colour.Black
-        else this.Bounce(shape,hitPoint,light,ambientLight)
+        else this.Bounce(shape,hitPoint,light)
     static member None = BlankMaterial()
 
 and BlankMaterial() = 
     inherit Material()
     default this.ReflectionFactor = Colour.White
-    default this.Bounce(shape, hitPoint, light, ambientLight) = Colour.Black
+    default this.Bounce(shape, hitPoint, light) = Colour.Black
     default this.BounceMethod hitPoint = [| hitPoint.Ray |]
     default this.IsRecursive = false
       
@@ -94,7 +94,6 @@ and [<AbstractClass>] Shape() =
     abstract member getBoundingBox: unit -> BBox
     abstract member hitFunction: Ray -> HitPoint
     static member None = BlankShape() :> Shape
-
 and BlankShape() = 
     inherit Shape()
     override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
@@ -104,10 +103,3 @@ and BlankShape() =
 //- TEXTURES
 and Texture =
     | Texture of (float -> float -> Material)
-
-and AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampling.Sampler) = 
-    inherit AmbientLight(c, intensity)
-    member this.Intensity = intensity
-    member this.MinIntensity = min_intensity
-    member this.Colour = c
-    member this.Sampler = s

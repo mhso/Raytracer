@@ -19,7 +19,7 @@ type MatteMaterial
     default this.ReflectionFactor = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.IsRecursive = false
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters 
         let ca = ambientColour                              // Ambient colour
@@ -32,12 +32,11 @@ type MatteMaterial
 
         // Determine the colour
         if n * ld > 0. then
-            let ambient = ka * ca * ambientLight.GetColour hitPoint
             let diffuse = (kd * cd) / Math.PI
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
             let matte = diffuse * volume * roundness   
-            ambient + matte
+            matte
         else
             Colour.Black
 
@@ -59,7 +58,7 @@ type PhongMaterial
     member this.SpecularColour = specularColour
     member this.SpecularExponent = specularExponent
     
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters
         let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
@@ -76,7 +75,7 @@ type PhongMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matte = base.Bounce(shape, hitPoint, light, ambientLight) 
+            let matte = base.Bounce(shape, hitPoint, light) 
             
             // The specular colour
             let specular = 
@@ -117,9 +116,9 @@ type MatteReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
 type MatteGlossyReflectiveMaterial     
@@ -171,9 +170,9 @@ type MatteGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 //- PHONG REFLECTIVE MATERIAL
 type PhongReflectiveMaterial 
@@ -205,9 +204,9 @@ type PhongReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
 type PhongGlossyReflectiveMaterial     
@@ -264,9 +263,9 @@ type PhongGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 type EmissiveMaterial(lightColour: Colour, lightIntensity: float) = 
     inherit Material()
@@ -278,7 +277,7 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     default this.IsRecursive = false
     default this.ReflectionFactor = Colour.White
     default this.BounceMethod hitPoint = [||]
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Only emit light from the front
         if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then emisiveRadience

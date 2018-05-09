@@ -140,10 +140,10 @@ type Render(scene : Scene, camera : Camera) =
         (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient)
+            acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient)
+            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 

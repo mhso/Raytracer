@@ -181,16 +181,20 @@ module API =
     new DirectionalLight(c, i, d) :> light
 
   let mkAreaLight (bs : baseShape) (m : material) (s : sampler) : light = 
-    failwith "mkAreaLight not implemented"
+    match bs with
+        | :? BaseSphere -> SphereAreaLight(m, bs, s) :> light
+        | :? BaseRectangle -> RectangleAreaLight(m, bs :?> BaseRectangle, s) :> light
+        | :? BaseDisc -> DiscAreaLight(m, bs :?> BaseDisc, s) :> light
+        | _ -> failwith "Specified baseShape type not supported for AreaLight"
   
   let mkEnvironmentLight (r : float) (tex : texture) (s : sampler) : light = 
-    failwith "mkEnvironmentLight not implemented"
+    EnvironmentLight(r, tex, s) :> light
   
   let mkAmbientLight (c : colour) (i : float) : ambientLight = 
-    new AmbientLight(c, i)
+    AmbientLight(c, i)
   
   let mkAmbientOccluder (c : colour) (l : float) (lmin : float) (s : sampler) : ambientLight = 
-    failwith "mkAmbientOccluder not implemented"
+    AmbientOccluder(l, c, lmin, s) :> AmbientLight
 
   /////////////////////
   // Scene rendering //
@@ -273,4 +277,4 @@ module API =
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 
-    failwith "setAcceleration not implemented"
+    Tracer.Basics.Acceleration.setAcceleration(accel)
