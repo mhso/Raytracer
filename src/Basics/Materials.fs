@@ -4,81 +4,83 @@ open Tracer.Sampling.Sampling
 open System.Drawing
 
 //- MATTE MATERIAL
-type MatteMaterial(colour:Colour) = 
+type MatteMaterial
+    (
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float
+    ) = 
     inherit Material()
-
-    let colour = colour
-    let coefficient = 1.
     
+    member this.MatteCoefficient = matteCoefficient
+    member this.MatteColour = matteColour
+    member this.AmbientColour shape hitPoint = ambientColour 
+    default this.ReflectionFactor = Colour.White
     default this.BounceMethod hitPoint = [||]
-    member this.Colour = colour
-    member this.Coefficient = coefficient
-    default this.AmbientColour shape hitPoint = colour
     default this.IsRecursive = false
-    
-    default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters 
-        let kd  = coefficient                           // Matte coefficient
-        let cd  = colour                                // Matte colour
-        let lc:Colour  = light.GetColour hitPoint.Point // Light colour
-        let n   = hitPoint.Normal                       // Normal at hit point
-        let ld  = (light.GetDirectionFromPoint hitPoint.Point)  // Light direction
+        let ca = ambientColour                              // Ambient colour
+        let ka = ambientCoefficient                         // Ambient coefficient
+        let kd = matteCoefficient                           // Matte coefficient
+        let cd = matteColour                                // Matte colour
+        let lc = light.GetColour hitPoint                   // Light colour
+        let n  = hitPoint.Normal                            // Normal at hit point
+        let ld = (light.GetDirectionFromPoint hitPoint)     // Light direction
 
         // Determine the colour
         if n * ld > 0. then
-            let friction    = (kd * cd) / Math.PI     
-            let volume      = (light.GetGeometricFactor hitPoint.Point / light.GetProbabilityDensity)
-            let direction   = lc * (n * ld)                 
-            friction * volume * direction
+            let diffuse = (kd * cd) / Math.PI
+            let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
+            let roundness = lc * (n * ld)
+            let matte = diffuse * volume * roundness   
+            matte
         else
             Colour.Black
 
 //- SPECULAR REFLECTION MATERIAL (PHONG)     
-type SpecularMaterial 
+type PhongMaterial 
     (
-        specularCoefficient: float, 
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float,
         specularColour: Colour, 
-        specularExponent: float, 
-        matteColour: Colour
+        specularCoefficient: float, 
+        specularExponent: int
     ) = 
-    inherit MatteMaterial(matteColour)
-    let specularColour = specularColour
-    let matteColour = matteColour
-    let matteMaterial = new MatteMaterial(matteColour)
-    default this.BounceMethod hitPoint = [||]
-    default this.AmbientColour shape hitPoint = matteColour
+    inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
+    
+    member this.Super = (this :> MatteMaterial)
     member this.SpecularCoefficient = specularCoefficient
     member this.SpecularColour = specularColour
-    member this.MatteColour = matteColour
-    member this.MatteMaterial = matteMaterial
-    default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
+    member this.SpecularExponent = specularExponent
+    
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters
-        let kd = matteMaterial.Coefficient             // Matte coefficient
-        let cd = matteMaterial.Colour                   // Matte colour
-        let ld  = 
-            let l:Vector = (light.GetDirectionFromPoint hitPoint.Point)
-            l.Normalise // Light direction
-        let n = hitPoint.Normal                         // Normal at hit point
-        let r1 = -ld + (2. * (n * ld)) * n             // Light ray direction
-        let ray:Ray = hitPoint.Ray
-        let rd = ray.GetDirection             // Direction of ray
-        let e = specularExponent                       // Specular exponent
-        let ks = specularCoefficient                   // Specular coefficient
-        let cs = specularColour                        // Specular colour
-        let lc  = light.GetColour hitPoint.Point       // Light colour
+        let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
+        let n = hitPoint.Normal                                     // Normal at hit point
+        let r1 = -ld + (2. * (n * ld)) * n                          // Light ray direction
+        let ray:Ray = hitPoint.Ray                                  // Casted ray
+        let rd = ray.GetDirection                                   // Direction of casted ray
+        let e = specularExponent                                    // Specular exponent
+        let ks = specularCoefficient                                // Specular coefficient
+        let cs = specularColour                                     // Specular colour
+        let lc  = light.GetColour hitPoint                          // Light colour
         
         // Detemine the colour
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matte = matteMaterial.Bounce shape hitPoint light
+            let matte = base.Bounce(shape, hitPoint, light) 
             
             // The specular colour
             let specular = 
                 if r1 * -rd > 0. then
-                    ks * cs * ((r1 * (-rd)) ** e)
+                    ks * cs * ((r1 * (-rd)) ** float(e))
                 else
                     Colour.Black
             let direction = lc * (n * ld)
@@ -88,82 +90,195 @@ type SpecularMaterial
         else
             Colour.Black
 
-type PerfectReflectionMaterial(baseMaterial: Material, reflectionColour: Colour, reflectionCoefficient: float) =
-    inherit Material()
-
-    member this.BaseMaterial = baseMaterial                     // Material to apply perfect reflection to
-    member this.ReflectionCoefficient = reflectionCoefficient   // Reflection coefficient
-    member this.ReflectionColour = reflectionColour             // Reflection colour
+//- MATTE REFLECTIVE MATERIAL
+type MatteReflectiveMaterial 
+    (
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float,
+        reflectionColour: Colour, 
+        reflectionCoefficient: float
+    ) = 
+    inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
     
-    default this.AmbientColour shape hitPoint = baseMaterial.AmbientColour shape hitPoint     
-    default this.BounceMethod h = 
-        let rayDirection = (h.Ray.GetDirection + (-2. * (h.Normal * h.Ray.GetDirection)) * h.Normal)
-        [| Ray(h.EscapedHitpoint, rayDirection) |]
-    default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
-        baseMaterial.Bounce shape hitPoint light
+    member this.Super = (this :> MatteMaterial)
+    member this.ReflectionColour = reflectionColour            
+    member this.ReflectionCoefficient = reflectionCoefficient   
+    default this.ReflectionFactor = reflectionColour * reflectionCoefficient
     default this.IsRecursive = true
+    default this.BounceMethod hitPoint = 
+        // Determine the perfect outgoing ray
+        let dir = hitPoint.Ray.GetDirection
+        let normal = hitPoint.Normal
+        let rayDirection = (dir + (-2. * (normal * dir)) * normal)
 
-type GlossyMaterial(reflectionCoefficient: float, reflectionColour: Colour, baseMaterial: Material, sampleCount: int, setCount: int, sharpness: float) = 
-    inherit Material()
+        // Only one reflected ray
+        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
+
+    default this.Bounce(shape, hitPoint, light) = 
+        // Bounce the diffuse material, handle the reflection in the raycaster
+        base.Bounce(shape, hitPoint, light)
+
+//- MATTE GLOSSY REFLECTIVE MATERIAL
+type MatteGlossyReflectiveMaterial     
+    (
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float,
+        reflectiveColour: Colour,
+        glossyCoefficient: float,
+        glossyExponent: int,
+        sampler: Sampler
+    ) = 
+    inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
     
-    let random = new Random()
-    let sampler = multiJittered sampleCount setCount
-
-    // Will reflect a ray along a hemisphere
+    member this.Super = (this :> MatteMaterial)
+    default this.ReflectionFactor = reflectiveColour * glossyCoefficient
+    default this.IsRecursive = true
     default this.BounceMethod hitPoint =
+        
+        // Prepare for sampling
         let direction = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
-        let rays = Array.create sampleCount Ray.None
+        let rays = Array.create sampler.SampleCount Ray.None
 
-        for i = 0 to sampleCount-1 do
-            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) sharpness)
+        // Sample the outgoing rays
+        for i=0 to sampler.SampleCount-1 do
+            
+            // Get a sample point from the sampler, and map it to a hemisphere
+            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) (float(glossyExponent)))
+
+            // Reflected ray direction
             let m = direction + 2. * (normal * -direction) * normal
+
+            // Transform orthonormal frame of sample point
             let up = new Vector(0., 1., 0.)
             let w = m.Normalise
             let v = (up % w).Normalise
             let u = w % v
+            let transformed_sp = sp.OrthonormalTransform (u, v, w)
+
+            // Add outgoing ray to the array
+            rays.[i] <- 
+                if transformed_sp * normal > 0. then
+                    Ray(hitPoint.Point, transformed_sp)
+                else
+                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)
         
-            let apply_of = sp.OrthonormalTransform (u, v, w)
-            rays.[i] <- if apply_of * normal > 0. then
-                            Ray(hitPoint.Point, apply_of)
-                        else
-                            Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)
+        // Return the rays to be handler in the raycaster
         rays
 
-    member this.ReflectionCoefficient = reflectionCoefficient
-    member this.BaseMaterial = baseMaterial
-    default this.AmbientColour shape hitPoint = baseMaterial.AmbientColour shape hitPoint
-    default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
-        baseMaterial.Bounce shape hitPoint light
+    default this.Bounce(shape, hitPoint, light) = 
+        // Bounce the diffuse material
+        base.Bounce(shape, hitPoint, light)
+
+//- PHONG REFLECTIVE MATERIAL
+type PhongReflectiveMaterial 
+    (
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float,
+        specularColour: Colour, 
+        specularCoefficient: float, 
+        reflectionColour: Colour, 
+        reflectionCoefficient: float,
+        specularExponent: int
+    ) = 
+    inherit PhongMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient, specularColour, specularCoefficient, specularExponent)
+    
+    member this.Super = (this :> PhongMaterial)
+    member this.ReflectionColour = reflectionColour            
+    member this.ReflectionCoefficient = reflectionCoefficient   
+       
+    default this.ReflectionFactor = reflectionColour * reflectionCoefficient
     default this.IsRecursive = true
+    default this.BounceMethod hitPoint = 
+        // Determine the perfect outgoing ray
+        let dir = hitPoint.Ray.GetDirection
+        let normal = hitPoint.Normal
+        let rayDirection = (dir + (-2. * (normal * dir)) * normal)
+
+        // Only one reflected ray
+        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
+
+    default this.Bounce(shape, hitPoint, light) = 
+        // Bounce the diffuse material, handle the reflection in the raycaster
+        base.Bounce(shape, hitPoint, light)
+
+//- MATTE GLOSSY REFLECTIVE MATERIAL
+type PhongGlossyReflectiveMaterial     
+    (
+        ambientColour: Colour, 
+        ambientCoefficient: float, 
+        matteColour: Colour, 
+        matteCoefficient: float,
+        specularColour: Colour, 
+        specularCoefficient: float, 
+        reflectiveColour: Colour,
+        glossyCoefficient: float,
+        specularExponent: int,
+        glossyExponent: int,
+        sampler: Sampler
+    ) = 
+    inherit PhongMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient, specularColour, specularCoefficient, specularExponent)
+    
+    member this.ReflectiveColour = reflectiveColour
+    member this.GlossyCoefficient = glossyCoefficient
+    member this.Super = (this :> PhongMaterial)
+    default this.ReflectionFactor = reflectiveColour * glossyCoefficient
+    default this.IsRecursive = true
+    default this.BounceMethod hitPoint =
+        
+        // Prepare for sampling
+        let direction = hitPoint.Ray.GetDirection
+        let normal = hitPoint.Normal
+        let rays = Array.create sampler.SampleCount Ray.None
+
+        // Sample the outgoing rays
+        for i=0 to sampler.SampleCount-1 do
+            
+            // Get a sample point from the sampler, and map it to a hemisphere
+            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) (float(glossyExponent)))
+
+            // Reflected ray direction
+            let m = direction + 2. * (normal * -direction) * normal
+
+            // Transform orthonormal frame of sample point
+            let up = new Vector(0., 1., 0.)
+            let w = m.Normalise
+            let v = (up % w).Normalise
+            let u = w % v
+            let transformed_sp = sp.OrthonormalTransform (u, v, w)
+
+            // Add outgoing ray to the array
+            rays.[i] <- 
+                if transformed_sp * normal > 0. then
+                    Ray(hitPoint.Point, transformed_sp)
+                else
+                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)
+        
+        // Return the rays to be handler in the raycaster
+        rays
+
+    default this.Bounce(shape, hitPoint, light) = 
+        // Bounce the diffuse material
+        base.Bounce(shape, hitPoint, light)
 
 type EmissiveMaterial(lightColour: Colour, lightIntensity: float) = 
     inherit Material()
 
     let emisiveRadience = lightColour * lightIntensity
-
     member this.LightColour = lightColour
     member this.LightIntensity = lightIntensity
     member this.EmisiveRadience = emisiveRadience
-    default this.BounceMethod hitPoint = [||]
-    default this.AmbientColour shape hitPoint = emisiveRadience
-    default this.Bounce (shape: Shape) (hitPoint: HitPoint) (light: Light) = 
-        emisiveRadience
     default this.IsRecursive = false
-
-        (*
-type TexturedMaterial (uvFunc: (float * float) -> (float * float), image: Bitmap) = 
-    inherit Material()
-
-    let round (x:float) = int (Math.Round(x))
-
+    default this.ReflectionFactor = Colour.White
     default this.BounceMethod hitPoint = [||]
-    default this.IsRecursive = false
-
-    default this.AmbientColour shape hitPoint = 
-        let (u,v) = shape.getTextureCoords hitPoint |> uvFunc
-        let (x,y) = (round (u * float(image.Width)), round (v * float(image.Height)))
-        Colour(image.GetPixel(x,y))
-    default this.Bounce shape hitPoint light = 
-        light.Intensity * this.AmbientColour shape hitPoint
-        *)
+    default this.Bounce(shape, hitPoint, light) = 
+        
+        // Only emit light from the front
+        if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then emisiveRadience
+        else Colour.Black

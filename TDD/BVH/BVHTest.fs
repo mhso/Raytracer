@@ -16,12 +16,12 @@ let allTest =
         shapeArr, bboxArr
     
     // Figures/Shapes
-    let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White)))
-    let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue)))
-    let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red)))
-    let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green)))
+    let fig1 = SphereShape(Point(0.,0.,0.), 1., Textures.mkMatTexture(MatteMaterial(Colour.White, 1., Colour.White, 1.)))
+    let fig2 = SphereShape(Point(5.,5.,5.), 2., Textures.mkMatTexture(MatteMaterial(Colour.Blue, 1., Colour.Blue, 1.)))
+    let fig3 = SphereShape(Point(-3.,-3.,-3.), 4., Textures.mkMatTexture(MatteMaterial(Colour.Red, 1., Colour.Red, 1.)))
+    let fig4 = SphereShape(Point(7.,7.,7.), 1., Textures.mkMatTexture(MatteMaterial(Colour.Green, 1., Colour.Green, 1.)))
 
-    let boxTexture = Textures.mkMatTexture(MatteMaterial(Colour.Red))
+    let boxTexture = Textures.mkMatTexture(MatteMaterial(Colour.Red, 1., Colour.Red, 1.))
     let fig5 = Box(Point(1.0,0.6,1.0), Point(6.5,9.0,8.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
     let fig6 = Box(Point(8.0,10.0,8.7), Point(11.4,13.5,15.7), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
     let fig7 = Box(Point(7.0,3.0,8.4), Point(12.0,7.0,16.5), boxTexture, boxTexture, boxTexture, boxTexture, boxTexture, boxTexture)
