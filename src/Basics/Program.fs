@@ -1,10 +1,11 @@
 ﻿open Tracer.Basics
 open Tracer.Basics.Textures
 open Tracer.Sampling.Sampling
-open System.IO
+open Tracer.Basics.Render
 
 [<EntryPoint>]
 let main _ = 
+    // General settings
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
@@ -16,17 +17,35 @@ let main _ =
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
     
+    //- SAMPLE SETTINGS
+    // Base sampling settings
+    let BASE_SAMPLE_COUNT = 4
+    let BASE_SET_COUNT = 127
+
+    // Override these if needed
+    let CAM_SETS = BASE_SET_COUNT
+    let VIEW_SAMPLES = 8
+    let LENS_SAMPLES = 8
+    let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
+    let MATERIAL_SETS = BASE_SET_COUNT
 
     //- MATERIALS
+    // Matte
     let matteRed = MatteMaterial(Colour.White, 1., Colour.Red, 1.)
     let matteGreen = MatteMaterial(Colour.White, 1., Colour.Green, 1.)
     let matteYellow = MatteMaterial(Colour.White, 1., Colour.Yellow, 1.)
     let matteWhite = MatteMaterial(Colour.White, 1., Colour.White, 1.)
     let matteBlue = MatteMaterial(Colour.White, 1., Colour.White, 1.)
+    // Perfect
     let perfectRed = MatteReflectiveMaterial(Colour.White, 1., Colour.Red, 1., Colour.White, 1.)
     let perfectGreen = MatteReflectiveMaterial(Colour.White, 1., Colour.Red, 1., Colour.White, 1.)
     let perfectYellow = MatteReflectiveMaterial(Colour.White, 1., Colour.Yellow, 1., Colour.White, 1.)
     let perfectBlue = MatteReflectiveMaterial(Colour.White, 1., Colour.Blue, 1., Colour.White, 1.)
+    let perfectWhite = MatteReflectiveMaterial(Colour.White, 1., Colour.White, 1., Colour.White, 1.)
+    // Glossy
+    let glossyBlue = PhongGlossyReflectiveMaterial(Colour.White, 1., Colour.Blue, 1., Colour.White, 1., Colour.White, 1., 2, 3,
+                        multiJittered MATERIAL_SAMPLES MATERIAL_SETS)
+
     let emissive = EmissiveMaterial(Colour.White, 10000.)
     
 
@@ -62,16 +81,11 @@ let main _ =
         let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
         if (int (abs' x) + int (abs' y)) % 2 = 0
         then matteRed :> Material
-        else perfectYellow :> Material
+        else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
-    //- THIN LENS SAMPLE SETTINGS
-    let CAM_SETS = 129
-    let VIEW_SAMPLES = 8
-    let LENS_SAMPLES = 8
-
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 10 1)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -86,12 +100,11 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightAmbient; lightFront]
-    let shapes: Shape[]        = [|thinBoxC;thinBoxL;thinBoxR;plane|]
+    let shapes: Shape list      = [thinBoxC;thinBoxL;thinBoxR;plane]
 
-    let scene = Scene(shapes, camera, lights, lightAmbient, maxReflectionBounces)
+    let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
-    let acceleration = Acceleration.createAcceleration shapes
-    ignore (scene.Render acceleration)
-    
+    let render = new Render(scene, camera)
+    ignore (render.RenderToFile render.RenderParallel "path")
 
     0
