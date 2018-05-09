@@ -48,7 +48,7 @@ type Render(scene : Scene, camera : Camera) =
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude light hitPoint
-                    let shadowColour = this.CastShadow hitPoint light
+                    let shadowColour = Colour.Black//this.CastShadow hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
             ambientLight + totalLight
         else

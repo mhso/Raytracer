@@ -334,4 +334,3 @@ type TransparentMaterial
         let origin = hitPoint.InnerEscapedPoint
         let direction = ((1.) / (refrIndex)) * hitPoint.Ray.GetDirection - (cos_angle_out - (cos_angle_in) / (refrIndex)) * hitPoint.Normal
         Ray(origin, direction)
-        

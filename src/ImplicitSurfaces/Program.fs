@@ -8,6 +8,7 @@ module Program =
   open Tracer.ImplicitSurfaces.Main
   open Tracer.Basics.Render
   open Tracer.Basics.Acceleration
+  open Tracer.Basics.Textures
 
   type baseShape = Tracer.BaseShape.BaseShape
   type shape = Tracer.Basics.Shape
@@ -31,21 +32,20 @@ module Program =
     
     // Helper functions
     let mkshape (bs:baseShape) t = bs.toShape t
-    let textfun m =
-        let f a b = m
-        Texture f
+
 
     // Shapes, cams, and colours
-    let sphere1mat = PhongMaterial (aqua, 0.2, aqua, 0.8, white, 0.7, 100)
-    let sphere1mat = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
-    let sphere1 = mkshape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (textfun sphere1mat)
+    let sphere1mat = PhongMaterial (aqua, 1., aqua, 1., white, 1., 100)
+    let sphere1mat2 = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
+    let sphere1 = mkshape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (mkMatTexture sphere1mat)
+    //let sphere1 = SphereShape(Point.Zero, 1.0, mkMatTexture sphere1mat)
     let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, multiJittered 4 87)
 
     let sphere2mat = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
-    let sphere2 = mkshape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (textfun sphere2mat)
+    let sphere2 = mkshape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (mkMatTexture sphere2mat)
     let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
-    let torus = mkshape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (textfun sphere2mat)
+    let torus = mkshape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (mkMatTexture sphere2mat)
     let toruscam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
     let torus2 =
@@ -56,18 +56,18 @@ module Program =
       let sz = "z^4 - 2*" + rs1 + "*z^2"
       let sc = rs2 + "^2"
       let eqn = sx + " + " + sy + " + " + sz + " + " + sc 
-      mkshape (mkImplicit eqn) (textfun sphere2mat)
+      mkshape (mkImplicit eqn) (mkMatTexture sphere2mat)
     let torus2cam = PinholeCamera (Point(0.0, 4.0, 0.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
     let testshapemat = MatteMaterial (Colour(Color.Gold), 1.0, Colour(Color.Gold), 1.0)
-    let testshape = mkshape (mkImplicit "(x - 2)^2(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (textfun testshapemat)
+    let testshape = mkshape (mkImplicit "(x - 2)^2(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (mkMatTexture testshapemat)
     let testshapecam = PinholeCamera (Point(6.0, 6.0, 8.0), Point(0.0, 0.0, 0.0), Vector(-1.0, -1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
     let heartmat = MatteMaterial (Colour(Color.DarkRed), 1.0, Colour(Color.DarkRed), 1.0)
-    let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*y^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*y^2*z^3") (textfun heartmat)
+    let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-    let render = Render(mkScene' sphere1, sphere1cam)
+    let render = Render(mkScene' heart, heartcam)
     render.RenderParallel |> ignore
 
     0
