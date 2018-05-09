@@ -2,12 +2,13 @@
 open Tracer.Sampling.Sampling
 open System.IO
 open Tracer.Basics.Render
+open Tracer.Basics.Transform
 //open System.Net.Mime.MediaTypeNames
 
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.,3.,5.)
+    let position = Point(2.,2.,5.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -124,6 +125,10 @@ let main _ =
 
     let csgSub = CSG(box, sphere, Subtraction)
 
+
+    let move = Transformation.translate 0. -1. 0.
+    let transCylinder = Transform.transform cylinder move
+
     let shapes : Shape List = [cylinder]
     
 
@@ -144,7 +149,7 @@ let main _ =
     let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
     let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
 
-    let lightAmbient   = AmbientLight(Colour.White, 1.)
+    let lightAmbient   = AmbientLight(Colour.White, 0.3)
     //let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     //let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
     //let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)

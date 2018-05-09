@@ -235,6 +235,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.height = height
     member this.tex = tex
     member this.bBox = 
+       
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
@@ -243,6 +244,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let hx = (center.X + radius) + e
         let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
         let hz = (center.Z + radius) + e
+        
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -291,7 +293,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             |(D) when D < 0.0 -> HitPoint(r)
             |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                       |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t2 < t1 && t2 > 0.0 then  /////TODO: fix cylinder bug, it doesnt render the second hit, if the first one is beyond the height of the cylinder
+                      |(t1,t2) -> if t2 < t1 && t2 > 0.0 then
                                       let p2 = r.PointAtTime t2
                                       if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
                                       else let p1 = r.PointAtTime t1
