@@ -1,4 +1,5 @@
 ﻿namespace Tracer.Basics
+
 open Tracer.Sampling.Sampling
 open System
 
@@ -6,7 +7,8 @@ open System
 type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCount: int) = 
     inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
 
-    override this.GetColour point = 
+    override this.GetColour hitPoint = 
+        let point = hitPoint.Point
         let x = 
             [for i in [0..sampleCount] do 
                 let sp = this.SamplePoint point
@@ -20,11 +22,12 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
         let total = x |> List.fold (fun acc c -> acc + c) Colour.Black
         total / float(sampleCount)
 
-    override this.GetDirectionFromPoint (point: Point) = 
+    override this.GetDirectionFromPoint hitPoint = 
+        let point = hitPoint.Point
         let total = [for i=0 to sampleCount - 1 do yield (this.SamplePoint point - point).Normalise] |> List.sum
         total / float(sampleCount)
 
-    override this.GetShadowRay (hitPoint: HitPoint) = 
+    override this.GetShadowRay hitPoint = 
         if hitPoint.Material :? EmissiveMaterial then
             [||]
         else
@@ -36,12 +39,13 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampleCount: int, sampleSetCou
                 shadowRays.[i] <- Ray(shadowRayOrigin, direction)
             shadowRays
 
-    override this.GetGeometricFactor (p: Point) = 
+    override this.GetGeometricFactor hitPoint = 
+        let p = hitPoint.Point
         let sp = this.SamplePoint p
         let sp_n = this.SamplePointNormal sp
         (sp_n * (p - sp).Normalise) / ((p - sp) * (p - sp))
 
-    override this.GetProbabilityDensity = 
+    override this.GetProbabilityDensity hitPoint = 
         this.Density
     
     member this.SurfaceMaterial = surfaceMaterial
@@ -105,3 +109,44 @@ type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: SphereShape, sam
         2. * Math.PI * (sphere.Radius * sphere.Radius)
     override this.FlushSample() = 
         ignore sampler.Next
+        
+type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) = 
+    inherit Light(Colour.Black, 1.)
+    
+    let sphere = SphereShape(Point.Zero, radius, texture)
+    let mapSample (x, y, z) = (x, z, y)
+    let samples = [for i=1 to sampler.SampleCount do yield Point((mapToHemisphere (sampler.Next()) 1.) |> mapSample) * radius]
+    let getSampleColour sp = 
+        let hitPoint = sphere.hitFunction(Ray(Point.Zero, sp))
+        if hitPoint.Material :? EmissiveMaterial then
+            (hitPoint.Material :?> EmissiveMaterial).EmisiveRadience
+        else
+            Colour.Black
+    let colour = [for sp in samples do yield getSampleColour sp.ToVector] |> List.average
+
+    member this.Radius = radius
+    member this.Texture = texture
+    member this.Sampler = sampler
+
+    override this.GetColour hitPoint = 
+        if hitPoint.Point.ToVector.Magnitude < radius then 
+            colour
+        else 
+            printfn "no"
+            Colour.Black
+        
+    override this.GetDirectionFromPoint hitPoint = 
+        hitPoint.Normal
+
+    override this.GetShadowRay (hitPoint:HitPoint) =
+        if hitPoint.Material :? EmissiveMaterial then 
+            [||]
+        else
+            [for sp in samples do yield Ray(hitPoint.EscapedPoint, (sp - hitPoint.Point).Normalise)] |> List.toArray
+                
+    override this.GetGeometricFactor hitPoint =
+        1.
+
+    override this.GetProbabilityDensity hitPoint =
+        1.
+    

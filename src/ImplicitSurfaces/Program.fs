@@ -82,7 +82,7 @@ module Program =
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500,
                         regular 1)
 
-    let sc = mkScene' torus toruscam
+    let sc = mkScene' sphere1 sphere1cam
     sc.RenderParallel |> ignore
 
     0
