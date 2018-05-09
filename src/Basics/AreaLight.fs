@@ -6,8 +6,8 @@ open Tracer.BaseShape
 
 //- AREA LIGHT
 [<AbstractClass>]
-type AreaLight(surfaceMaterial: EmissiveMaterial, sampler: Sampler) = 
-    inherit Light(surfaceMaterial.LightColour, surfaceMaterial.LightIntensity)
+type AreaLight(surfaceMaterial: Material, sampler: Sampler) = 
+    inherit Light(Colour.White, 1.)
 
     member this.Texture = Textures.mkMatTexture surfaceMaterial // Texture of emissive surface
     member this.SurfaceMaterial = surfaceMaterial               // Material of emissive surface
@@ -26,7 +26,7 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampler: Sampler) =
                 let n = this.SamplePointNormal sp
                 yield 
                     if n * (hitPoint.Point - sp).Normalise > 0. then
-                        surfaceMaterial.EmisiveRadience
+                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this)
                     else
                         Colour.Black] 
         
@@ -61,7 +61,7 @@ type AreaLight(surfaceMaterial: EmissiveMaterial, sampler: Sampler) =
     
 
 //- DISC (AREA LIGHT)
-type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: BaseDisc, sampler: Sampler) = 
+type DiscAreaLight(surfaceMaterial: Material, disc: BaseDisc, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
     override this.Shape = disc.toShape this.Texture
@@ -79,7 +79,7 @@ type DiscAreaLight(surfaceMaterial: EmissiveMaterial, disc: BaseDisc, sampler: S
 
 
 //- RECTANGLE (AREA LIGHT)
-type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: BaseRectangle, sampler: Sampler) = 
+type RectangleAreaLight(surfaceMaterial: Material, rect: BaseRectangle, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
     override this.Shape = rect.toShape this.Texture
@@ -97,14 +97,14 @@ type RectangleAreaLight(surfaceMaterial: EmissiveMaterial, rect: BaseRectangle, 
 
 
 //- SPHERE (AREA LIGHT)
-type SphereAreaLight(surfaceMaterial: EmissiveMaterial, sphere: BaseShape, sampler: Sampler) = 
+type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
     override this.Shape = sphere.toShape this.Texture
     member this.SphereShape = this.Shape :?> SphereShape
     override this.SamplePoint point = 
         // Hemisphere transform the samples
-        let hem_sp = Point((mapToHemisphere (sampler.Next()) 10.))
+        let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
 
         // Transform orthonormal coordinate space
         let d_c_p = (point - this.SphereShape.Origin).Normalise
