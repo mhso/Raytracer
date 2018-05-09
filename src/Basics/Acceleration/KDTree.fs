@@ -271,7 +271,7 @@ module KD_tree =
                             
 
     let traverseKDTree (tree:KDTree) (ray:Ray) (shapes:array<Shape>) = 
-        printfn "traverseKDTree tree: %A" tree
+       // printfn "traverseKDTree tree: %A" tree
         let value = tree.bBox.intersect ray
         match value with
         | Some (t, t') -> searchKDTree (tree, ray, t, t', shapes)

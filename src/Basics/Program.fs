@@ -108,7 +108,7 @@ let main _ =
     let lights: Light list      = [lightSphere]
     let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 

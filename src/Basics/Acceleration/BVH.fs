@@ -73,7 +73,7 @@ module BVH =
         | _ -> invalidArg "findAxisMinMaxValues invalid axis value" "Axis value needs to be between 0-2."
     
     let rec getBoxArrFromIndexes (indexes:list<int>) (boxes:array<BBox>) : (array<BBox>) =
-        [|for i in 0..(indexes.Length-1) -> boxes.[i]|]
+        [|for i in 0..(indexes.Length-1) -> boxes.[indexes.[i]]|]
     
     // Function for converting a list of shapes to an array of their bounding boxes.
     let convertShapesToBBoxes (shapes:array<Shape>) : array<BBox> =
@@ -89,6 +89,7 @@ module BVH =
         if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes
+        //let boxes = List.toArray (Array.fold (fun acc (x:Shape) -> acc::x.getBoundingBox()) [] shapes)
 
         let boxIntList = [0..boxes.Length-1]
         let rec innerNode (intIndexes:list<int>) (depthLevel:int) : BVHStructure = 
@@ -160,7 +161,7 @@ module BVH =
                                     for shapeRef in shapesRef do
                                         let hit = shapes.[shapeRef].hitFunction ray
                                         let dist = hit.Time
-                                        if dist < closestDist then
+                                        if hit.DidHit && dist < closestDist then
                                             closestDist <- dist
                                             closestHit <- Some hit
                                     if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
@@ -211,8 +212,8 @@ module BVH =
     
     // Function for traversal of the structure.
     let traverse (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>) = 
-        printfn "traverse structure: %A" structure
+        //printfn "traverse structure: %A" structure
         let result = search structure ray shapes infinity
         match result with
-        | Some r -> (search structure ray shapes infinity).Value
+        | Some r -> r
         | None -> HitPoint ray
