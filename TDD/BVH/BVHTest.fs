@@ -86,7 +86,7 @@ let allTest =
     let testBuildBVHTree = 
         let shapeArr = [|(fig1:>Shape); (fig2:>Shape); (fig3:>Shape); (fig4:>Shape)|]
         let shapeArr, bboxArr = createShapeAndBBoxArr shapeArr
-        let tree = buildBVHTree shapeArr
+        let tree = build shapeArr
 
         let expected =
                 (Node
@@ -119,7 +119,7 @@ let allTest =
         let ray = Ray(Point(3.0,4.0,3.0), Vector(1.,1.,-1.))
         let shapeBoxArr = [|(fig5:>Shape); (fig6:>Shape); (fig7:>Shape); (fig8:>Shape)|]
         let shapeArr, bboxArr = createShapeAndBBoxArr shapeBoxArr
-        let tree = buildBVHTree (shapeArr)
+        let tree = build (shapeArr)
         let result = traverse tree ray shapeArr
         if debug then printfn "shapeArr: %A \n\n" shapeArr
         if debug then printfn "bboxArr: %A \n\n" bboxArr
