@@ -171,6 +171,13 @@ module KD_tree =
 
     let closestHit (shapeBoxes:list<ShapeBBox>) (ray:Ray) (shapes:array<Shape>) =
         // Get all hit points
+        //let pointsThatHit = 
+        //    [for s in shapeBoxes do yield (let hitBox = shapes.[s.shape].getBoundingBox().intersect ray
+        //                                   match hitBox with
+        //                                   | Some(hit) -> shapes.[s.shape].hitFunction ray
+        //                                   | None -> HitPoint(ray)
+        //                                   )]
+        //        |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
         let pointsThatHit = 
             [for s in shapeBoxes do yield (shapes.[s.shape].hitFunction ray )]
                 |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
