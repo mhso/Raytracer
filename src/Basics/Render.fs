@@ -27,13 +27,15 @@ type Render(scene : Scene, camera : Camera) =
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let normal = hitPoint.Normal
-            this.Scene.Lights 
+            let ambientLight = this.Scene.Ambient.GetColour hitPoint * hitPoint.Material.AmbientColour
+            let totalLight = 
+                this.Scene.Lights 
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude light hitPoint
                     let shadowColour = this.CastShadow hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
+            ambientLight + totalLight
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
