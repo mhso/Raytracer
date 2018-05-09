@@ -1,24 +1,20 @@
-﻿//open Tracer.Basics
+﻿open Tracer.Basics
 open Tracer.Basics.Textures
-//open Tracer.Sampling.Sampling
+open Tracer.Sampling.Sampling
+open System.IO
+open Tracer.BaseShape
 open Tracer.Basics.Render
 
-//[<EntryPoint>]
+[<EntryPoint>]
 let main _ = 
     // General settings
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
-//    let up = Vector(0.,1.,0.)
-//    let zoom = 1.
-//    let resX = 1920
-//    let resY = 1080
-//    let width = 2.
-//    let height = (float(resY) / float(resX)) * width
     let up = Vector(0.,1.,0.)
     let zoom = 1.
-    let resX = 1920
-    let resY = 1080
+    let resX = 500
+    let resY = 350
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -35,7 +31,7 @@ let main _ =
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
 
-//    //- MATERIALS
+    //- MATERIALS
     // Matte
     let matteRed = MatteMaterial(Colour.White, 1., Colour.Red, 1.)
     let matteGreen = MatteMaterial(Colour.White, 1., Colour.Green, 1.)
@@ -55,7 +51,7 @@ let main _ =
     let emissive = EmissiveMaterial(Colour.White, 10000.)
     
 
-//    //- SHAPES
+    //- SHAPES
     let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
@@ -90,26 +86,35 @@ let main _ =
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
+
     let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" false)
     let urn = i.toShape(matGreenTex)
+
+    //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    
+    //- PLAIN LIGHTS
+    let lightTop = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
 
-//    //- LIGHTS
-    let lightFront     = PointLight(Colour.White, 0.5, Point(7., 7., 7.))
-
-    let lightAmbient   = AmbientLight(Colour.White, 0.1)
-    let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
-    let lightDisc      = DiscAreaLight(emissive, discC, 100, 5)
-    let lightRect      = RectangleAreaLight(emissive, rectC, 100, 5)
+    //- AREA LIGHTS
+    let sampler        = multiJittered 5 1
+    let baseSphere = BaseSphere(Point.Zero, 1.)
+    let baseRect = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
+    let baseDisc = BaseDisc(Point.Zero, 1.)
+    let lightSphere    = SphereAreaLight(emissive, baseSphere, sampler)
+    let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
+    let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
     //- FINAL
-    let lights: Light list      = [lightAmbient; lightFront]
+    let lights: Light list      = [lightSphere]
     let shapes: Shape list      = [urn]
 
+    let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
+
 
     let render = new Render(scene, camera)
     ignore (render.RenderToFile render.RenderParallel "path")
