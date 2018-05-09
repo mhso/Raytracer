@@ -139,14 +139,34 @@ let allTest =
   // pretty good here: https://youtu.be/FXgV9ySNusc?t=370
 
   // tests on exprtopoly for simple shape equations
-  let test99 = 
-      let input = (parseStr >> substWithRayVars) "x^2 + y^2 + z^2 - r^2"
-      let inputradical = (parseStr >> substWithRayVars) "(x^2 + y^2 + z^2)_2 - r"
-      let actual = ppPoly "t" (exprToPoly input "t")
-      let actualradical = ppPoly "t" (exprToPoly inputradical "t")
-      let expected = "(-1*r^2+oz^2+oy^2+ox^2)+t(2*dz*oz+2*dy*oy+2*dx*ox)+t^2(dz^2+dy^2+dx^2)"
-      Assert.Equal (expected, actual, "sphereTest1: sphere")
-      Assert.Equal (expected, actualradical, "sphereTest2: sphere with radical")
+  let test18 = 
+    let input = (parseStr >> substWithRayVars) "x^2 + y^2 + z^2 - r^2"
+    let inputradical = (parseStr >> substWithRayVars) "(x^2 + y^2 + z^2)_2 - r"
+    let actual = ppPoly "t" (exprToPoly input "t")
+    let actualradical = ppPoly "t" (exprToPoly inputradical "t")
+    let expected = "(-1*r^2+oz^2+oy^2+ox^2)+t(2*dz*oz+2*dy*oy+2*dx*ox)+t^2(dz^2+dy^2+dx^2)"
+    Assert.Equal (expected, actual, "sphereTest1: sphere")
+    Assert.Equal (expected, actualradical, "sphereTest2: sphere with radical")
+
+  let test19 =
+
+    let bbFilter (s:Shape) : bool = 
+      try
+        s.getBoundingBox()
+        true
+      with
+      | _  -> false
+
+    let tex = Texture((fun x y -> MatteMaterial(Colour.Black, 1.0, Colour.Black, 1.0):>Material))
+    let imp = (mkImplicit "x").toShape tex
+    let ss = SphereShape(Point(0.,0.,0.), 2., tex):>Shape
+    let input = [imp;ss]
+    let actualBB = List.filter bbFilter input
+    let actualNoBB = List.filter (fun x -> bbFilter x = false) input
+    let expectedBB = [ss]
+    let expectedNoBB = [imp]
+    Assert.Equal (expectedBB, actualBB, "boundingBoxFilter, all the trues")
+    Assert.Equal (expectedNoBB, actualNoBB, "boundingBoxFilter, all the falses")
 
   test01
   test02
@@ -164,4 +184,6 @@ let allTest =
   test14
   test15
   test16
-  test99
+  test17
+  test18
+  test19

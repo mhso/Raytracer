@@ -271,7 +271,8 @@ module API =
   /////////////////////////////////
 
   /// Type of acceleration structure
-  type Acceleration = KDTree | RegularGrid | BVH
+  type Acceleration = Acceleration.Acceleration
+  //KDTree | RegularGrid | BVH
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 

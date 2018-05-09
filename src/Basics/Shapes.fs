@@ -2,7 +2,7 @@ namespace Tracer.Basics
 open System
 open Transformation
 
-
+exception BoundingBoxException
 
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////

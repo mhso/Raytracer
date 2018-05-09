@@ -48,9 +48,9 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: S
 
     // For missed rays
     new(ray: Ray) = 
-        HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
+        HitPoint(ray, -0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
     new(point: Point) = 
-        HitPoint(Ray.None, 0., point.ToVector, Material.None, Shape.None, 0., 0., false)
+        HitPoint(Ray.None, -0., point.ToVector, Material.None, Shape.None, 0., 0., false)
 
 //- LIGHT
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =
