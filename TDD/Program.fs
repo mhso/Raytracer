@@ -8,7 +8,8 @@ let main argv =
     printfn("-=-=-=-=-=-=- BVH Test -=-=-=-=-=-=-")
     RegularGridsTest.allTest
     printfn("-=-=-=-=-=-=- KD-Tree Test -=-=-=-=-=-=-")
-    KDTest.allTest
+    printfn("Test not run.")
+    //KDTest.allTest
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
     printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")

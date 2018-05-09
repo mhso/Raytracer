@@ -1,4 +1,4 @@
-﻿namespace Tracer.Basics
+namespace Tracer.Basics
 open System
 open Transformation
 
@@ -100,12 +100,15 @@ type Disc(center:Point, radius:float, tex:Texture)=
 ////TRIANGLE////
 and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     inherit Shape()
+    let mutable be : float = 0.0
+    let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
     member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+    member this.n = this.u.CrossProduct this.v
 
     //the many members are for simplifying cramers rule and hit function
     member this.pa = ((a.X)-(b.X))
@@ -114,6 +117,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.f = ((a.Y)-(c.Y))
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
+
 
     member this.bBox =
         let e = 0.000001
@@ -126,6 +130,9 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+        
+    member this.beta with get() = be and set(value) = be <- value
+    member this.gamma with get() = ga and set(value) = ga <- value
 
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
 
@@ -146,6 +153,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
                     let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
                     let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                    this.beta <- x
+                    this.gamma <- y
                     let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
@@ -512,7 +521,7 @@ type InfinitePlane(tex:Texture) =
     inherit Shape()
     member this.tex = tex
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = failwith "Cannot make Bounding Box for infinite Plane"
+    override this.getBoundingBox () = BBox(Point(-2147483648., -2147483648., -2147483648.), Point(2147483647., 2147483647., 2147483647.))
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Y / r.GetDirection.Y) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 

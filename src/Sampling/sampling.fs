@@ -9,6 +9,7 @@ let mutable rand = new Random()
 
 let setRandomSeed seed = rand <- new Random(seed)
 
+
 type Sampler(samples : (float*float)[][]) =
     let sampleSetCount = samples.Length
     let sampleIndices = Array.create 500 0

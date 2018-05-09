@@ -5,6 +5,7 @@ open System.Drawing
 open System.Diagnostics
 open System.Threading.Tasks
 open System.Threading
+open Tracer.Sampling
 open Acceleration
 
 type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : AmbientLight, maxBounces) = 
@@ -15,6 +16,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
     let timer = new System.Diagnostics.Stopwatch()
     let mutable currentPct = 0
     let mutable loadingIndex = 0
+    let up = Vector(0., 1., 0.)
     member this.Spheres = shapes
     member this.Camera = camera
     member this.Lights = lights
@@ -28,15 +30,43 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let normal = hitPoint.Normal
             lights 
-                |> List.fold (fun accColour light -> 
+                |> List.fold (fun acc light -> 
+                    let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black maxBounces hitPoint.Material.BounceMethod
+                    let occlusion = this.Occlude light hitPoint
                     let shadowColour = this.CastShadow hitPoint light
-                    let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.MaxBounces hitPoint.Material.BounceMethod
-                    accColour + (colour - shadowColour)) (new Colour(0.,0.,0.))
+                    acc + (colour + occlusion - shadowColour)) Colour.Black
         else
             // If we did not hit, return the background colour
             this.BackgroundColour
+            
+    member this.Occlude (light: Light) (hitPoint: HitPoint) = 
+
+        if light :? AmbientOccluder then
+            let o = light :?> AmbientOccluder
+            let samples = [for i=1 to o.Sampler.SampleCount do yield Sampling.mapToHemisphere (o.Sampler.Next()) 1.]
+            [for (x,y,z) in samples 
+                do 
+                    let w = hitPoint.Normal.Normalise
+                    let v = (up % w).Normalise
+                    let u = w % v
+                    let spV = Tracer.Basics.Point(x,z,y).OrthonormalTransform(u, v, w)
+                    let sp = Tracer.Basics.Point(spV)
+                    yield this.CastAmbientOcclusion sp o hitPoint ] |> List.average
+        else 
+            Colour.Black
+
+        
+
+    member this.CastAmbientOcclusion (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
+        let direction = (hitPoint.Point - sp).Normalise
+        let origin = hitPoint.EscapedPoint
+        let ray = Ray(origin, direction)
+        let (hp:HitPoint) = this.GetFirstShadowHitPoint ray
+        if hp.DidHit then
+            o.MinIntensity * o.Intensity * o.Colour
+        else
+            o.Intensity * o.Colour
 
     member this.GetFirstHitPointWithAccel (accel:IAcceleration) (ray:Ray) = 
         traverseIAcceleration accel ray shapes
@@ -90,7 +120,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             pointsThatHit |> List.minBy (fun (hp) -> hp.Time)
 
     // Returns the average shadow for a hitpoint and a light source
-    member this.CastShadow (hitPoint: HitPoint) (light: Light) = 
+    member this.CastShadow (hitPoint: HitPoint) (light: Light) : Colour = 
         if light :? AmbientLight 
             then Colour.Black
         else
@@ -98,7 +128,7 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
             let isShadow ray = 
                 let (hp) = (this.GetFirstShadowHitPoint ray)
                 if hp.DidHit then
-                        Colour.White 
+                        Colour.White - ambient.GetColour hitPoint
                     else 
                         Colour.Black
             
@@ -110,18 +140,19 @@ type Scene(shapes: Shape[], camera: Camera, lights: Light list, ambient : Ambien
 
     // Will cast a ray recursively
     member this.CastRecursively 
-        (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) (reflectionFunction: HitPoint -> Ray[]) =
+        (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) (reflectionFunction: HitPoint -> Ray[]) : Colour =
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + hitPoint.Material.PreBounce shape hitPoint light
+            acc + hitPoint.Material.PreBounce(shape, hitPoint, light, ambient)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + hitPoint.Material.PreBounce shape hitPoint light
+            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light, ambient)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 
                     let outHitPoint = this.GetFirstHitPointExcept outRay.[i] shape
                     if outHitPoint.DidHit then
-                        this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        let recursiveColour = this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        hitPoint.Material.ReflectionFactor * recursiveColour
                     else
                         Colour.Black
             baseColour + (outColour / float(outRay.Length))

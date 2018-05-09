@@ -3,64 +3,64 @@
 
 open FParsec
 open Tracer.Basics
+open Tracer.Sampling
+open Tracer.Sampling
 
 [<EntryPoint>]
 let main argv = 
-    let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\vase.ply"
+    //let answer = PLYParser.parsePLY @"..\..\..\..\resources\ply\urn2.ply"
     //only used to draw the triangles
-    //let position = Point(7.,4.,4.)
-    //let lookat = Point(0.,0.,0.)
-    //let up = Vector(0.,1.,0.)
-    //let zoom = 1.
-    //let width = 1920.
-    //let height = 1080.
-    //let resX = 1920
-    //let resY = 1080
+    Acceleration.setAcceleration (Acceleration.Acceleration.KDTree)
+    let position = Point(0.,0.,0.)
+    let lookat = Point(3.,3.,3.)
+    let up = Vector(0.,1.,0.)
+    let zoom = 1.
+    let resX = 1920
+    let resY = 1080
+    let width = 2.
+    let height = (float(resY) / float(resX)) * width
     
-    ////- MATERIALS
-    //let matteRed = MatteMaterial(Colour.Red)
-    //let matteGreen = MatteMaterial(Colour.Green)
-    //let matteYellow = MatteMaterial(Colour(1.,1.,0.))
-    //let matteWhite = MatteMaterial(Colour.White)
-    //let matteBlue = MatteMaterial(Colour.Blue)
-    //let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
-    //let perfectWhite = PerfectReflectionMaterial(5, matteWhite, Colour.White, 1.)
-    //let perfectGreen = PerfectReflectionMaterial(5, matteGreen, Colour.White, 1.)
-    //let perfectRed = PerfectReflectionMaterial(5, matteRed, Colour.White, 1.)
-    //let perfectYellow = PerfectReflectionMaterial(5, matteYellow, Colour.White, 1.)
-    //let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 1, 100.)
-    //let emissive = EmissiveMaterial(Colour.White, 1.)
+    //- MATERIALS
+    let matteRed = MatteMaterial(Colour.Red)
+    let matteGreen = MatteMaterial(Colour.Green)
+    let matteYellow = MatteMaterial(Colour(1.,1.,0.))
+    let matteWhite = MatteMaterial(Colour.White)
+    let matteBlue = MatteMaterial(Colour.Blue)
+    let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
+    let emissive = EmissiveMaterial(Colour.White, 1.)
 
-    ////- SHAPES
-    //let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
-    //let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
-    //let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
-    
-    //let sL = SphereShape(Point(0., 0., -2.), 1., matteRed)
-    //let sC = SphereShape(Point(0., 0., 0.), 1., matteRed)
-    //let sR = SphereShape(Point(0., 0., 2.), 1., matteRed)
+    //- SHAPES
+    let shape = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false true matteWhite)
+    //let shape = Transform.transform ico (Transformation.scale 50. 50. 50.)
 
-    ////- THIN LENS SAMPLE SETTINGS
-    //let CAM_SETS = 29
-    //let VIEW_SAMPLES = 8
-    //let DISC_SAMPLES = 8
+    //- THIN LENS SAMPLE SETTINGS
+    let CAM_SETS = 29
+    let VIEW_SAMPLES = 8
+    let DISC_SAMPLES = 8
 
-    ////- CAMERA
-    //let camera         = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY)
-    
-    ////- LIGHTS
-    //let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
-    //let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
-    //let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    //- CAMERA
+    let camera         = PinholeCamera(Point (4.0, 8.0, 20.0), Point(0.,0.,0.), Vector(0.,1.,0.), 4., 2.5,2.5,1000,1000, Sampling.multiJittered 2 2)
+    //- LIGHTS
+    let lightFront     = PointLight(Colour.White, 1.5, Point(8.,-4.,0.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(0.,-1.,0.))
+    let lightAmbient   = AmbientLight(Colour.Green, 0.1)
+    let l1 = PointLight(Colour.White, 0.5, Point(6.0, 2.0, 6.0))
+    let l2 = PointLight(Colour.Red, 0.5, Point(-6.0, 2.0, 6.0))
+    let l3 = PointLight(Colour.White, 0.7, Point(-3.5, 12.0, 4.0))
 
-    ////- FINAL
-    //let lights: Light list      = [lightAmbient; lightTop]
-    //let p1 = Point(1.,0.,0.)
-    //let p2 = Point(0.,4.,0.)
-    //let p3 = Point(0.,0.,2.)
-    //let spheres: Shape list     = [(PLYParser.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply")]
-    //let scene                   = Scene(spheres, camera, lights)
+    //- FINAL
+    let lights: Light list      = [lightAmbient; l1;l2;l3; lightTop]
+    let p1 = Point(1.,0.,0.)
+    let p2 = Point(0.,4.,0.)
+    let p3 = Point(0.,0.,2.)
 
-    //ignore scene.Render
-    ////System.Console.ReadKey() |> ignore
+
+
+    let spheres: Shape array     = [|shape|]
+    let scene                   = Scene(spheres, camera, lights, lightAmbient, 2)
+
+
+    let acceleration = Acceleration.createAcceleration spheres
+    ignore (scene.RenderParallel acceleration)
+    //System.Console.ReadKey() |> ignore
     0
