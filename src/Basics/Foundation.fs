@@ -94,7 +94,6 @@ and [<AbstractClass>] Shape() =
     abstract member getBoundingBox: unit -> BBox
     abstract member hitFunction: Ray -> HitPoint
     static member None = BlankShape() :> Shape
-
 and BlankShape() = 
     inherit Shape()
     override this.isInside (p:Point) = failwith "cannot be inside a blank shape"
@@ -104,10 +103,3 @@ and BlankShape() =
 //- TEXTURES
 and Texture =
     | Texture of (float -> float -> Material)
-
-and AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampling.Sampler) = 
-    inherit AmbientLight(c, intensity)
-    member this.Intensity = intensity
-    member this.MinIntensity = min_intensity
-    member this.Colour = c
-    member this.Sampler = s
