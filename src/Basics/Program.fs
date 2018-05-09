@@ -9,7 +9,7 @@ open Tracer.Basics.Render
 let main _ = 
     // General settings
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,2.,5.)
+    let position = Point(5.,4.,5.)
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -70,9 +70,11 @@ let main _ =
     let sC = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
     let sR = SphereShape(Point(1., 0., 1.), 1., mkMatTexture matteGreen)
 
+    let transp = mkMatTexture (TransparentMaterial(Colour.Blue, Colour.Black, 0.8, 1.2))
+
     // Rectangles for testing Thin Lens.
     let thinBoxL = Box(Point(-5.5, 0., -6.), Point(-3.5, 3., -5.), matRedTex, matRedTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
-    let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), matYellowTex, matYellowTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
+    let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), transp, transp, transp, transp, transp, transp)
     let thinBoxR = Box(Point(2., 0., -1.), Point(4., 3., 0.), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
 
 
@@ -83,7 +85,7 @@ let main _ =
         let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
         if (int (abs' x) + int (abs' y)) % 2 = 0
         then matteRed :> Material
-        else glossyBlue :> Material
+        else matteGreen :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
     //- CAMERA
@@ -105,10 +107,10 @@ let main _ =
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
     //- FINAL
-    let lights: Light list      = [lightSphere]
-    let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    let lights: Light list      = [lightTop]
+    let shapes: Shape list      = [thinBoxL; thinBoxC; thinBoxR; plane;]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.05)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
