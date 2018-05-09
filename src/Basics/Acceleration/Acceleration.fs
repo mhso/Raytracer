@@ -2,30 +2,31 @@
 
 module Acceleration = 
     open KD_tree
+    open Tracer.BVH
 
     let mutable acceleration = ""
 
     type IAcceleration = KDTree of KDTree
-                       | BVH of float // Swap with actual BVH
+                       | BVHStructure of BVHStructure
                        | RG of float // Swap with actual RG
 
     let createAcceleration (shapes:array<Shape>) = 
         match acceleration with
         | "KDTree" -> KDTree(buildKDTree shapes)
-        | "BVH"    -> failwith "Not Implemented"
+        | "BVH"    -> BVHStructure (build shapes)
         | "RG"     -> failwith "Not Implemented"
         | _        -> failwith "Unknown Acceleration Structure..."
 
     let getAccelBoundingBox (accel:IAcceleration) = 
         match accel with
         | KDTree(kdTree) -> kdTree.bBox
-        | BVH(bvh)       -> failwith "Not Implemented"
+        | BVHStructure(bvh)       -> failwith "Not Implemented"
         | RG(rg)         -> failwith "Not Implemented"
 
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with
         | KDTree(kdTree) -> traverseKDTree kdTree ray shapes
-        | BVH(bvh) -> failwith "Not Implemented" //Look above...
+        | BVHStructure(bvhStructure) -> traverse bvhStructure ray shapes
         | RG(rg) -> failwith "Not Implemented" //Look above...
 
 

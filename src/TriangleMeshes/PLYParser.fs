@@ -57,13 +57,13 @@ let typeParser str =
 
 let WhiteSpace = pstring " "
 
-let findVertexFromArray floatsList posArray= 
+let findVertexFromArray (floatsList : float list) (posArray : int array)= 
     let checkArrayIsWithinPLYFile ((a:float list),(b:int array),c) = 
         if (b.[c] = 0) then None else Some a.[b.[c]-1]
 
-    let x = checkArrayIsWithinPLYFile(floatsList,posArray,0)
-    let y = checkArrayIsWithinPLYFile(floatsList,posArray,1)
-    let z = checkArrayIsWithinPLYFile(floatsList,posArray,2)
+    let x = floatsList.[((posArray.[0])-1)]
+    let y = floatsList.[((posArray.[1])-1)]
+    let z = floatsList.[((posArray.[2])-1)]
     let nx = checkArrayIsWithinPLYFile(floatsList,posArray,3)
     let ny = checkArrayIsWithinPLYFile(floatsList,posArray,4)
     let nz = checkArrayIsWithinPLYFile(floatsList,posArray,5)

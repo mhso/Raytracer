@@ -7,21 +7,21 @@ open System
 
 
 let allTest = 
-    let rectangle = new Rectangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let disc = new Disc(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let triangle = new Triangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), MatteMaterial(Colour(1.,1.,1.)))
-    let sphere = new SphereShape(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let hollowCylinder = new HollowCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let solidCylinder = new SolidCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))),
-                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))),
-                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let box = new Box(Point(0.,0.,0.), Point(1.,1.,1.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
-                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
-                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
-                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
-                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))), 
-                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
-    let plane = new InfinitePlane(Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.))))
+    let rectangle = new Rectangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let disc = new Disc(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let triangle = new Triangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let sphere = new SphereShape(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let hollowCylinder = new HollowCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let solidCylinder = new SolidCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)),
+                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)),
+                                                                   Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let box = new Box(Point(0.,0.,0.), Point(1.,1.,1.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)), 
+                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)), 
+                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)), 
+                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)), 
+                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)), 
+                                                        Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let plane = new InfinitePlane(Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
 
     let baseRectangle = new BaseRectangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.))
     let baseDisc = new BaseDisc(Point(0.,0.,0.), 2.)
@@ -171,11 +171,11 @@ let allTest =
     
 
     //Tests that toShape functions in BaseShape works
-    let toRectangle = baseRectangle.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.)))) :?> Rectangle
-    let toDisc = baseDisc.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.)))) :?> Disc
-    let toTriangle = baseTriangle.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.)))) :?> Triangle
-    let toSphere = baseSphere.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.)))) :?> SphereShape
-    let toHollowCylinder = baseHollowCylinder.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.)))) :?> HollowCylinder
+    let toRectangle = baseRectangle.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> Rectangle
+    let toDisc = baseDisc.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> Disc
+    let toTriangle = baseTriangle.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> Triangle
+    let toSphere = baseSphere.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> SphereShape
+    let toHollowCylinder = baseHollowCylinder.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> HollowCylinder
 
     Assert.Equal(toRectangle.bottomleft, Point(0.,0.,0.), "rectangle.bottomLeft")
     Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")

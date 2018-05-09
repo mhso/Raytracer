@@ -30,9 +30,11 @@ type BaseTriangle(a:Point, b:Point, c:Point)=
     member this.a = a
     member this.b = b
     member this.c = c
+    member this.u = a-b //in case of errors try swithing a and b around
+    member this.v = a-c // same here
+    member this.n = this.u.CrossProduct this.v
     override this.toShape tex = 
-      let mat = (Textures.getFunc tex) 1. 1.
-      new Triangle(a, b, c, mat) :> Shape
+      new Triangle(a, b, c, tex) :> Shape
 
 
 type BaseSphere(origin: Point, radius: float) = 

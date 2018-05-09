@@ -66,10 +66,11 @@
     <Compile Include="Textures.fs" />
     <Compile Include="Transformation.fsi" />
     <Compile Include="Transformation.fs" />
-    <Compile Include="BasicLight.fs" />
     <Compile Include="Shapes.fs" />
     <Compile Include="BaseShape.fs" />
-    <Compile Include="AdvancedLight.fs" />
+    <Compile Include="BasicLight.fs" />
+    <Compile Include="AreaLight.fs" />
+    <Compile Include="GlobalLight.fs" />
     <Compile Include="Acceleration\KDTree.fs" />
     <Compile Include="Acceleration\BVH.fs" />
     <Compile Include="Acceleration\RegularGrids.fs" />

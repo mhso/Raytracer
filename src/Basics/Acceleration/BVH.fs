@@ -7,8 +7,8 @@ module BVH =
     let debug = true
 
      // Type of the BVHTree, with Nodes and Leafs.
-    type BVHtree = | Leaf of List<int>*BBox
-                   | Node of BVHtree*BVHtree*BBox*int
+    type BVHStructure = | Leaf of List<int>*BBox
+                        | Node of BVHStructure*BVHStructure*BBox*int
     
     // Function for sorting a int list, based on array of bounding boxes and axis value.
     let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
@@ -80,50 +80,50 @@ module BVH =
 
  // ######################### BUILD BVH TREE #########################
 
-    // Build BVH tree from a list of shapes.
-    let buildBVHTree (shapes:array<Shape>) : BVHtree = 
+    // Build BVH structure from a list of shapes.
+    let build (shapes:array<Shape>) : BVHStructure = 
         if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes
 
         let boxIntList = [0..boxes.Length-1]
-        let rec innerNodeTree (intIndexes:list<int>) (treeLevel:int) : BVHtree = 
+        let rec innerNode (intIndexes:list<int>) (depthLevel:int) : BVHStructure = 
             let boxArr = getBoxArrFromIndexes intIndexes boxes
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
             let box = BBox (lowPoint, highPoint)
-            let treeLevel = treeLevel + 1
-            //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (treeLevel)
+            let depthLevel = depthLevel + 1
+            //printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
             match intIndexes with
-            | [] -> failwith " innerNodeTree -> Empty array"
+            | [] -> failwith " innerNode -> Empty array"
             | b when intIndexes.Length > 1 ->
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
 
                 Node (
-                            innerNodeTree leftList treeLevel, 
-                            innerNodeTree rigthList treeLevel, 
+                            innerNode leftList depthLevel, 
+                            innerNode rigthList depthLevel, 
                             box, 
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
                 //printfn "Add new inner Leaf... Value: %O" c
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
-        innerNodeTree boxIntList 0
+        innerNode boxIntList 0
  
  
-  // ######################### TRAVERSAL BVH TREE #########################
+  // ######################### TRAVERSAL BVH STRUCTURE #########################
 
     // Function swaps the order if d is not positive
-    let order d (left:BVHtree) (right:BVHtree) = 
+    let order d (left:BVHStructure) (right:BVHStructure) = 
         if debug then printfn "Call to order..."
         match d with
         | d when d > 0 -> (left, right)
         | _            -> (right, left)
 
-    // Function checking for tree leaf.
+    // Function checking for leaf.
     let isLeaf = function
     | Leaf (_,_) -> true
     | _ -> false
@@ -137,18 +137,18 @@ module BVH =
         | 2 -> (int ray.GetDirection.Z)
         | _ -> invalidArg "Input out of bound" "Axis (x, y , z) paramter must 0, 1 or 2"
 
-    // Get bounding box from tree element.
-    let getBbox (tree:BVHtree) : BBox = 
-        match tree with
+    // Get bounding box from structure element.
+    let getBbox (structure:BVHStructure) : BBox = 
+        match structure with
         | Node (_,_,bbox,_) ->  if debug then printfn "getBox -> Node box \n %A" bbox
                                 bbox
         | Leaf (_,bbox) ->      if debug then printfn "getBox -> Leaf box \n %A" bbox
                                 bbox
 
-    // Functions finds closest hit of a ray in a tree.
-    let closestHit (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>)  =
+    // Functions finds closest hit of a ray in structure.
+    let closestHit (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>)  =
         if debug then printfn "Call to closestHit..."
-        match treeNode with
+        match structure with
         |   Leaf (shapesRef, _) ->  let mutable closestHit = None
                                     let mutable closestDist = infinity
                                     for shapeRef in shapesRef do
@@ -158,53 +158,54 @@ module BVH =
                                             closestDist <- dist
                                             closestHit <- Some hit
                                     if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
-                                    closestHit
+                                    closestHit.Value
         | _ ->  if debug then printfn "closestHit -> None..."
-                None
-    // Function performs recursive searh in the tree, with a maximum distance from the ray origin.
-    let rec search (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
+                None.Value
+
+    // Function performs recursive searh in the structrue, with a maximum distance from the ray origin.
+    let rec search (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>) (tmax:float) =
         if debug then printfn "Call to search with tmax: %f, lenght of array %i" tmax shapes.Length 
         if debug then printfn "Value of ray GetDirection: %A" ray.GetDirection
         if debug then printfn "Value of ray GetOrigin: %A" ray.GetOrigin
-        //if debug then printfn "Value of treeNode: %A" treeNode
-        let treeNodeBBox = getBbox treeNode
-        if debug then printfn "Value of treeNodeBBox: \n %A" treeNodeBBox
-        let value = treeNodeBBox.intersect ray
+        //if debug then printfn "Value of structure: %A" structure
+        let nodeBBox = getBbox structure
+        if debug then printfn "Value of nodeBBox: \n %A" nodeBBox
+        let value = nodeBBox.intersect ray
         //if value.IsSome then printfn "search -> Intersect is Some..."
         //if value.IsNone then printfn "search -> Intersect is None..."
         if debug then printfn "Value of intersect: \n %A" value.IsSome
         match value with  
         | Some (t, t')  ->  printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
                             if (t<tmax) then 
-                                if isLeaf treeNode then
+                                if isLeaf structure then
                                     if debug then printfn "(t<tmax) and isLeaf..."
-                                    let checkForHit = (closestHit treeNode ray shapes)
+                                    let checkForHit = (closestHit structure ray shapes)
                                     match checkForHit with
-                                    | Some hitFound -> 
-                                        if hitFound.Time < tmax then Some hitFound
-                                        else None
-                                    | None -> None
+                                    | hitFound -> 
+                                        if hitFound.Time < tmax then hitFound
+                                        else None.Value
+                                    | _ -> None.Value
                                 else 
-                                    match treeNode with
+                                    match structure with
                                     | Node (left, right, _, _) ->
                                         let first = search left ray shapes tmax
                                         let second = search right ray shapes tmax
                                         match first with
-                                        | Some hitFound1 ->
-                                                let result2 = search treeNode ray shapes hitFound1.Time
+                                        | hitFound1 ->
+                                                let result2 = search structure ray shapes hitFound1.Time
                                                 match result2 with
-                                                | Some hitFound2 -> Some hitFound2
-                                                | _ -> Some hitFound1
+                                                | hitFound2 -> hitFound2
+                                                | _ -> hitFound1
             
-                                        | None -> second
-                                    | _ -> None
-                            else None
+                                        | _ -> second
+                                    | _ -> None.Value
+                            else None.Value
         | None -> if debug then printfn "search -> match value -> None"
-                  None
+                  None.Value
     
-    // Function for traversal of the tree.
-    let traverse (treeNode:BVHtree) (ray:Ray) (shapes:array<Shape>) = 
+    // Function for traversal of the structure.
+    let traverse (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>) = 
         if debug then printfn "Call to traverse..."
-        search treeNode ray shapes infinity
+        search structure ray shapes infinity
         
         
