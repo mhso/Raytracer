@@ -65,7 +65,7 @@ module Program =
     let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-    let render = Render(mkScene' sphere1, sphere1cam)
-    render.RenderParallel |> ignore
+    let render = Render(mkScene' testshape, testshapecam)
+    render.RenderToScreen render.Render |> ignore
 
     0
