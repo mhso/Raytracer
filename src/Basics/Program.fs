@@ -26,12 +26,15 @@ let main _ =
     let BASE_SET_COUNT = 127
 
     // Override these if needed
+    // Camera samples, Pinhole uses View Samples, thin lens uses View Samples and Lens Samples.
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 8
-    let LENS_SAMPLES = 8
+    let VIEW_SAMPLES = 2
+    let LENS_SAMPLES = 2
+    // Material sample values.
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
-    let LIGHT_SAMPLES = 8
+    // Light sample values.
+    let LIGHT_SAMPLES = 4
     let LIGHT_SETS = BASE_SET_COUNT
 
     //- MATERIALS
@@ -102,12 +105,12 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightSphere]
-    let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    let shapes: Shape list      = [thinBoxL; thinBoxR; lightSphere.Shape]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.5)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "path")
+    ignore (render.RenderToScreen render.RenderParallel)
 
     0
