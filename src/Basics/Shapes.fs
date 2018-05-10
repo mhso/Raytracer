@@ -7,14 +7,6 @@ exception BoundingBoxException
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
 ///////////////////////////////////
-
-////TRANSFORMSHAPE////
-type TransformShape (hitFunction) =
-    inherit Shape()
-    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
-    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
-    default this.hitFunction(r: Ray) = hitFunction r
-
 ////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
