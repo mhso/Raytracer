@@ -127,7 +127,7 @@ module API =
     mkImplicit s
 
   let mkPLY (filename : string) (smooth : bool) : baseShape = 
-    failwith "mkPoly not implemented"
+    TriangleMes.drawTriangles filename smooth
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
     new HollowCylinder(c, r, h, t) :> shape
