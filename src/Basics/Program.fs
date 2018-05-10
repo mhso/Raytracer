@@ -116,6 +116,15 @@ let main _ =
     let texSolid2 = Textures.mkMatTexture(matteBlue)
     let texSolid3 = Textures.mkMatTexture(matteRed)
     let solidCylinder = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder4 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder5 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder6 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder7 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder8 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder9 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
+    let solidCylinder10 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolid, texSolid3, texSolid2)
 
     let csgTestInsideEdges = CSG(sphere, box, Union)
 
@@ -128,8 +137,11 @@ let main _ =
 
     let move = Transformation.translate 0. -1. 0.
     let transCylinder = Transform.transform cylinder move
+    let transCSG = Transform.transform csgShape2 move
 
-    let shapes : Shape List = [csgShape3]
+    let shapes : Shape List = [solidCylinder]
+    //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
+                                //solidCylinder8;solidCylinder9;solidCylinder10]
     
 
     //- THIN LENS SAMPLE SETTINGS
@@ -138,7 +150,7 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 5 1)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 1 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -162,7 +174,7 @@ let main _ =
 
     let render = new Render(scene, camera)
 
-    ignore (render.RenderToFile render.RenderParallel "path")
+    ignore (render.RenderToFile render.RenderParallel "TracedRays.bmp")
 
     0
 

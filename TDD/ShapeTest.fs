@@ -162,7 +162,7 @@ let allTest =
     Assert.True((disc.hitFunction rayHit).DidHit, "test on disc HitFunction, for Ray hitting")
     Assert.True((triangle.hitFunction rayHit).DidHit, "test on triangle HitFunction, for Ray hitting")
     Assert.True((sphere.hitFunction rayHit).DidHit, "test on sphere HitFunction, for Ray hitting")
-    Assert.True((hollowCylinder.hitFunction rayHit).DidHit, "test on hollowCylindr HitFunction, for Ray hitting")
+    Assert.True((hollowCylinder.hitFunction rayHit).DidHit, "test on hollowCylinder HitFunction, for Ray hitting")
     Assert.True((solidCylinder.hitFunction rayHit).DidHit, "test on solidCylinder HitFunction, for Ray hitting")
     Assert.True((box.hitFunction rayHit).DidHit, "test on box HitFunction, for Ray hitting")
 

@@ -123,11 +123,11 @@ and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
         let e = 0.000001
         let lx = (min a.X (min b.X c.X)) - e
         let ly = (min a.Y (min b.Y c.Y)) - e
-        let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
+        let lz = (min a.Z (min b.Z c.Z)) - e 
 
         let hx = (max a.X (max b.X c.X)) + e
         let hy = (max a.Y (max b.Y c.Y)) + e
-        let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
+        let hz = (max a.Z (max b.Z c.Z)) + e 
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
         
@@ -287,28 +287,23 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                       else let p = r.PointAtTime t1
                            if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
                            else HitPoint(r)
-            (*
-            |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
-                      |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t
-            *)
             |(D) when D < 0.0 -> HitPoint(r)
-            |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                      |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t2 < t1 && t2 > 0.0 then
-                                      let p2 = r.PointAtTime t2
-                                      if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
-                                      else let p1 = r.PointAtTime t1
-                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                           else HitPoint(r)
-                                  else if t1 > 0.0 then
-                                           let p1 = r.PointAtTime t1
-                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                           else HitPoint(r)
-                                       else 
-                                           let p2 = r.PointAtTime t2
-                                           if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                           else HitPoint(r)
+            |(_) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                    |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                    |(t1,t2) -> if t2 < t1 && t2 > 0.0 then
+                                    let p2 = r.PointAtTime t2
+                                    if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
+                                    else let p1 = r.PointAtTime t1
+                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                         else HitPoint(r)
+                                else if t1 > 0.0 then
+                                         let p1 = r.PointAtTime t1
+                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                         else HitPoint(r)
+                                     else 
+                                         let p2 = r.PointAtTime t2
+                                         if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
+                                         else HitPoint(r)
         else HitPoint(r)
 
 ////TRANSFORM////                                                                                     
@@ -398,19 +393,30 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
             let hpBottom = this.bottomDisc.hitFunction r
             let hpCylinder = this.hollowCylinder.hitFunction r
             //extract time from hitPoints
+            let tTop = match hpTop.DidHit with
+                            |true -> hpTop.Time
+                            |false -> infinity
+            let tBottom = match hpBottom.DidHit with
+                            |true -> hpBottom.Time
+                            |false -> infinity
+            let tCylinder = match hpCylinder.DidHit with
+                            |true -> hpCylinder.Time
+                            |false -> infinity
+
+            //attempt to optimize
+            (*
             let tTop = if hpTop.DidHit then hpTop.Time else infinity
             let tBottom = if hpBottom.DidHit then hpBottom.Time else infinity
             let tCylinder = if hpCylinder.DidHit then hpCylinder.Time else infinity
+            *)
 
             //Compare t values
-            if tTop = tBottom && tBottom = tCylinder then HitPoint(r) 
-            else
-                match (tTop, tBottom, tCylinder) with
-                |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
-                |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
-                |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
-                |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
-                |(_,_,_) -> HitPoint(r)
+            match (tTop, tBottom, tCylinder) with
+            |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
+            |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
+            |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
+            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
+            |(_,_,_) -> HitPoint(r)
         else HitPoint(r)
 
 
