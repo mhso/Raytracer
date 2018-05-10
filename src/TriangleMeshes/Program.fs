@@ -33,7 +33,7 @@ let main _ =
 
     // Override these if needed
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 8
+    let VIEW_SAMPLES = 2
     let LENS_SAMPLES = 8
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
@@ -122,13 +122,13 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [directLight]
-    let shapes: Shape list      = [shape; shape2]
+    let shapes: Shape list      = [shape]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "path")
+    ignore (render.RenderToFile render.RenderParallel "image.bmp")
 
     0
