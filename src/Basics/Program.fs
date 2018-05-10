@@ -9,7 +9,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     // General settings
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.BVH
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
@@ -86,7 +86,7 @@ let main _ =
         let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
         if (int (abs' x) + int (abs' y)) % 2 = 0
         then matteRed :> Material
-        else perfectWhite :> Material
+        else matteWhite :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
     //- CAMERA
@@ -108,10 +108,10 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [lightSphere]
-    //let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
-    let shapes: Shape list = [cylinder]
+    let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    //let shapes: Shape list = [sL; sC; sR]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    let lightAmbient   = AmbientLight(Colour.White, 0.05)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
     let render = new Render(scene, camera)
