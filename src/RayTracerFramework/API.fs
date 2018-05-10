@@ -127,7 +127,7 @@ module API =
     mkImplicit s
 
   let mkPLY (filename : string) (smooth : bool) : baseShape = 
-    failwith "mkPoly not implemented"
+    TriangleMes.drawTriangles filename smooth
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
     new HollowCylinder(c, r, h, t) :> shape
@@ -276,4 +276,4 @@ module API =
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 
-    Tracer.Basics.Acceleration.setAcceleration(accel)
+    failwith "not yet implemented"

@@ -1,7 +1,9 @@
 ﻿module GeneralTest
 
+open TracerTestSuite
+
     [<EntryPoint>]
     let main args = 
-        printfn ("WORKING")
+        ignore Material.renderRegular
         0
     
