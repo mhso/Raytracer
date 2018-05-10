@@ -10,7 +10,7 @@ open Tracer.Basics
 [<EntryPoint>]
 let main _ = 
     // General settings
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree //Change to switch acceleration structure!
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -20,8 +20,8 @@ let main _ =
     let position = Point(5., 7., 10.) //Porsche
     let lookat = Point(0., 2., 0.) //Porsche
     let up = Vector(0.,1.,0.)
-    let zoom = 1. //Normal zoom
-    //let zoom = 5. //Zoom for Happy
+    let zoom = 1. //Normal zoom for armadillo and porsche
+    //let zoom = 5. //Zoom for Happy and bunny
     let resX = 800
     let resY = 600
     let width = 2.
@@ -96,12 +96,12 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false) //Change this to change figure
     let shape = i.toShape(matGreenTex)
-    let shape1 = i.toShape(perfRedTex)
-    let shape2 = 
-        let move = Transformation.translate 0. 4. 0.
-        Transform.transform shape move
+    //let shape1 = i.toShape(perfRedTex)
+    //let shape2 = 
+    //    let move = Transformation.translate 0. 4. 0.
+    //    Transform.transform shape move
 
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
