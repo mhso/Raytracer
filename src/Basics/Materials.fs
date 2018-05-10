@@ -17,8 +17,8 @@ type MatteMaterial
     let pidivided = 1. / Math.PI
     member this.MatteCoefficient = matteCoefficient
     member this.MatteColour = matteColour
-    default this.AmbientColour = ambientColour * ambientCoefficient
-    default this.ReflectionFactor = Colour.White
+    default this.AmbientColour hitPoint = ambientColour * ambientCoefficient
+    default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.IsRecursive = false
     default this.Bounce(shape, hitPoint, light) = 
@@ -109,7 +109,7 @@ type MatteReflectiveMaterial
     member this.Super = (this :> MatteMaterial)
     member this.ReflectionColour = reflectionColour            
     member this.ReflectionCoefficient = reflectionCoefficient   
-    default this.ReflectionFactor = reflectionColour * reflectionCoefficient
+    default this.ReflectionFactor (hitPoint,rayOut) = reflectionColour * reflectionCoefficient
     default this.IsRecursive = true
     default this.BounceMethod hitPoint = 
         // Determine the perfect outgoing ray
@@ -118,7 +118,7 @@ type MatteReflectiveMaterial
         let rayDirection = (dir + (-2. * (normal * dir)) * normal)
 
         // Only one reflected ray
-        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
+        [| Ray(hitPoint.EscapedPoint, rayDirection.Normalise) |]
 
     default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
@@ -140,7 +140,7 @@ type MatteGlossyReflectiveMaterial
     inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
     
     member this.Super = (this :> MatteMaterial)
-    default this.ReflectionFactor = reflectiveColour * glossyCoefficient
+    default this.ReflectionFactor (hitPoint,rayOut) = reflectiveColour * glossyCoefficient
     default this.IsRecursive = true
     default this.BounceMethod hitPoint =
         
@@ -199,7 +199,7 @@ type PhongReflectiveMaterial
     member this.ReflectionColour = reflectionColour            
     member this.ReflectionCoefficient = reflectionCoefficient   
        
-    default this.ReflectionFactor = reflectionColour * reflectionCoefficient
+    default this.ReflectionFactor (hitPoint,rayOut) = reflectionColour * reflectionCoefficient
     default this.IsRecursive = true
     default this.BounceMethod hitPoint = 
         // Determine the perfect outgoing ray
@@ -235,7 +235,7 @@ type PhongGlossyReflectiveMaterial
     member this.ReflectiveColour = reflectiveColour
     member this.GlossyCoefficient = glossyCoefficient
     member this.Super = (this :> PhongMaterial)
-    default this.ReflectionFactor = reflectiveColour * glossyCoefficient
+    default this.ReflectionFactor (hitPoint,rayOut) = reflectiveColour * glossyCoefficient
     default this.IsRecursive = true
     default this.BounceMethod hitPoint =
         
@@ -287,9 +287,9 @@ type EmissiveMaterial
     member this.LightColour = lightColour
     member this.LightIntensity = lightIntensity
     member this.EmisiveRadience = emisiveRadience
-    default this.AmbientColour = Colour.Black
+    default this.AmbientColour hitPoint = Colour.Black
     default this.IsRecursive = false
-    default this.ReflectionFactor = Colour.White
+    default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.Bounce(shape, hitPoint, light) = 
         
@@ -307,31 +307,52 @@ type TransparentMaterial
     inherit Material()
 
     let refrIndex = (innerRefractionIndex / outerRefractionIndex)
+    let refrIndexExpr = refrIndex ** -2.
 
     default this.IsRecursive = true
-    default this.ReflectionFactor = Colour.White
-    default this.AmbientColour = Colour.Black
+    default this.ReflectionFactor (hitPoint,rayOut) = 
+        let (shouldRefract, cos_angle_in, cos_angle_out_exp) = this.ShouldRefract hitPoint
+        let cos_angle_out = Math.Sqrt(cos_angle_out_exp)
+        let refrAngle = refrIndex * cos_angle_in
+        let r_dd = (refrAngle - cos_angle_out) / (refrAngle + cos_angle_out)
+        let r_t = (cos_angle_in - refrIndex * cos_angle_out) / (cos_angle_in + refrIndex * cos_angle_out)
+        let k_r = ((r_dd ** 2.) + (r_t ** 2.)) / 2.
+        let k_t = 1. - k_r
+
+        if shouldRefract then
+            if rayOut.GetDirection * hitPoint.Normal < 0. then
+                Colour.White * k_t * refrIndexExpr
+            else
+                Colour.White * k_r
+        else
+            Colour.White
+    default this.AmbientColour hitPoint = Colour.Black
     default this.BounceMethod hitPoint = 
         let (shouldRefract, cos_angle_in, cos_angle_out_exp) = this.ShouldRefract hitPoint
+
+        let dir = hitPoint.Ray.GetDirection
+        let normal = hitPoint.Normal
+        let rayDirection = (dir + (-2. * (normal * dir)) * normal)
+        let perfectRay = Ray(hitPoint.EscapedPoint, rayDirection.Normalise)
+        let refractRay = this.RefractRay hitPoint (cos_angle_in, cos_angle_out_exp)
         if shouldRefract then
-            [| this.RefractRay hitPoint (cos_angle_in, cos_angle_out_exp) |]
+            [| perfectRay; refractRay |]
         else
-            [||]
+            [| perfectRay |]
 
     default this.Bounce(shape, hitPoint, light) =
-        Colour.White
+        Colour.Black
 
     member this.ShouldRefract (hitPoint: HitPoint) = 
-        let cos_angle_in = hitPoint.Normal * -hitPoint.Ray.GetDirection
-        let angle_in = Math.Acos(cos_angle_in)
-        let cos_angle_out_exp = 1. - (1. - cos(angle_in) ** 2.) / (refrIndex ** 2.)
-        if cos_angle_out_exp >= 0. then
-            (true, cos_angle_in, cos_angle_out_exp)
-        else
+        let cos_angle_in = -(hitPoint.Normal * hitPoint.Ray.GetDirection)
+        let cos_angle_out_exp = 1. - (1. - (cos_angle_in ** 2.)) / (refrIndex ** 2.)
+        if cos_angle_out_exp < 0. then
             (false, cos_angle_in, cos_angle_out_exp)
+        else
+            (true,  cos_angle_in, cos_angle_out_exp)
 
     member this.RefractRay (hitPoint: HitPoint) (cos_angle_in, cos_angle_out_exp) = 
         let cos_angle_out = Math.Sqrt(cos_angle_out_exp)
-        let origin = hitPoint.InnerEscapedPoint
-        let direction = ((1.) / (refrIndex)) * hitPoint.Ray.GetDirection - (cos_angle_out - (cos_angle_in) / (refrIndex)) * hitPoint.Normal
-        Ray(origin, direction)
+        let origin = hitPoint.Point
+        let direction = (1. / refrIndex) * hitPoint.Ray.GetDirection - (cos_angle_out - (cos_angle_in / refrIndex)) * hitPoint.Normal.Normalise
+        Ray(origin, direction.Normalise)
