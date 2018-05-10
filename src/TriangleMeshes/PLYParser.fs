@@ -149,13 +149,15 @@ let parsePLY (filepath:string) =
         match isAscii,isBoolean with
         | true,_ -> 
             for i in 0..triangleArray.Length-1 do
-                nextLine <- nextLine.Substring(0,nextLine.Length-1)
+                if(nextLine.EndsWith(" ")) then
+                    nextLine <- nextLine.Substring(0,nextLine.Length-1)
                 let listFloatParser = (sepBy pfloat WhiteSpace)
                 let listFloat = parse listFloatParser nextLine
                 triangleArray.[i] <- findVertexFromArray listFloat vertexPosition
                 nextLine <- sr.ReadLine()
             for i in 0..faceArray.Length-1 do 
-                nextLine <- nextLine.Substring(0,nextLine.Length-1)
+                if(nextLine.EndsWith(" ")) then
+                    nextLine <- nextLine.Substring(0,nextLine.Length-1)
                 let listIntParser = (sepBy pint32 WhiteSpace)
                 let listInt = parse listIntParser nextLine
                 faceArray.[i] <- listInt
