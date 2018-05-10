@@ -47,33 +47,48 @@ let drawTriangles (filepath:string) (smoothen:bool) =
             let shape = {new Shape() with
                 member this.hitFunction r = 
                     let hit = traverseIAcceleration accel r newTriangle
-                    if(smoothen) then
-                        match hit.Shape with
-                        | :? Triangle -> 
-                            let triangle = hit.Shape :?> Triangle
-                            let alpha =  1. - triangle.beta - triangle.gamma
-                            let vertexNormal = 
-                                if (hasNormalWithin) then 
-                                    let na = 
-                                        let triangle = (triangle.a :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    let nb = 
-                                        let triangle = (triangle.b :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    let nc =
-                                        let triangle = (triangle.b :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    [|na;nb;nc|]
-                                else
-                                    let na = (triangle.a :?> TriPoint).v.normal.Normalise
-                                    let nb = (triangle.b :?> TriPoint).v.normal.Normalise
-                                    let nc = (triangle.c :?> TriPoint).v.normal.Normalise
-                                    [|na;nb;nc|]
-                            let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) triangle.beta vertexNormal.[1]) |> ( + ) (( * ) triangle.gamma vertexNormal.[2]))
-                            let normal = V.Normalise
-                            HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
-                        | _ -> hit
-                    else hit
+                    let finalHit = 
+                        if(smoothen) then
+                            match hit.Shape with
+                            | :? Triangle -> 
+                                let triangle = hit.Shape :?> Triangle
+                                let alpha =  1. - triangle.beta - triangle.gamma
+                                let vertexNormal = 
+                                    if (hasNormalWithin) then 
+                                        let na = 
+                                            let triangle = (triangle.a :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        let nb = 
+                                            let triangle = (triangle.b :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        let nc =
+                                            let triangle = (triangle.b :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        [|na;nb;nc|]
+                                    else
+                                        let na = (triangle.a :?> TriPoint).v.normal.Normalise
+                                        let nb = (triangle.b :?> TriPoint).v.normal.Normalise
+                                        let nc = (triangle.c :?> TriPoint).v.normal.Normalise
+                                        [|na;nb;nc|]
+                                let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) triangle.beta vertexNormal.[1]) |> ( + ) (( * ) triangle.gamma vertexNormal.[2]))
+                                let normal = V.Normalise
+                                HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
+                            | _ -> hit
+                        else hit
+                    match finalHit.Shape with
+                    | :? Triangle -> 
+                        let triangle = hit.Shape :?> Triangle
+                        if (hasTexture) then
+                            let triA = (triangle.a :?> TriPoint).v
+                            let triB = (triangle.b :?> TriPoint).v
+                            let triC = (triangle.c :?> TriPoint).v
+                            let alpha = 1. - triangle.beta - triangle.gamma
+                            let v = alpha * triA.v.Value + triangle.beta * triB.v.Value + triangle.gamma * triC.v.Value
+                            let u = alpha * triA.u.Value + triangle.beta * triB.u.Value + triangle.gamma * triC.u.Value
+                            let textureMati = ((Textures.getFunc tex) u v)
+                            HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape)
+                        else finalHit
+                    | _ -> finalHit
                 member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
                 member this.isInside p = failwith "Maybe kdTree has some function for this"
             }

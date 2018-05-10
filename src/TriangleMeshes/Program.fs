@@ -8,6 +8,18 @@ open Tracer.Basics.Render
 [<EntryPoint>]
 let main _ = 
     // General settings
+    let mkTextureFromFile (tr : float -> float -> float * float) (file : string) =
+        let img = new System.Drawing.Bitmap(file)
+        let width = img.Width - 1
+        let height = img.Height - 1
+        let widthf = float width
+        let heightf = float height
+        let texture x y =
+          let (x', y') = tr x y
+          let x'', y'' = int (widthf * x'), int (heightf * y')
+          let c = lock img (fun () -> img.GetPixel(x'',y''))
+          (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
+        mkTexture texture
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(0.,2.,5.)
     let lookat = Point(0.,2.,0.)
@@ -87,11 +99,17 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" false)
-    let urn = i.toShape(matGreenTex)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\textures\bunny.png"
+    let urn = i.toShape(tex)
+    let t = Transformation.mergeTransformations
+                [Transformation.rotateY (System.Math.PI / 4.0);
+                Transformation.scale 6.0 6.0 6.0;
+                Transformation.translate 0.0 3.0 0.0]
+    let bunnyShape = Transform.transform urn t
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
+    let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -109,8 +127,8 @@ let main _ =
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
     //- FINAL
-    let lights: Light list      = [lightSphere]
-    let shapes: Shape list      = [urn]
+    let lights: Light list      = [lightTop]
+    let shapes: Shape list      = [bunnyShape]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
