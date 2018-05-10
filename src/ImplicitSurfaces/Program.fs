@@ -65,7 +65,35 @@ module Program =
     let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
     let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-    let render = Render(mkScene' sphere2, sphere2cam)
+    let factorial x = 
+      if x = 0 then 1 else
+      let rec fac_aux a acc =
+        if a >= x then
+          a * acc
+        else
+          fac_aux (a + 1) (a * acc)
+      fac_aux 1 x
+
+    let comb a b = 
+      let x = float (factorial a) in
+      let y = float (factorial b) in
+      let z = float (factorial (a - b)) in
+        x / (y * z)
+
+    let rec strSum n f : string =
+      if n = 0 then
+        f 0
+      else
+        f n + " + " + (strSum (n - 1) f)
+
+    let chmutov degree =       
+      let T x = strSum (degree / 2) (fun (k : int) -> (string (comb degree (2 * k))) + " * (" + x + "^2 + -1.0)^" + (string k) + " * " + x + "^" + (string (degree - (2 * k))))
+      let is = mkImplicit (T "x" + " + " + T "y" + " + " + T "z")
+      let s = mkshape is (mkMatTexture testshapemat)
+      s
+    let chcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
+
+    let render = Render(mkScene' (chmutov 4), chcam)
     render.RenderToScreen render.RenderParallel |> ignore
 
     0

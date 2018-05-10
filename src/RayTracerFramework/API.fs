@@ -273,8 +273,14 @@ module API =
   /////////////////////////////////
 
   /// Type of acceleration structure
-  type Acceleration = KDTree | BVH | RG
+  type Acceleration = 
+     /// k-d tree; default
+     | KDTree
+     /// regular grid
+     | RegularGrid
+     /// bounding volume hierarchy
+     | BVH
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 
-    failwith "not yet implemented"
+    Acceleration.setAcceleration accel

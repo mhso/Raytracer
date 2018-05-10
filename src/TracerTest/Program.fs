@@ -4,27 +4,27 @@ open Tracer.API
 let allTargets : Target list =
   List.concat 
     [
-     //Material.renderRegular;
-     //Material.renderMulti;
-     //Material.renderHigh;
-     //ThinLens.render;
-     //AreaLights.render;
-     //Shapes.render;
-     //Texture.render;
-     //Transparency.render;
-     //Shapes.render;
-     //AffineTransformations.render true;
-     //AffineTransformations.render false;
+     Material.renderRegular;
+     Material.renderMulti;
+     Material.renderHigh;
+     ThinLens.render;
+     AreaLights.render;
+     Shapes.render;
+     Texture.render;
+     Transparency.render;
+     Shapes.render;
+     AffineTransformations.render true;
+     AffineTransformations.render false;
      ImplicitSurfaces.render;
-     //Meshes.render KDTree;
-     //Texture.render;
-     //Light.render;
-     //CSG.render;
-     //AmbientOcclusion.render [1;2;4;8;16]
-     //// The test groups below is only needed for teams of 7 students.
-     //// Teams of 6 students can uncomment the lines below.
-     //Meshes.render RegularGrid;
-     //Meshes.render BVH;
+     Meshes.render KDTree;
+     Texture.render;
+     Light.render;
+     CSG.render;
+     AmbientOcclusion.render [1;2;4;8;16]
+     // The test groups below is only needed for teams of 7 students.
+     // Teams of 6 students can uncomment the lines below.
+     Meshes.render RegularGrid;
+     Meshes.render BVH;
      ]
 
 

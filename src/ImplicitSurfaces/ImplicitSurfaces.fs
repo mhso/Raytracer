@@ -46,13 +46,16 @@ module Main =
       | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
     (inner >> reduceExpr) e
 
+  let getPointMap (p:Point) =
+    Map.empty
+      .Add("x",p.X)
+      .Add("y",p.Y)
+      .Add("z",p.Z)
+
   // thou shall not be simplified!
   // returns a vector, based on the initital shape equation, and partially derived with respect to x, y, and z from the hitpoint
-  let normalVector (p:Point) dx dy dz  =
-    let m = Map.empty
-              .Add("x",p.X)
-              .Add("y",p.Y)
-              .Add("z",p.Z)
+  let normalVector p dx dy dz  =
+    let m = getPointMap p
     let x = solveExpr m dx
     let y = solveExpr m dy
     let z = solveExpr m dz
@@ -183,9 +186,8 @@ module Main =
                     match hitfunction r with
                     | None        -> hitPoint (r)
                     | Some (t,v)  -> hitPoint (r, t, v, mat, this)
-                  member this.getBoundingBox () = failwith "I hate this"
-                  member this.isInside p = failwith "I hate this"
-                  //member this.getTextureCoords hp = (1.,1.) // or none, or idk
+                  member this.isInside p = (solveExpr << getPointMap) p exp < 0.0
+                  member this.getBoundingBox () = failwith "getBoundingBox not implemented for implicit surfaces"
               }
           }
     bsh
