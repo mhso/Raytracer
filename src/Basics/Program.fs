@@ -107,7 +107,7 @@ let main _ =
     let c = new Point(1., 0., 0.)
     let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.)
     let texTri = Textures.mkMatTexture(triangleMaterial)
-    let triangle = Triangle(a, b, c, texTri)
+    let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
 
     let solidOrigin = new Point(0., 0., 0.)
     let solidRadius = 0.5
