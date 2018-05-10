@@ -263,3 +263,5 @@ module ExprToPoly =
   let rec solveSE m acc = function
     | SE ([])     -> acc
     | SE (ag::cr) -> solveSE m (acc + solveAG m ag) (SE cr)
+
+  let toList (P m:poly) = Map.toList m

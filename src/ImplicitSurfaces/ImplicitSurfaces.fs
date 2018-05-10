@@ -79,6 +79,8 @@ module Main =
       .Add("dy", r.GetDirection.Y)
       .Add("dz", r.GetDirection.Z)
 
+  let 
+
   let getFirstDegreeHF (P m) e : hf =
     let aSimple = match Map.tryFind 1 m with
                   | Some v -> v

@@ -7,38 +7,46 @@ module PolyToUnipoly =
   type simpleExpr = ExprToPoly.simpleExpr
 
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
-  type unipoly = UP of Map<int, float>
+  type unipoly = (int * float) list
 
   let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
 
-  // only works if the poly terms only consists of ANums
-  let polyToUnipoly (P m:poly) vars =
-    UP (Map.fold
-          (fun res k v ->
-            Map.add k (solveSE vars 0.0 v) res)
-          Map.empty m)
+  let polyToUnipoly (p: (int*simpleExpr) list) ox oy oz dx dy dz =
+    let asolver = function
+    | ANum c         -> c
+    | AExponent(e,x) -> 
+        let v =
+          match e with
+          | "ox" -> ox
+          | "oy" -> oy
+          | "oz" -> oz
+          | "dx" -> dx
+          | "dy" -> dy
+          | "dz" -> dz
+          | _    -> failwith "polyToUnipoly: unmatched clause"
+        if x = 1 then v
+        else pown v x
+    let agsolver ag = List.fold (fun acc a -> acc * asolver a) 0.0 ag
+    let sesolver se = List.fold (fun acc ag -> acc + agsolver ag) 0.0 se
+    List.fold (fun acc (n, (SE se)) -> (n, sesolver se)::acc) [] p
   
-  let rec solveUnipoly (UP m) t = Map.fold (fun acc k v -> if k > 0 then acc + pown t k * v
-                                                           else acc + v) 0.0 m
+  let solveUnipoly up t =
+    List.fold (fun acc (n,c) -> 
+                  if n > 0 then (acc + pown t n * c)
+                  else (acc + c)) 0.0 up
 
-  let unipolyDerivative (UP m:unipoly) =
-    UP (Map.fold 
-          (fun res k v ->
-            if k = 0 then res
-            else Map.add (k - 1) (v * float k) res)
-          Map.empty m)
+  let unipolyDerivative up =
+    List.foldBack (fun (n,c) acc -> 
+                     if n = 0 then acc
+                     else (n-1, float n * c) :: acc) up []
 
-  let getFirstTerm (UP m) =
-    let kvp = m |> Seq.last
-    (kvp.Key, kvp.Value)
+  // Now I need to check what is right...
+  let getFirstTerm (up:unipoly) = up.[0]
 
-  let multUnipoly (UP m) (exp, con) =
-    UP (Map.fold (
-          fun res k v ->
-            Map.add (k + exp) (v * con) res
-        ) Map.empty m)
+  let multUnipoly up (exp, con) =
+    List.foldBack (fun (n,c) acc -> (n + exp, c * con) :: acc) up []
 
-  let subtractUnipoly (UP m1) (UP m2) =
+  let subtractUnipoly up1 up2 =
     UP (Map.fold (
           fun res k v ->
             let newval = match Map.tryFind k res with
