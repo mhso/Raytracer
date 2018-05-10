@@ -28,7 +28,7 @@ let main _ =
     // Override these if needed
     // Camera samples, Pinhole uses View Samples, thin lens uses View Samples and Lens Samples.
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 2
+    let VIEW_SAMPLES = 1
     let LENS_SAMPLES = 2
     // Material sample values.
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT

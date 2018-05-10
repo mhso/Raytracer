@@ -69,6 +69,7 @@
     <Compile Include="AreaLight.fs" />
     <Compile Include="CSG.fs" />
     <Compile Include="ImplicitSurfaces.fs" />
+    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="Program.fs" />
