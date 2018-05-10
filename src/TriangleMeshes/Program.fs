@@ -4,6 +4,8 @@ open Tracer.Sampling.Sampling
 open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
+open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
@@ -21,12 +23,17 @@ let main _ =
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,2.,5.)
-    let lookat = Point(0.,2.,0.)
+    //let position = Point(-30.,140.,-200.) //Position for Armadillo
+    //let position = Point(0.,1.,1.) //Position for Happy
+    let position = Point(0.5,0.4,1.) //Position for bunny
+    //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
+    //let lookat = Point(0.,0.1,0.) //LookAt for happy
+    let lookat = Point(0.05,0.1,0.) //LookAt for bunny
     let up = Vector(0.,1.,0.)
-    let zoom = 1.
-    let resX = 500
-    let resY = 350
+    //let zoom = 1. //Normal zoom
+    let zoom = 5. //Zoom for Happy
+    let resX = 800
+    let resY = 600
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -99,11 +106,11 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
-    let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\textures\bunny.png"
-    let urn = i.toShape(tex)
-    let t = Transformation.mergeTransformations
-                [Transformation.rotateY (System.Math.PI / 4.0);
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny.ply" false)
+    let shape = i.toShape(matGreenTex)
+    let shape2 = 
+        let move = Transformation.translate 0.15 0. 0.
+        Transform.transform shape move
                 Transformation.scale 6.0 6.0 6.0;
                 Transformation.translate 0.0 3.0 0.0]
     let bunnyShape = Transform.transform urn t
@@ -126,11 +133,13 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
-    //- FINAL
-    let lights: Light list      = [lightTop]
-    let shapes: Shape list      = [bunnyShape]
+    let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    //- FINAL
+    let lights: Light list      = [directLight]
+    let shapes: Shape list      = [shape; shape2]
+
+    let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
