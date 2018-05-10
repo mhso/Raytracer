@@ -128,20 +128,21 @@ module Main =
           Some (t', normalVector hp dx dy dz)
     hitFunction
 
+  let nrtolerance = 10.**(-4.)
+  let nrepsilon = 10.**(-6.)
+  
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
   // but adapted to a functional, immutable, approach
   let newtonRaphson f f' initial =
-    let tolerance = 0.00001 // 7 digit accuracy is desired
-    let epsilon = 0.00000001 // Don't want to divide by a number smaller than this
     let rec inner g iter =
       if iter < 0 then None
       else
         let y  = solveUnipoly f g
         let y' = solveUnipoly f' g
-        if abs y' < epsilon then None
+        if abs y' < nrepsilon then None
         else
           let g' = g - (y / y')
-          if abs (g' - g) <= (tolerance * abs g')
+          if abs (g' - g) <= (nrtolerance * abs g')
             then Some g'
           else
             inner g' (iter - 1)
@@ -157,16 +158,22 @@ module Main =
       let up = polyToUnipoly p m
       let up' = unipolyDerivative up
       let ss = sturmSeq up up'
-      let g = makeGuess ss
-      match g with
-      | None    -> None
-      | Some v  -> 
-          let x = newtonRaphson up up' v
-          match x with
-          | None    -> None
-          | Some t  -> 
-              let hp = r.PointAtTime t
-              Some (t, normalVector hp dx dy dz)
+      let rec findx l h max itcount =
+        if itcount > 4 then None // don't wanna end in an endless loop
+        else 
+          match getInterval ss l h max with
+          | None              -> None
+          | Some (lo,hi,mid)  ->
+              match newtonRaphson up up' mid with
+              | None    -> None
+              | Some t  ->
+                  if t < lo then findx mid hi 5 (itcount + 1)
+                  else 
+                    if t > hi then findx lo mid 5 (itcount + 1)
+                    else
+                      let hp = r.PointAtTime t
+                      Some (t, normalVector hp dx dy dz)
+      findx 0.0 100.0 11 0
     hitFunction
 
   let mkImplicit (s:string) : baseShape =
