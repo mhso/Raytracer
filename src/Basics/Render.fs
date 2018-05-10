@@ -186,15 +186,16 @@ type Render(scene : Scene, camera : Camera) =
             let white = String.replicate (50-(currentPct/2)) "░"
 
             timer.Stop()
-            let secondsSpent = timer.ElapsedMilliseconds
+            let msSpent = float timer.ElapsedMilliseconds
             timer.Start()
-            let secondsRemaining = 
-              if currentPct <> 100 then ((100. - float currentPct) / float currentPct) * float secondsSpent * 0.001
-              else 0.0
-
-            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%
-            \n                                        Time remaining: "+ (string secondsRemaining) + " seconds")
+            let msRemaining = 
+              if currentPct <> 100 then ((100. - float currentPct) / float currentPct) * float msSpent
+              else 0.0000
+            let secondsRemaining = System.Math.Round (msRemaining * 0.001, 4)
             Console.SetCursorPosition (0, Console.CursorTop - 2)
+            Console.Write("                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
+            printf ("\n\n                                             Time remaining: %.4f") secondsRemaining
+            printf " seconds                   "
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
@@ -222,7 +223,7 @@ type Render(scene : Scene, camera : Camera) =
         kdTimer.Stop()
         
         if ppRendering then
-          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
+          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
           Console.WriteLine()
         else ()
 
