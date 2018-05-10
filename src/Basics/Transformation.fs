@@ -67,8 +67,15 @@ open System
     let rotateX angle = 
         let cos = Math.Cos(angle)
         let sin = Math.Sin(angle) 
-        mkTransformation(mkMatrix ([|[|1.;0.;0.;0.|];[|0.;cos;-(sin);0.|];[|0.;sin;(cos);0.|];[|0.;0.;0.;1.|]|]),
-                                         mkMatrix ([|[|1.;0.;0.;0.|];[|0.;cos;(sin);0.|];[|0.;-(sin);(cos);0.|];[|0.;0.;0.;1.|]|]))
+        mkTransformation(mkMatrix(
+                                    [|[|1.;0.;0.;0.|];
+                                    [|0.;cos;-(sin);0.|];
+                                    [|0.;sin;(cos);0.|];
+                                    [|0.;0.;0.;1.|]|]),
+                        mkMatrix ([|[|1.;0.;0.;0.|];
+                                    [|0.;cos;(sin);0.|];
+                                    [|0.;-(sin);(cos);0.|];
+                                    [|0.;0.;0.;1.|]|]))
     let rotateY angle = 
         let cos = Math.Cos(angle)
         let sin = Math.Sin(angle) 

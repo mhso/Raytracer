@@ -27,6 +27,24 @@ type Point(x:float, y:float, z:float) =
     member this.Direction (p:Point) (q:Point) = p.Distance(q).Normalise
     member this.Round (d:int) = new Point(System.Math.Round(x,d), System.Math.Round(y,d), System.Math.Round(z,d))
     member this.ToVector = new Vector(x,y,z)
+    member this.Lowest (p:Point) = 
+        let newPoint = Array.zeroCreate(3)
+        if(this.X < p.X) then newPoint.[0] <- this.X
+        else newPoint.[0] <- p.X
+        if(this.Y < p.Y) then newPoint.[1] <- this.Y
+        else newPoint.[1] <- p.Y
+        if(this.Z < p.Z) then newPoint.[2] <- this.Z
+        else newPoint.[2] <- p.Z
+        Point(newPoint.[0],newPoint.[1],newPoint.[2])
+    member this.Highest (p:Point) =
+        let newPoint = Array.zeroCreate(3)
+        if(this.X > p.X) then newPoint.[0] <- this.X
+        else newPoint.[0] <- p.X
+        if(this.Y > p.Y) then newPoint.[1] <- this.Y
+        else newPoint.[1] <- p.Y
+        if(this.Z > p.Z) then newPoint.[2] <- this.Z
+        else newPoint.[2] <- p.Z
+        Point(newPoint.[0],newPoint.[1],newPoint.[2])
     static member ( + ) (p:Point, v: Vector) : Point = p.Move v 
     static member ( - ) (p:Point, v: Vector) : Point = 
         p.Move v.Invert
