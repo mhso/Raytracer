@@ -33,7 +33,7 @@ let main _ =
 
     // Override these if needed
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 8
+    let VIEW_SAMPLES = 1
     let LENS_SAMPLES = 8
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
@@ -97,7 +97,7 @@ let main _ =
     let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny.ply" false)
     let shape = i.toShape(matGreenTex)
     let shape2 = 
-        let move = Transformation.translate 0.15 0. 0.
+        let move = Transformation.rotateY (System.Math.PI/2.)
         Transform.transform shape move
 
     //- CAMERA
@@ -129,6 +129,6 @@ let main _ =
 
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "path")
+    ignore (render.RenderToFile render.RenderParallel "image.bmp")
 
     0

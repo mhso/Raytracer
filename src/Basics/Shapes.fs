@@ -330,9 +330,24 @@ module Transform =
             member this.getBoundingBox () = 
                 let bbH = s.getBoundingBox().highPoint
                 let bbL = s.getBoundingBox().lowPoint
-                let high = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbH))
-                let low = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbL))
-                BBox(low,high)
+                let vertex = 
+                    [|bbH; 
+                    Point(bbL.X, bbH.Y, bbH.Z);
+                    Point(bbL.X, bbH.Y, bbL.Z);
+                    Point(bbH.X, bbH.Y, bbL.Z);
+                    Point(bbH.X, bbL.Y, bbH.Z);
+                    Point(bbL.X, bbL.Y, bbH.Z);
+                    bbL;
+                    Point(bbH.X, bbL.Y, bbL.Z)|]
+                let newPos = Array.zeroCreate(2)
+                let firstPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[0]))
+                newPos.[0] <- firstPoint
+                newPos.[1] <- firstPoint
+                for i in 1..7 do 
+                    let newPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[i]))
+                    newPos.[0] <- (newPos.[0]).Lowest newPoint
+                    newPos.[1] <- (newPos.[1]).Highest newPoint
+                BBox(newPos.[0],newPos.[1])
             member this.isInside p = 
                 let oldP = matrixToPoint (Matrix.multi(getInvMatrix t, pointToMatrix p))
                 s.isInside(oldP)

@@ -141,5 +141,5 @@ module TransformLight =
         | :? AreaLight as a -> 
                 let movedShape = Transform.transform a.Shape t
                 let newPoint (p:Point) = a.SamplePoint (Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix p))))
-                a
+                a :> Light
         | _ -> light

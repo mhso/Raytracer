@@ -82,7 +82,6 @@ let allTest =
         let result = getList (Matrix.multi (matrix1,matrix2))
         let expected = [|[|1.;0.;0.;0.|];[|0.;1.;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]
         Assert.Equal(expected,result,"SheareInv")
-        
 
     let testRotateXMultiplyInverseRotateXGivesIdentityMatrix = 
         let trans = rotateX 1.5
