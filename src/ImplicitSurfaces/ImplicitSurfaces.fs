@@ -56,7 +56,7 @@ module Main =
     let x = solveExpr m dx
     let y = solveExpr m dy
     let z = solveExpr m dz
-    Vector(x, y, z)
+    Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
     b**2.0 - 4.0 * a * c

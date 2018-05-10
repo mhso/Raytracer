@@ -4,25 +4,42 @@ open Tracer.Basics
 open Tracer.Basics.Acceleration
 open System
 open System.Drawing
+open System.Windows.Forms
+open System.ComponentModel
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 open Tracer.Sampling.Sampling
 
 type Render(scene : Scene, camera : Camera) =
+
+    // Pre-rendering
+    let rec filtershapes (nobb: Shape list) (bb : Shape list) = function
+      | []            -> nobb, List.toArray bb
+      | (c:Shape)::cr -> 
+          try 
+            c.getBoundingBox() |> ignore
+            filtershapes nobb (c::bb) cr
+          with 
+            | _ -> filtershapes (c::nobb) bb cr                   
+
+    let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
+
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
+
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
 
     member this.Cast accel ray =
         // Get the hitpoint
-        let hitPoint: HitPoint = this.GetFirstHitPointWithAccel accel ray
+        let hitPoint: HitPoint = this.GetFirstHitPoint accel ray
 
         // Check if we hit
         if hitPoint.DidHit then
@@ -33,7 +50,7 @@ type Render(scene : Scene, camera : Camera) =
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude light hitPoint
-                    let shadowColour = this.CastShadow hitPoint light
+                    let shadowColour = Colour.Black//this.CastShadow hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
             ambientLight + totalLight
         else
@@ -67,17 +84,18 @@ type Render(scene : Scene, camera : Camera) =
         else
             o.Intensity * o.Colour
 
-    member this.GetFirstHitPointWithAccel (accel:IAcceleration) (ray:Ray) = 
-        traverseIAcceleration accel ray this.Shapes
-
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
-    member this.GetFirstHitPoint (ray:Ray) : HitPoint = 
+    member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
 
-        // Get all hit points
+        // Get all hit points for shapes with no bounding boxes
         let pointsThatHit = 
-            [for s in this.Scene.Shapes do yield s.hitFunction ray]
+            [for s in nobbshapes do yield s.hitFunction ray]
                 |> List.filter (fun hp -> hp.DidHit)
         
+        // Add potential hitpoints from Acceleration structure shapes
+        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
+                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
+
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
@@ -94,6 +112,8 @@ type Render(scene : Scene, camera : Camera) =
                 |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
                 |> List.filter (fun (hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
         
+
+
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
@@ -171,37 +191,38 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
     
     member this.PreProcessing =
-        Console.WriteLine(" 
+        if ppRendering then
+          Console.WriteLine(" 
         
 
 
-                           ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
-                           ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
-                           ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
-                           ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
-                           ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
-                           ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
-                               ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
-                               ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
-                               ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
-                                                       ░                                        
-                                                                                                ")
-        Console.WriteLine("                                                   Building KD-Trees..")
+                             ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
+                             ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
+                             ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
+                             ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
+                             ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
+                             ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
+                                 ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
+                                 ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
+                                 ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
+                                                         ░                                        
+                                                                                                  ")
+          Console.WriteLine("                                                   Building KD-Trees..")
+        else ()
+        
         let kdTimer = Stopwatch.StartNew()
-        let accel = Acceleration.createAcceleration this.Shapes
+        let accel = Acceleration.createAcceleration bbshapes
         kdTimer.Stop()
-        Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
-        Console.WriteLine()
+        
+        if ppRendering then
+          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
+          Console.WriteLine()
+        else ()
 
         timer.Start()
         accel
 
-    member this.PostProcessing (renderedImage:Bitmap) =
-        // Save image
-        renderedImage.Save(camera.RenderFilepath)
-        
-        // Open image
-        Process.Start(camera.RenderFilepath) |> ignore
+    member this.PostProcessing =
 
         // Printing how much time was spent rendering
         timer.Stop()
@@ -209,7 +230,19 @@ type Render(scene : Scene, camera : Camera) =
         printfn ""
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
 
-        System.Console.ReadKey () |> ignore
+    member this.ShowImageOnScreen (renderedImage:Bitmap) =
+        let window = new Form(ClientSize=Size(renderedImage.Width, renderedImage.Height), StartPosition=FormStartPosition.CenterScreen)
+        window.Paint.Add(fun draw -> draw.Graphics.DrawImage(renderedImage, Point(0, 0)))
+        Application.Run(window)
+
+    member this.SaveImage (renderedImage:Bitmap, filepath) =
+        // Save image
+        renderedImage.Save(filepath)
+        
+        // Open image
+        Process.Start(filepath) |> ignore
+
+        Console.ReadKey () |> ignore
 
     member this.RenderParallel = 
         // Prepare image
@@ -228,8 +261,8 @@ type Render(scene : Scene, camera : Camera) =
           // Shoot rays and save the resulting colors, using parallel computations.
           Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
-            let cols = List.map (fun ray -> (this.Cast accel ray)) rays
-            let colour = (List.fold (+) Colour.Black cols)/float cols.Length
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
             mutex.WaitOne() |> ignore
@@ -246,7 +279,8 @@ type Render(scene : Scene, camera : Camera) =
           for x in 0 .. camera.ResX - 1 do
             renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
-        this.PostProcessing renderedImage
+        this.PostProcessing
+        renderedImage
 
     member this.Render =
         // Prepare image
@@ -260,15 +294,18 @@ type Render(scene : Scene, camera : Camera) =
                 this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
-                let colours = List.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (List.fold (+) Colour.Black colours)/float colours.Length
+                let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
+                let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
 
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
-        this.PostProcessing renderedImage
+        this.PostProcessing
+        renderedImage
 
     member this.RenderToFile renderMethod filename =
-        renderMethod
+        let image = renderMethod
+        this.SaveImage(image, filename)
 
     member this.RenderToScreen renderMethod =
-        ()
+        let image = renderMethod
+        this.ShowImageOnScreen(image)

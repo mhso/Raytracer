@@ -2,7 +2,7 @@ namespace Tracer.Basics
 open System
 open Transformation
 
-
+exception BoundingBoxException
 
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
@@ -98,16 +98,17 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
 
 ////TRIANGLE////
-and Triangle(a:Point, b:Point, c:Point, mat:Material)=
+and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
     inherit Shape()
     let mutable be : float = 0.0
     let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
-    member this.mat = mat
+    member this.tex = tex
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
+
     member this.n = this.u.CrossProduct this.v
 
     //the many members are for simplifying cramers rule and hit function
@@ -117,7 +118,6 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.f = ((a.Y)-(c.Y))
     member this.i = ((a.Z)-(b.Z))
     member this.j = ((a.Z)-(c.Z))
-
 
     member this.bBox =
         let e = 0.000001
@@ -143,6 +143,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let pc = (r.GetDirection.X)
         let g = (r.GetDirection.Y)
         let k = (r.GetDirection.Z)
+        let func = Textures.getFunc tex
+        let mat = func 1.0 1.0 //Should be fixed
 
 
         match r with
@@ -166,6 +168,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
 ////SPHERE////
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
+
+    let pidivided = 1.0 / Math.PI
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.tex = tex
@@ -195,7 +199,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
         let u = phi / (2. * Math.PI)
-        let v = 1.0-(theta / Math.PI)
+        let v = 1.0-(theta * pidivided)
         (u, v) 
 
     member this.determineHitPoint (r:Ray) (t:float) = 

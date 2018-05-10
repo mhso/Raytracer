@@ -26,7 +26,6 @@ type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vect
     member this.Height = height
     member this.ResX = resX
     member this.ResY = resY
-    member this.RenderFilepath = "background.bmp"
 
-    abstract member CreateRays : int -> int -> Ray list
+    abstract member CreateRays : int -> int -> Ray []
     
