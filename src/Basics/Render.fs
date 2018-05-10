@@ -72,8 +72,6 @@ type Render(scene : Scene, camera : Camera) =
         else 
             Colour.Black
 
-        
-
     member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
         let direction = (hitPoint.Point - sp).Normalise
         let origin = hitPoint.EscapedPoint

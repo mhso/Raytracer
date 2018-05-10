@@ -128,8 +128,8 @@ module Main =
           Some (t', normalVector hp dx dy dz)
     hitFunction
 
-  let nrtolerance = 10.**(-4.)
-  let nrepsilon = 10.**(-6.)
+  let nrtolerance = 10.**(-7.)
+  let nrepsilon = 10.**(-14.)
   
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
   // but adapted to a functional, immutable, approach
@@ -167,13 +167,17 @@ module Main =
               match newtonRaphson up up' mid with
               | None    -> None
               | Some t  ->
-                  if t < lo then findx mid hi 5 (itcount + 1)
+                  if t < lo then 
+                    printfn "t < lo"
+                    findx mid hi 5 (itcount + 1)
                   else 
-                    if t > hi then findx lo mid 5 (itcount + 1)
+                    if t > hi then 
+                      printfn "t > hi"
+                      findx lo mid 5 (itcount + 1)
                     else
                       let hp = r.PointAtTime t
                       Some (t, normalVector hp dx dy dz)
-      findx 0.0 100.0 11 0
+      findx 0.0 100.0 20 0
     hitFunction
 
   let mkImplicit (s:string) : baseShape =
