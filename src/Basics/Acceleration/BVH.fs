@@ -10,7 +10,7 @@ module BVH =
     let debug4 = false
     let debug5 = true
 
-     // Type of the BVHTree, with Nodes and Leafs.
+    // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
                         | Node of BVHStructure*BVHStructure*BBox*int
     
@@ -38,27 +38,27 @@ module BVH =
           let greater   = sortListByAxis (xs |> List.filter(great)) (boxes) axis
           lesser @ [x] @ greater
     
-    //let rec quickselect k (indexList:list<int>) (boxes:list<BBox>) (axis:int) = 
-    //    match boxes with
-    //    | [] -> failwith "Cannot take largest element of empty list."
-    //    | [a] -> a
-    //    | x::xs ->
-    //        match axis with
-    //        | 0 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.X < x.highPoint.X) xs
-    //                let l = List.length ys
-    //                if k < l then quickselect k ys axis
-    //                elif k > l then quickselect (k-l-1) zs axis
-    //                else x
-    //        | 1 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Y < x.highPoint.Y) xs
-    //                let l = List.length ys
-    //                if k < l then quickselect k ys axis
-    //                elif k > l then quickselect (k-l-1) zs axis
-    //                else x
-    //        | 2 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Z < x.highPoint.Z) xs
-    //                let l = List.length ys
-    //                if k < l then quickselect k ys axis
-    //                elif k > l then quickselect (k-l-1) zs axis
-    //                else x
+    let rec quickselect (k:int) (indexList:list<int>) (boxes:list<BBox>) (axis:int) = 
+        match boxes with
+        | [] -> failwith "Cannot take largest element of empty list."
+        | [a] -> a
+        | x::xs ->
+            match axis with
+            | 0 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.X < x.highPoint.X) xs
+                    let l = List.length ys
+                    if k < l then quickselect k indexList ys axis
+                    elif k > l then quickselect (k-l-1) indexList zs axis
+                    else x
+            | 1 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.Y < x.highPoint.Y) xs
+                    let l = List.length ys
+                    if k < l then quickselect k indexList ys axis
+                    elif k > l then quickselect (k-l-1) indexList zs axis
+                    else x
+            | 2 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.Z < x.highPoint.Z) xs
+                    let l = List.length ys
+                    if k < l then quickselect k indexList ys axis
+                    elif k > l then quickselect (k-l-1) indexList zs axis
+                    else x
 
     // Function for getting combined outer low and high from a array og bounding boxes.
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
@@ -111,7 +111,6 @@ module BVH =
         if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes
-        //let boxes = List.toArray (Array.fold (fun acc (x:Shape) -> acc::x.getBoundingBox()) [] shapes)
 
         let boxIntList = [0..boxes.Length-1]
         let rec innerNode (intIndexes:list<int>) (depthLevel:int) : BVHStructure = 
@@ -122,13 +121,16 @@ module BVH =
             let depthLevel = depthLevel + 1
             if debug then printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
+
+            //let quickSorted = quickselect 0 intIndexes (Array.toList boxes) axisToSplit
+            //printfn "BVH quickSorted: %A" quickSorted
+
             match intIndexes with
             | [] -> failwith " innerNode -> Empty array"
             | b when intIndexes.Length > 1 ->
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
-
                 Node (
                             innerNode leftList depthLevel, 
                             innerNode rigthList depthLevel, 
@@ -139,9 +141,6 @@ module BVH =
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         innerNode boxIntList 0
-
-        
- 
  
   // ######################### TRAVERSAL BVH STRUCTURE #########################
 

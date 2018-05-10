@@ -6,6 +6,9 @@ module RegularGrids =
     // Used for debug, will print to console etc. 
     let debug = true
 
+    // Type of the BVHTree, with Nodes and Leafs.
+    type RGStructure = Shape list[,,]*int*int*int*BBox
+
     let clamp (x:float,b:int) =
         match x with
         | x when x<0. -> 0.
@@ -46,7 +49,7 @@ module RegularGrids =
     let calcBbox n w = float(n)/w
     
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
-    let build (shapes:array<Shape>) =
+    let build (shapes:array<Shape>):RGStructure=
 
         let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
         let lp, hp = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
@@ -55,11 +58,17 @@ module RegularGrids =
         let n = shapes.Length // Number of shapes.
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
 
-        //let gridArr = [for x in ]
+        let gridArr = Array.zeroCreate nx
+        for jix in 0..gridArr.Length do
+            gridArr.[jix] <- Array.zeroCreate ny
+            for jjx in 00..gridArr.[jix].Length do
+                gridArr.[jix].[jjx] <- Array.zeroCreate nz
 
         let bbx = calcBbox nx w.X
         let bby = calcBbox ny w.Y
         let bbz = calcBbox nz w.Z
+
+        let grid = Array3D.zeroCreate<Shape list> nx ny nz
 
         for shape in shapes do 
             let bb = shape.getBoundingBox()
@@ -75,10 +84,31 @@ module RegularGrids =
                 for iy=iyMin to iyMax do
                     for ix=ixMin to ixMax do
                         printfn "Do stuff"
-                
-                
+                        grid.[ix,iy,iz] <- [shape] |> List.append grid.[ix,iy,iz]
+        
+        let boxes = convertShapesToBBoxes shapes
+        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes
+        let box = BBox (lowPoint, highPoint)
+        
+        (grid, nx, ny, nz, box)
                 
         
-  // ######################### TRAVERSAL BVH TREE #########################
-    // Function for traversal of the grid.
-    //let traverse (treeNode:RGrind) (ray:Ray) (shapes:array<Shape>) =
+  // ######################### TRAVERSAL REGULAR GRID #########################
+    // Function for search of the grid.
+    let search (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
+        let grid, nx, ny, nz, bbox = structure
+        let value = bbox.intersect ray
+        match value with
+        | Some (t,t',tx,ty,tz,tx',ty',tz') ->
+                                                let p = ray.GetOrigin
+                                                let d = ray.GetDirection
+        | None -> None
+
+    // Function for traversal of the structure.
+    let traverse (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) = 
+        //printfn "traverse structure: %A" structure
+        
+        let result = search structure ray shapes
+        match result with
+        | Some r -> r
+        | None -> HitPoint ray

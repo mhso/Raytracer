@@ -10,7 +10,7 @@ open Tracer.Basics
 [<EntryPoint>]
 let main _ = 
     // General settings
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree //Change to switch acceleration structure!
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -20,8 +20,8 @@ let main _ =
     let position = Point(5., 7., 10.) //Porsche
     let lookat = Point(0., 2., 0.) //Porsche
     let up = Vector(0.,1.,0.)
-    let zoom = 1. //Normal zoom
-    //let zoom = 5. //Zoom for Happy
+    let zoom = 1. //Normal zoom for armadillo and porsche
+    //let zoom = 5. //Zoom for Happy and bunny
     let resX = 800
     let resY = 600
     let width = 2.
@@ -61,19 +61,19 @@ let main _ =
     
 
     //- SHAPES
-    let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
-    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
-    let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
+    let sphereRed           = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
+    let spherePerfectYellow = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
+    let sphereGreen         = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
     
-    let matRedTex = mkMatTexture matteRed
-    let matGreenTex = mkMatTexture matteGreen
-    let matBlueTex = mkMatTexture matteBlue
-    let matYellowTex = mkMatTexture matteYellow
+    let matRedTex       = mkMatTexture matteRed
+    let matGreenTex     = mkMatTexture matteGreen
+    let matBlueTex      = mkMatTexture matteBlue
+    let matYellowTex    = mkMatTexture matteYellow
 
-    let perfRedTex = mkMatTexture perfectRed
-    let perfYellowTex = mkMatTexture perfectYellow
-    let perfGreenTex = mkMatTexture perfectGreen
-    let perfBlueTex = mkMatTexture perfectBlue
+    let perfRedTex      = mkMatTexture perfectRed
+    let perfYellowTex   = mkMatTexture perfectYellow
+    let perfGreenTex    = mkMatTexture perfectGreen
+    let perfBlueTex     = mkMatTexture perfectBlue
 
     let sL = SphereShape(Point(-1., 0., -1.), 1., mkMatTexture matteRed)
     let sC = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
@@ -96,40 +96,39 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false)
-    let urn = i.toShape(matGreenTex)
-
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false) //Change this to change figure
     let shape = i.toShape(matGreenTex)
-    let shape1 = i.toShape(perfRedTex)
-    let shape2 = 
-        let move = Transformation.translate 0. 4. 0.
-        Transform.transform shape move
+    //let shape1 = i.toShape(perfRedTex)
+    //let shape2 = 
+    //    let move = Transformation.translate 0. 4. 0.
+    //    Transform.transform shape move
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
+    let camera          = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
+    //let camera        = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     
     //- PLAIN LIGHTS
-    let lightTop = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
+    let lightTop        = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
 
     //- AREA LIGHTS
-    let sampler        = multiJittered 5 1
-    let baseSphere = BaseSphere(Point.Zero, 1.)
-    let baseRect = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
-    let baseDisc = BaseDisc(Point.Zero, 1.)
-    let lightSphere    = SphereAreaLight(emissive, baseSphere, sampler)
-    let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
-    let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
+    let sampler         = multiJittered 5 1
+    let baseSphere      = BaseSphere(Point.Zero, 1.)
+    let baseRect        = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
+    let baseDisc        = BaseDisc(Point.Zero, 1.)
+    let lightSphere     = SphereAreaLight(emissive, baseSphere, sampler)
+    let lightRect       = RectangleAreaLight(emissive, baseRect, sampler)
+    let lightDisc       = DiscAreaLight(emissive, baseDisc, sampler)
 
-    let directLight = DirectionalLight(Colour.White, 0.9, Vector(0., 1., 0.))
+    let directLight     = DirectionalLight(Colour.White, 0.9, Vector(0., 1., 0.))
 
     //- FINAL
     let lights: Light list      = [directLight]
     let shapes: Shape list      = [shape]
+    //let shapes: Shape list    = [thinBoxL]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.02)
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
