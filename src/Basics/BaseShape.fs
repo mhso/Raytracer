@@ -1,6 +1,7 @@
 ﻿namespace Tracer.BaseShape
 
 open Tracer.Basics
+open Tracer.Basics
 
 
 [<AbstractClass>]
@@ -34,7 +35,7 @@ type BaseTriangle(a:Point, b:Point, c:Point)=
     member this.v = a-c // same here
     member this.n = this.u.CrossProduct this.v
     override this.toShape tex = 
-        new Triangle(a, b, c, tex) :> Shape
+      new Triangle(a, b, c, Textures.getBaseTexturedMaterial(tex)) :> Shape
 
 
 type BaseSphere(origin: Point, radius: float) = 

@@ -5,3 +5,4 @@ module Textures =
     val mkMatTexture : Material -> Texture
     //val mkTextureFromFile : (float * float -> float * float) -> string -> Texture
     val getFunc : Texture -> (float -> float -> Material)
+    val getBaseTexturedMaterial : Texture -> Material
