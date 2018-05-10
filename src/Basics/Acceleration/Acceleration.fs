@@ -35,10 +35,10 @@ module Acceleration =
 
     type Acceleration = KDTree
                       | BVH
-                      | RG
+                      | RegularGrid
 
     let setAcceleration (accel : Acceleration) : unit = 
         match accel with
         | KDTree -> acceleration <- "KDTree"
         | BVH -> acceleration <- "BVH"
-        | RG -> acceleration <- "RG"
+        | RegularGrid -> acceleration <- "RG"
