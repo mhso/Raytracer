@@ -43,19 +43,16 @@ let drawTriangles (filepath:string) (smoothen:bool) =
             let newTriangle = Array.zeroCreate(ar.Length)
             let firstTriangle = (ar.[0]).toShape(tex)
             newTriangle.[0] <- firstTriangle
-            let mutable lowPoint = firstTriangle.getBoundingBox().lowPoint
-            let mutable highPoint = firstTriangle.getBoundingBox().highPoint
+            let newPoints = Array.zeroCreate(2)
+            newPoints.[0] <- firstTriangle.getBoundingBox().lowPoint
+            newPoints.[1] <- firstTriangle.getBoundingBox().highPoint
 
             for i in 1..(ar.Length-1) do
                 let triangle = (ar.[i]).toShape(tex)
                 let triangleLowPoint = triangle.getBoundingBox().lowPoint 
                 let triangleHightPoint = triangle.getBoundingBox().highPoint
-                if(triangleLowPoint.X < lowPoint.X) then lowPoint <- Point(triangleLowPoint.X, lowPoint.Y, lowPoint.Z)
-                if(triangleLowPoint.Y < lowPoint.Y) then lowPoint <- Point(lowPoint.X, triangleLowPoint.Y, lowPoint.Z)
-                if(triangleLowPoint.Z < lowPoint.Z) then lowPoint <- Point(lowPoint.X, lowPoint.Y, triangleLowPoint.Z)
-                if(triangleHightPoint.X > highPoint.X) then highPoint <- Point(triangleHightPoint.X, highPoint.Y, highPoint.Z)
-                if(triangleHightPoint.Y > highPoint.Y) then highPoint <- Point(highPoint.X, triangleHightPoint.Y, highPoint.Z)
-                if(triangleHightPoint.Z > highPoint.Z) then highPoint <- Point(highPoint.X, highPoint.Y, triangleHightPoint.Z)
+                newPoints.[0] <- newPoints.[0].Lowest triangleLowPoint
+                newPoints.[1] <- newPoints.[1].Highest triangleHightPoint
                 newTriangle.[i] <- triangle
             let accel = Acceleration.createAcceleration(newTriangle)
             let shape = {new Shape() with
@@ -100,12 +97,13 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                             let test = alpha + triangle.beta + triangle.gamma
                             let v = (alpha * triA.v.Value) + (triangle.beta * triB.v.Value) + (triangle.gamma * triC.v.Value)
                             let u = (alpha * triA.u.Value) + (triangle.beta * triB.u.Value) + (triangle.gamma * triC.u.Value)
-                            if(u < 0.0 || u > 1.0 || v < 0.0 || v > 1.0) then printfn "alpha = %A beta = %A gamme = %A values : %A :::::: %A" test triangle.beta triangle.gamma v u
                             let textureMati = ((Textures.getFunc tex) v u)
-                            HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape)
+                            HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape, u, v)
                         else finalHit
                     | _ -> finalHit
-                member this.getBoundingBox () = BBox(lowPoint, highPoint)
+                member this.getBoundingBox () = 
+                    printfn "%A HL %A" newPoints.[0] newPoints.[1]
+                    BBox(newPoints.[0],newPoints.[1])
                 member this.isInside p = failwith "Maybe kdTree has some function for this"
             }
             shape

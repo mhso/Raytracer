@@ -6,6 +6,20 @@ open Assert
 open Tracer.Basics
 
 let allTest = 
+    let testPointLowest = 
+        let p1 = Point(1.,2.,0.)
+        let p2 = Point(0.,-2.,1.)
+        let result = p1.Lowest p2
+        let expected = Point(0.,-2.,0.)
+        Assert.Equal(expected,result,"LowestPoint")
+
+    let testPointHighest = 
+        let p1 = Point(5.01352001468749,4.476354,4.27325982495822)
+        let p2 = Point(5.01352001468749,-3.116544,-1.38118319041031)
+        let result = p1.Highest p2
+        let expected = Point(5.01352001468749,4.476354,4.27325982495822)
+        Assert.Equal(expected,result,"HighestPoint")
+
     let testMatrixMultiplicationEqualsCorrectMatrix = 
         let firstMatrix = mkMatrix [|[|2.;0.;0.;0.|];[|0.;0.5;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]
         let secondMatrix = mkMatrix [|[|0.5;0.;0.;0.|];[|0.;2.;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]

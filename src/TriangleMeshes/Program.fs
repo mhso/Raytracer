@@ -93,7 +93,7 @@ let main _ =
     let thinBoxL = Box(Point(-5.5, 0., -6.), Point(-3.5, 3., -5.), matRedTex, matRedTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
     let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), matYellowTex, matYellowTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
     let thinBoxR = Box(Point(2., 0., -1.), Point(4., 3., 0.), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
-
+    let sphereBox = Box(Point (-5.02335445580023,-3.116544,-5.76361464552949),Point (5.01352001468749,-3.116544,4.27325982495822), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
 
     let sTop = SphereShape(Point(0., 0., 10.), 5., Textures.mkMatTexture matteWhite)
     let discC = Disc(Point(0., 0., 0.), 4., Textures.mkMatTexture emissive)
@@ -141,7 +141,7 @@ let main _ =
     let lights: Light list      = [l1;l2;l3; lightTop]
     let shapes: Shape list      = [bunnyShape]
 
-    let lightAmbient   = AmbientLight(Colour.Green, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 

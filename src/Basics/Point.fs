@@ -31,7 +31,7 @@ type Point(x:float, y:float, z:float) =
         let newPoint = Array.zeroCreate(3)
         if(this.X < p.X) then newPoint.[0] <- this.X
         else newPoint.[0] <- p.X
-        if(this.Y < p.X) then newPoint.[1] <- this.Y
+        if(this.Y < p.Y) then newPoint.[1] <- this.Y
         else newPoint.[1] <- p.Y
         if(this.Z < p.Z) then newPoint.[2] <- this.Z
         else newPoint.[2] <- p.Z
@@ -40,7 +40,7 @@ type Point(x:float, y:float, z:float) =
         let newPoint = Array.zeroCreate(3)
         if(this.X > p.X) then newPoint.[0] <- this.X
         else newPoint.[0] <- p.X
-        if(this.Y > p.X) then newPoint.[1] <- this.Y
+        if(this.Y > p.Y) then newPoint.[1] <- this.Y
         else newPoint.[1] <- p.Y
         if(this.Z > p.Z) then newPoint.[2] <- this.Z
         else newPoint.[2] <- p.Z
