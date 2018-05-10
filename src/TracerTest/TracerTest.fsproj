@@ -60,7 +60,6 @@
     <Compile Include="Light.fs" />
     <Compile Include="Material.fs" />
     <Compile Include="Meshes.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="Shapes.fs" />
     <Compile Include="Texture.fs" />
     <Compile Include="ThinLens.fs" />
@@ -70,6 +69,7 @@
     <Compile Include="AreaLight.fs" />
     <Compile Include="CSG.fs" />
     <Compile Include="ImplicitSurfaces.fs" />
+    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="GeneralTest.fs" />
