@@ -194,12 +194,7 @@ type Render(scene : Scene, camera : Camera) =
         timer.Start()
         accel
 
-    member this.PostProcessing (renderedImage:Bitmap) =
-        // Save image
-        renderedImage.Save(camera.RenderFilepath)
-        
-        // Open image
-        Process.Start(camera.RenderFilepath) |> ignore
+    member this.PostProcessing =
 
         // Printing how much time was spent rendering
         timer.Stop()
@@ -207,7 +202,17 @@ type Render(scene : Scene, camera : Camera) =
         printfn ""
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
 
-        System.Console.ReadKey () |> ignore
+    member this.ShowImageOnScreen (renderedImage:Bitmap) =
+        ()
+
+    member this.SaveImage (renderedImage:Bitmap, filepath) =
+        // Save image
+        renderedImage.Save(filepath)
+        
+        // Open image
+        Process.Start(filepath) |> ignore
+
+        Console.ReadKey () |> ignore
 
     member this.RenderParallel = 
         // Prepare image
@@ -226,8 +231,8 @@ type Render(scene : Scene, camera : Camera) =
           // Shoot rays and save the resulting colors, using parallel computations.
           Parallel.ForEach (pos, fun (x,y) -> 
             let rays = camera.CreateRays x y
-            let cols = List.map (fun ray -> (this.Cast accel ray)) rays
-            let colour = (List.fold (+) Colour.Black cols)/float cols.Length
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
             mutex.WaitOne() |> ignore
@@ -244,7 +249,8 @@ type Render(scene : Scene, camera : Camera) =
           for x in 0 .. camera.ResX - 1 do
             renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
-        this.PostProcessing renderedImage
+        this.PostProcessing
+        renderedImage
 
     member this.Render =
         // Prepare image
@@ -258,15 +264,18 @@ type Render(scene : Scene, camera : Camera) =
                 this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
-                let colours = List.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (List.fold (+) Colour.Black colours)/float colours.Length
+                let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
+                let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
 
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
-        this.PostProcessing renderedImage
+        this.PostProcessing
+        renderedImage
 
     member this.RenderToFile renderMethod filename =
-        renderMethod
+        let image = renderMethod
+        this.SaveImage(image, filename)
 
     member this.RenderToScreen renderMethod =
-        ()
+        let image = renderMethod
+        this.ShowImageOnScreen(image)
