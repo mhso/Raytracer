@@ -45,7 +45,7 @@ let main argv =
     // Util.setTimeout 300;
 
     // run all test cases
-    renderAll false;
+    renderAll true;
 
     // To only run some test groups, use the following
     // renderGroups false ["material high"]
