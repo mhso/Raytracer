@@ -87,7 +87,7 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                             let v = (alpha * triA.v.Value) + (triangle.beta * triB.v.Value) + (triangle.gamma * triC.v.Value)
                             let u = (alpha * triA.u.Value) + (triangle.beta * triB.u.Value) + (triangle.gamma * triC.u.Value)
                             if(u < 0.0 || u > 1.0 || v < 0.0 || v > 1.0) then printfn "alpha = %A beta = %A gamme = %A values : %A :::::: %A" test triangle.beta triangle.gamma v u
-                            let textureMati = ((Textures.getFunc tex) u v)
+                            let textureMati = ((Textures.getFunc tex) v u)
                             HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape)
                         else finalHit
                     | _ -> finalHit

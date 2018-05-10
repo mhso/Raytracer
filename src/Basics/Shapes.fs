@@ -153,13 +153,13 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
                     let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
                     let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
-                    this.beta <- x
-                    this.gamma <- y
                     let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
-                    if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
-                            then HitPoint(r, z, (this.u % this.v).Normalise, mat, this) else HitPoint(r) //why mat instead of texture???
+                    if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0) then
+                            this.beta <- x
+                            this.gamma <- y
+                            HitPoint(r, z, (this.u % this.v).Normalise, mat, this) else HitPoint(r) //why mat instead of texture???
                             
 
 

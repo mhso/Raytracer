@@ -109,7 +109,9 @@ let main _ =
     let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
     let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
     let urn = i.toShape(tex)
-    let t = Transformation.scale 4.0 4.0 4.0
+    let t = Transformation.mergeTransformations
+                [Transformation.rotateY (System.Math.PI/4.0);
+                Transformation.scale 6.0 6.0 6.0]
     let bunnyShape = Transform.transform urn t
 
     //- CAMERA
@@ -131,12 +133,15 @@ let main _ =
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
     let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
-
+    let mkPoint a b c = Point(a,b,c)
+    let l1 = PointLight(Colour.White, 0.5, (mkPoint 6.0 2.0 6.0))
+    let l2 = PointLight(Colour.Red, 0.5 ,(mkPoint -6.0 2.0 6.0))
+    let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
-    let lights: Light list      = [directLight]
+    let lights: Light list      = [l1;l2;l3; lightTop]
     let shapes: Shape list      = [bunnyShape]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.02)
+    let lightAmbient   = AmbientLight(Colour.Green, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
