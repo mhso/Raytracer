@@ -4,6 +4,8 @@ open Tracer.Basics
 open Tracer.Basics.Acceleration
 open System
 open System.Drawing
+open System.Windows.Forms
+open System.ComponentModel
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -203,7 +205,9 @@ type Render(scene : Scene, camera : Camera) =
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
 
     member this.ShowImageOnScreen (renderedImage:Bitmap) =
-        ()
+        let window = new Form(ClientSize=Size(renderedImage.Width, renderedImage.Height), StartPosition=FormStartPosition.CenterScreen)
+        window.Paint.Add(fun draw -> draw.Graphics.DrawImage(renderedImage, Point(0, 0)))
+        Application.Run(window)
 
     member this.SaveImage (renderedImage:Bitmap, filepath) =
         // Save image

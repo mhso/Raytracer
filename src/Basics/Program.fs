@@ -111,6 +111,6 @@ let main _ =
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "background.bmp")
+    ignore (render.RenderToScreen render.RenderParallel)
 
     0
