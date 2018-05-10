@@ -41,8 +41,22 @@ let drawTriangles (filepath:string) (smoothen:bool) =
     let baseShape = {new BaseShape() with
         member this.toShape(tex) = 
             let newTriangle = Array.zeroCreate(ar.Length)
-            for i in 0..(ar.Length-1) do
-                newTriangle.[i] <- (ar.[i]).toShape(tex)
+            let firstTriangle = (ar.[0]).toShape(tex)
+            newTriangle.[0] <- firstTriangle
+            let mutable lowPoint = firstTriangle.getBoundingBox().lowPoint
+            let mutable highPoint = firstTriangle.getBoundingBox().highPoint
+
+            for i in 1..(ar.Length-1) do
+                let triangle = (ar.[i]).toShape(tex)
+                let triangleLowPoint = triangle.getBoundingBox().lowPoint 
+                let triangleHightPoint = triangle.getBoundingBox().highPoint
+                if(triangleLowPoint.X < lowPoint.X) then lowPoint <- Point(triangleLowPoint.X, lowPoint.Y, lowPoint.Z)
+                if(triangleLowPoint.Y < lowPoint.Y) then lowPoint <- Point(lowPoint.X, triangleLowPoint.Y, lowPoint.Z)
+                if(triangleLowPoint.Z < lowPoint.Z) then lowPoint <- Point(lowPoint.X, lowPoint.Y, triangleLowPoint.Z)
+                if(triangleHightPoint.X > highPoint.X) then highPoint <- Point(triangleHightPoint.X, highPoint.Y, highPoint.Z)
+                if(triangleHightPoint.Y > highPoint.Y) then highPoint <- Point(highPoint.X, triangleHightPoint.Y, highPoint.Z)
+                if(triangleHightPoint.Z > highPoint.Z) then highPoint <- Point(highPoint.X, highPoint.Y, triangleHightPoint.Z)
+                newTriangle.[i] <- triangle
             let accel = Acceleration.createAcceleration(newTriangle)
             let shape = {new Shape() with
                 member this.hitFunction r = 
@@ -91,7 +105,7 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                             HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape)
                         else finalHit
                     | _ -> finalHit
-                member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
+                member this.getBoundingBox () = BBox(lowPoint, highPoint)
                 member this.isInside p = failwith "Maybe kdTree has some function for this"
             }
             shape
