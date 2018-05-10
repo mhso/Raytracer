@@ -13,13 +13,15 @@ let main _ =
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
-    let position = Point(0.5,0.4,1.) //Position for bunny
+    //let position = Point(0.5,0.4,1.) //Position for bunny
     //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
     //let lookat = Point(0.,0.1,0.) //LookAt for happy
-    let lookat = Point(0.05,0.1,0.) //LookAt for bunny
+    //let lookat = Point(0.05,0.1,0.) //LookAt for bunny
+    let position = Point(5., 7., 10.)
+    let lookat = Point(0., 2., 0.)
     let up = Vector(0.,1.,0.)
-    //let zoom = 1. //Normal zoom
-    let zoom = 5. //Zoom for Happy
+    let zoom = 1. //Normal zoom
+    //let zoom = 5. //Zoom for Happy
     let resX = 800
     let resY = 600
     let width = 2.
@@ -33,7 +35,7 @@ let main _ =
 
     // Override these if needed
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 2
+    let VIEW_SAMPLES = 1
     let LENS_SAMPLES = 8
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
@@ -94,10 +96,11 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
 
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny.ply" false)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false)
     let shape = i.toShape(matGreenTex)
+    let shape1 = i.toShape(perfRedTex)
     let shape2 = 
-        let move = Transformation.translate 0.15 0. 0.
+        let move = Transformation.translate 0. 4. 0.
         Transform.transform shape move
 
     //- CAMERA
@@ -118,11 +121,11 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
-    let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
+    let directLight = DirectionalLight(Colour.White, 0.9, Vector(0., 1., 0.))
 
     //- FINAL
     let lights: Light list      = [directLight]
-    let shapes: Shape list      = [shape]
+    let shapes: Shape list      = [shape1; shape2]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
