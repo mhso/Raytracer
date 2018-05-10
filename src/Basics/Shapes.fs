@@ -554,6 +554,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
+    member this.epsilon = 0.00001
     override this.isInside (p:Point) = match op with
                                         |Union -> if s1.isInside p || s2.isInside p then true
                                                   else false
@@ -590,9 +591,9 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         //i continue no matter what 
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
-                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                 else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+        if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
+                                                      this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                  else s1Hit //if the hit, is not inside s2, we have found the hitpoint
         else if s1.isInside (r.PointAtTime s2Time) then 
                 this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
              else s2Hit //if the hit, is not inside s1, we have found the hitpoint
@@ -603,7 +604,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                 let s2Hit = s2.hitFunction r
                                                 let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
                                                 let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-                                                if s1Time <= s2Time then s1Hit else s2Hit
+                                                if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
                                             |true -> this.unionHitFunctionInside r
                                                
     ////INTERSECTION////
@@ -627,7 +628,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                            let PointAtTime = r.PointAtTime s1T
                                            let newOrigin = (r.PointAtTime s1T).Move moveVector
                                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> s1Hit
         |(s1T, s2T) -> 
                     //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
                     if s1T > s2T then 
@@ -746,7 +747,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
-        if s1Time <= s2Time then s1Hit else s2Hit
+        if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
 
     
     ////GENERAL HIT-FUNCTION////

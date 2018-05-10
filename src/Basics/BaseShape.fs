@@ -34,7 +34,7 @@ type BaseTriangle(a:Point, b:Point, c:Point)=
     member this.v = a-c // same here
     member this.n = this.u.CrossProduct this.v
     override this.toShape tex = 
-      new Triangle(a, b, c, tex) :> Shape
+        new Triangle(a, b, c, tex) :> Shape
 
 
 type BaseSphere(origin: Point, radius: float) = 
