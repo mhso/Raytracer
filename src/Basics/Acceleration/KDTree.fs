@@ -187,8 +187,12 @@ module KD_tree =
             // If not, return an empty hit point
             None
         else
+            let closestHit = pointsThatHit |> List.minBy (fun (hp) -> hp.Time)
+            if closestHit.Material :? EmissiveMaterial then
+                None
+            else
             // If the ray hit, then return the first hit point
-            Some (pointsThatHit |> List.minBy (fun (hp) -> hp.Time))
+                Some (pointsThatHit |> List.minBy (fun (hp) -> hp.Time))
     
     let order (d:float, left:KDTree, right:KDTree) =
         if d > 0. then (left, right)
