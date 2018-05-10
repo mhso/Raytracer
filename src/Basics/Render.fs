@@ -12,30 +12,47 @@ open System.Threading.Tasks
 open Tracer.Sampling.Sampling
 
 type Render(scene : Scene, camera : Camera) =
+
+    // Pre-rendering
+    let rec filtershapes (nobb: Shape list) (bb : Shape list) = function
+      | []            -> nobb, List.toArray bb
+      | (c:Shape)::cr -> 
+          try 
+            c.getBoundingBox() |> ignore
+            filtershapes nobb (c::bb) cr
+          with 
+            | _ -> filtershapes (c::nobb) bb cr                   
+
+    let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
+
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
+
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
 
     member this.Cast accel ray =
         // Get the hitpoint
-        let hitPoint: HitPoint = this.GetFirstHitPointWithAccel accel ray
+        let hitPoint: HitPoint = this.GetFirstHitPoint accel ray
 
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let normal = hitPoint.Normal
-            this.Scene.Lights 
+            let ambientLight = this.Scene.Ambient.GetColour hitPoint * hitPoint.Material.AmbientColour
+            let totalLight = 
+                this.Scene.Lights 
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude light hitPoint
-                    let shadowColour = this.CastShadow hitPoint light
+                    let shadowColour = Colour.Black//this.CastShadow hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
+            ambientLight + totalLight
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
@@ -67,17 +84,18 @@ type Render(scene : Scene, camera : Camera) =
         else
             o.Intensity * o.Colour
 
-    member this.GetFirstHitPointWithAccel (accel:IAcceleration) (ray:Ray) = 
-        traverseIAcceleration accel ray this.Shapes
-
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
-    member this.GetFirstHitPoint (ray:Ray) : HitPoint = 
+    member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
 
-        // Get all hit points
+        // Get all hit points for shapes with no bounding boxes
         let pointsThatHit = 
-            [for s in this.Scene.Shapes do yield s.hitFunction ray]
+            [for s in nobbshapes do yield s.hitFunction ray]
                 |> List.filter (fun hp -> hp.DidHit)
         
+        // Add potential hitpoints from Acceleration structure shapes
+        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
+                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
+
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
@@ -94,6 +112,8 @@ type Render(scene : Scene, camera : Camera) =
                 |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
                 |> List.filter (fun (hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
         
+
+
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
@@ -171,27 +191,33 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
     
     member this.PreProcessing =
-        Console.WriteLine(" 
+        if ppRendering then
+          Console.WriteLine(" 
         
 
 
-                           ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
-                           ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
-                           ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
-                           ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
-                           ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
-                           ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
-                               ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
-                               ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
-                               ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
-                                                       ░                                        
-                                                                                                ")
-        Console.WriteLine("                                                   Building KD-Trees..")
+                             ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
+                             ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
+                             ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
+                             ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
+                             ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
+                             ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
+                                 ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
+                                 ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
+                                 ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
+                                                         ░                                        
+                                                                                                  ")
+          Console.WriteLine("                                                   Building KD-Trees..")
+        else ()
+        
         let kdTimer = Stopwatch.StartNew()
-        let accel = Acceleration.createAcceleration this.Shapes
+        let accel = Acceleration.createAcceleration bbshapes
         kdTimer.Stop()
-        Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
-        Console.WriteLine()
+        
+        if ppRendering then
+          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
+          Console.WriteLine()
+        else ()
 
         timer.Start()
         accel

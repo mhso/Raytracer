@@ -12,6 +12,7 @@ type Material() =
     abstract member BounceMethod: HitPoint -> Ray[]
     abstract member IsRecursive : bool
     abstract member ReflectionFactor : Colour
+    abstract member AmbientColour: Colour
     member this.PreBounce (shape: Shape, hitPoint: HitPoint, light: Light) = 
         if light :? AmbientLight then Colour.Black
         else this.Bounce(shape,hitPoint,light)
@@ -19,6 +20,7 @@ type Material() =
 
 and BlankMaterial() = 
     inherit Material()
+    default this.AmbientColour = Colour.Black
     default this.ReflectionFactor = Colour.White
     default this.Bounce(shape, hitPoint, light) = Colour.Black
     default this.BounceMethod hitPoint = [| hitPoint.Ray |]
@@ -30,7 +32,8 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: S
     member this.Ray: Ray = ray
     member this.Time: float = time
     member this.Point: Point = ray.PointAtTime time
-    member this.EscapedPoint: Point = (ray.PointAtTime time) + normal * 0.000001
+    member this.EscapedPoint: Point = this.Point + normal * 0.000001
+    member this.InnerEscapedPoint: Point = this.Point - normal * 0.000001
     member this.DidHit = didHit
     member this.Normal = normal
     member this.Material = material
@@ -48,9 +51,9 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: S
 
     // For missed rays
     new(ray: Ray) = 
-        HitPoint(ray, 0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
+        HitPoint(ray, -0., new Vector(0.,0.,0.), Material.None, Shape.None, 0., 0., false)
     new(point: Point) = 
-        HitPoint(Ray.None, 0., point.ToVector, Material.None, Shape.None, 0., 0., false)
+        HitPoint(Ray.None, -0., point.ToVector, Material.None, Shape.None, 0., 0., false)
 
 //- LIGHT
 and [<AbstractClass>] Light(colour: Colour, intensity: float) =
