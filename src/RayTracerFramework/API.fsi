@@ -376,13 +376,13 @@ module API =
   /////////////////////////////////
 
   /// Type of acceleration structure
-  type Acceleration = 
-     /// k-d tree; default
-     | KDTree
-     /// regular grid
-     | RegularGrid
-     /// bounding volume hierarchy
-     | BVH
+  type Acceleration = Acceleration.Acceleration
+  //   /// k-d tree; default
+  //   | KDTree
+  //   /// regular grid
+  //   | RegularGrid
+  //   /// bounding volume hierarchy
+  //   | BVH
 
   /// Set which type of acceleration structure to use. KDTree is the default.
   val setAcceleration : Acceleration -> unit
