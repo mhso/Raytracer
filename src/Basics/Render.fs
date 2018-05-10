@@ -94,7 +94,6 @@ type Render(scene : Scene, camera : Camera) =
                    let hit = s.hitFunction ray
                    if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl
                    else findClosestHit h t' sl
-        
       findClosestHit (HitPoint(ray)) infinity nobbshapes
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
