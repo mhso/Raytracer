@@ -98,14 +98,14 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
 
 ////TRIANGLE////
-and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
+and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     inherit Shape()
     let mutable be : float = 0.0
     let mutable ga : float = 0.0
     member this.a = a
     member this.b = b
     member this.c = c
-    member this.tex = tex
+    member this.mat = mat
     member this.u = a-b //in case of errors try swithing a and b around
     member this.v = a-c // same here
 
@@ -143,8 +143,6 @@ and Triangle(a:Point, b:Point, c:Point, tex:Texture)=
         let pc = (r.GetDirection.X)
         let g = (r.GetDirection.Y)
         let k = (r.GetDirection.Z)
-        let func = Textures.getFunc tex
-        let mat = func 1.0 1.0 //Should be fixed
 
 
         match r with

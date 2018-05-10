@@ -13,4 +13,4 @@ module PolyToUnipoly =
   val solveUnipoly : unipoly -> float -> float
   val unipolyDerivative : unipoly -> unipoly
   val sturmSeq : unipoly -> unipoly -> unipoly list
-  val makeGuess : unipoly list -> float option
+  val getInterval : unipoly list -> float -> float -> int -> (float * float * float) option

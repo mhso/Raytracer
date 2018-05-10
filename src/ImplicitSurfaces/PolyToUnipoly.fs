@@ -9,7 +9,7 @@ module PolyToUnipoly =
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
   type unipoly = UP of Map<int, float>
 
-  let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
+  let epsilon = 10.**(-12.) // we consider this to be as good as zero. Might wanna adjust this...
 
   // only works if the poly terms only consists of ANums
   let polyToUnipoly (P m:poly) vars =
@@ -41,12 +41,11 @@ module PolyToUnipoly =
   let subtractUnipoly (UP m1) (UP m2) =
     UP (Map.fold (
           fun res k v ->
-            match Map.tryFind k res with
-            | Some m1val -> 
-                let newC = m1val - v
-                if newC = 0.0 || abs newC < epsilon then Map.remove k res
-                else Map.add k newC res
-            | None -> Map.add k -v res
+            let newval = match Map.tryFind k res with
+                         | Some mval -> mval-v
+                         | None      -> -v
+            if newval = 0.0 || abs newval < epsilon then Map.remove k res
+            else Map.add k newval res
        ) m1 m2)
 
   let getOrder up =
@@ -105,20 +104,19 @@ module PolyToUnipoly =
         else inner rs (cnt + 1) rest
     inner 0.0 0 uplist
 
-  let makeGuess uplist =
+  let getInterval uplist intvallo intvalhi maxdepth =
     let roots g1 g2 =  
       let s1 = countSignChanges uplist g1
       let s2 = countSignChanges uplist g2
       s1 - s2
-    let rec binarySearch lo hi fmr count =
-      if count < 1 then Some ((hi - lo) / 2.0)
-      else if hi < lo then None
+    let rec search lo hi currentdepth =
+      let mid = (lo + hi) / 2.
+      if currentdepth >= maxdepth then Some (lo, hi, mid)
       else
-        let mid = (lo + hi) / 2.0
-        let dif = roots lo hi
-        match dif with
-        | 1 -> Some ((hi - lo) / 2.0)
-        | 0 -> binarySearch mid fmr fmr (count - 1)
-        | _ -> binarySearch lo mid hi (count - 1)
-
-    binarySearch 0.0 100.0 0.0 50
+        let lodiff = roots lo mid
+        if lodiff > 0 then search lo mid (currentdepth + 1)
+        else
+          let hidiff = roots mid hi
+          if hidiff > 0 then search mid hi (currentdepth + 1)
+          else None
+    search intvallo intvalhi 0

@@ -1,11 +1,11 @@
 ﻿namespace TracerTestSuite
 
-open System
-open System.Drawing
-open Tracer.API
-open Util
-
 module Texture =
+
+  open System
+  open System.Drawing
+  open Tracer.API
+  open Util
 
   let renderEarth () =
     let texture = mkTextureFromFile (fun x y -> (x,1.0-y)) "../../../textures/earth.jpg"
