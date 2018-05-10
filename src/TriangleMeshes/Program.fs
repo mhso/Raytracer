@@ -17,8 +17,8 @@ let main _ =
     //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
     //let lookat = Point(0.,0.1,0.) //LookAt for happy
     //let lookat = Point(0.05,0.1,0.) //LookAt for bunny
-    let position = Point(5., 7., 10.)
-    let lookat = Point(0., 2., 0.)
+    let position = Point(5., 7., 10.) //Porsche
+    let lookat = Point(0., 2., 0.) //Porsche
     let up = Vector(0.,1.,0.)
     let zoom = 1. //Normal zoom
     //let zoom = 5. //Zoom for Happy
@@ -125,7 +125,7 @@ let main _ =
 
     //- FINAL
     let lights: Light list      = [directLight]
-    let shapes: Shape list      = [shape1; shape2]
+    let shapes: Shape list      = [shape]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
