@@ -4,17 +4,26 @@ open Tracer.Sampling.Sampling
 open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
+open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
     // General settings
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,2.,5.)
-    let lookat = Point(0.,2.,0.)
+    //let position = Point(-30.,140.,-200.) //Position for Armadillo
+    //let position = Point(0.,1.,1.) //Position for Happy
+    //let position = Point(0.5,0.4,1.) //Position for bunny
+    //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
+    //let lookat = Point(0.,0.1,0.) //LookAt for happy
+    //let lookat = Point(0.05,0.1,0.) //LookAt for bunny
+    let position = Point(5., 7., 10.) //Porsche
+    let lookat = Point(0., 2., 0.) //Porsche
     let up = Vector(0.,1.,0.)
-    let zoom = 1.
-    let resX = 500
-    let resY = 350
+    let zoom = 1. //Normal zoom
+    //let zoom = 5. //Zoom for Happy
+    let resX = 800
+    let resY = 600
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -26,7 +35,7 @@ let main _ =
 
     // Override these if needed
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 8
+    let VIEW_SAMPLES = 1
     let LENS_SAMPLES = 8
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
@@ -90,6 +99,12 @@ let main _ =
     let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" false)
     let urn = i.toShape(matGreenTex)
 
+    let shape = i.toShape(matGreenTex)
+    let shape1 = i.toShape(perfRedTex)
+    let shape2 = 
+        let move = Transformation.translate 0. 4. 0.
+        Transform.transform shape move
+
     //- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
@@ -108,15 +123,17 @@ let main _ =
     let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
     let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
 
-    //- FINAL
-    let lights: Light list      = [lightSphere]
-    let shapes: Shape list      = [urn]
+    let directLight = DirectionalLight(Colour.White, 0.9, Vector(0., 1., 0.))
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    //- FINAL
+    let lights: Light list      = [directLight]
+    let shapes: Shape list      = [shape]
+
+    let lightAmbient   = AmbientLight(Colour.White, 0.02)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "path")
+    ignore (render.RenderToFile render.RenderParallel "image.bmp")
 
     0

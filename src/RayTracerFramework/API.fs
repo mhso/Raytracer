@@ -121,19 +121,19 @@ module API =
     new Triangle(a, b, c, m) :> shape
 
   let mkPlane (m : texture) : shape = 
-    InfinitePlane(m) :> shape
+    new InfinitePlane(m) :> shape
 
   let mkImplicit (s : string) : baseShape = 
     mkImplicit s
 
   let mkPLY (filename : string) (smooth : bool) : baseShape = 
-    failwith "mkPoly not implemented"
+    TriangleMes.drawTriangles filename smooth
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
-    HollowCylinder(c, r, h, t) :> shape
+    new HollowCylinder(c, r, h, t) :> shape
 
-  let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape
-      = SolidCylinder(c, r, h, t, top, bottom) :> shape
+  let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape = 
+    new SolidCylinder(c, r, h, t, top, bottom) :> shape
 
   let mkDisk (c : point) (r : float) (t : texture) : shape = 
     new Disc(c, r, t) :> shape
@@ -266,15 +266,14 @@ module API =
   let transformLight (l : light) (t : transformation) : light = 
     TransformLight.transformLight l t
 
-
-
   /////////////////////////////////
   // extended API for teams of 7 //
   /////////////////////////////////
 
   /// Type of acceleration structure
-  type Acceleration = KDTree | RegularGrid | BVH
+  type Acceleration = Acceleration.Acceleration
+  //KDTree | RegularGrid | BVH
 
   /// Set which type of acceleration structure to use
   let setAcceleration (accel : Acceleration) : unit = 
-    Tracer.Basics.Acceleration.setAcceleration(accel)
+    failwith "not yet implemented"

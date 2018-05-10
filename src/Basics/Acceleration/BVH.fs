@@ -38,27 +38,27 @@ module BVH =
           let greater   = sortListByAxis (xs |> List.filter(great)) (boxes) axis
           lesser @ [x] @ greater
     
-    let rec quickselect k (indexList:list<int>) (boxes:list<BBox>) (axis:int) = 
-        match boxes with
-        | [] -> failwith "Cannot take largest element of empty list."
-        | [a] -> a
-        | x::xs ->
-            match axis with
-            | 0 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.X < x.highPoint.X) xs
-                    let l = List.length ys
-                    if k < l then quickselect k ys axis
-                    elif k > l then quickselect (k-l-1) zs axis
-                    else x
-            | 1 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Y < x.highPoint.Y) xs
-                    let l = List.length ys
-                    if k < l then quickselect k ys axis
-                    elif k > l then quickselect (k-l-1) zs axis
-                    else x
-            | 2 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Z < x.highPoint.Z) xs
-                    let l = List.length ys
-                    if k < l then quickselect k ys axis
-                    elif k > l then quickselect (k-l-1) zs axis
-                    else x
+    //let rec quickselect k (indexList:list<int>) (boxes:list<BBox>) (axis:int) = 
+    //    match boxes with
+    //    | [] -> failwith "Cannot take largest element of empty list."
+    //    | [a] -> a
+    //    | x::xs ->
+    //        match axis with
+    //        | 0 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.X < x.highPoint.X) xs
+    //                let l = List.length ys
+    //                if k < l then quickselect k ys axis
+    //                elif k > l then quickselect (k-l-1) zs axis
+    //                else x
+    //        | 1 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Y < x.highPoint.Y) xs
+    //                let l = List.length ys
+    //                if k < l then quickselect k ys axis
+    //                elif k > l then quickselect (k-l-1) zs axis
+    //                else x
+    //        | 2 ->  let (ys, zs) = List.partition (fun (arg:ShapeBBox) -> arg.highPoint.Z < x.highPoint.Z) xs
+    //                let l = List.length ys
+    //                if k < l then quickselect k ys axis
+    //                elif k > l then quickselect (k-l-1) zs axis
+    //                else x
 
     // Function for getting combined outer low and high from a array og bounding boxes.
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 

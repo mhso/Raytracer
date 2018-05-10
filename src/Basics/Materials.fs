@@ -14,6 +14,7 @@ type MatteMaterial
     ) = 
     inherit Material()
     
+    let pidivided = 1. / Math.PI
     member this.MatteCoefficient = matteCoefficient
     member this.MatteColour = matteColour
     default this.AmbientColour = ambientColour * ambientCoefficient
@@ -33,7 +34,7 @@ type MatteMaterial
 
         // Determine the colour
         if n * ld > 0. then
-            let diffuse = (kd * cd) / Math.PI
+            let diffuse = (kd * cd) * pidivided
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
             let matte = diffuse * volume * roundness   
@@ -311,15 +312,14 @@ type TransparentMaterial
     default this.ReflectionFactor = Colour.White
     default this.AmbientColour = Colour.Black
     default this.BounceMethod hitPoint = 
-        // Determine the perfect outgoing ray
-        let dir = hitPoint.Ray.GetDirection
-        let normal = hitPoint.Normal
-        let rayDirection = (dir + (-2. * (normal * dir)) * normal)
+        let (shouldRefract, cos_angle_in, cos_angle_out_exp) = this.ShouldRefract hitPoint
+        if shouldRefract then
+            [| this.RefractRay hitPoint (cos_angle_in, cos_angle_out_exp) |]
+        else
+            [||]
 
-        // Only one reflected ray
-        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
     default this.Bounce(shape, hitPoint, light) =
-        Colour.Black
+        Colour.White
 
     member this.ShouldRefract (hitPoint: HitPoint) = 
         let cos_angle_in = hitPoint.Normal * -hitPoint.Ray.GetDirection
@@ -329,9 +329,9 @@ type TransparentMaterial
             (true, cos_angle_in, cos_angle_out_exp)
         else
             (false, cos_angle_in, cos_angle_out_exp)
+
     member this.RefractRay (hitPoint: HitPoint) (cos_angle_in, cos_angle_out_exp) = 
         let cos_angle_out = Math.Sqrt(cos_angle_out_exp)
         let origin = hitPoint.InnerEscapedPoint
         let direction = ((1.) / (refrIndex)) * hitPoint.Ray.GetDirection - (cos_angle_out - (cos_angle_in) / (refrIndex)) * hitPoint.Normal
         Ray(origin, direction)
-        
