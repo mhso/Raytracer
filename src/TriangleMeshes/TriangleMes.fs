@@ -101,9 +101,7 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                             HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape, u, v)
                         else finalHit
                     | _ -> finalHit
-                member this.getBoundingBox () = 
-                    printfn "%A HL %A" newPoints.[0] newPoints.[1]
-                    BBox(newPoints.[0],newPoints.[1])
+                member this.getBoundingBox () = BBox(newPoints.[0],newPoints.[1])
                 member this.isInside p = failwith "Maybe kdTree has some function for this"
             }
             shape

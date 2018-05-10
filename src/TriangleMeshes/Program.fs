@@ -6,6 +6,7 @@ open Tracer.BaseShape
 open Tracer.Basics.Render
 open Tracer.Basics
 open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
@@ -113,6 +114,7 @@ let main _ =
                 [Transformation.rotateY (System.Math.PI/4.0);
                 Transformation.scale 6.0 6.0 6.0]
     let bunnyShape = Transform.transform urn t
+    let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
 
     //- CAMERA
     let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)

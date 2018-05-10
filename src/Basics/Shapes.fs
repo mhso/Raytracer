@@ -341,17 +341,11 @@ module Transform =
                 let firstPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[0]))
                 newPos.[0] <- firstPoint
                 newPos.[1] <- firstPoint
-                printfn "KAGE"
                 for i in 1..7 do 
                     let newPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[i]))
-                    printfn "bbBox %A" newPoint
                     newPos.[0] <- (newPos.[0]).Lowest newPoint
-                    printfn "0 %A" newPos.[0]
                     let pos1 = newPos.[1]
-                    printfn "to tal der sammenlignes nu %A og %A" pos1 newPoint
                     newPos.[1] <- pos1.Highest newPoint
-                    printfn "1 %A" newPos.[1]
-                printfn "TRANSLATED POS %A HL %A" newPos.[0] newPos.[1]
                 BBox(newPos.[0],newPos.[1])
             member this.isInside p = 
                 let oldP = matrixToPoint (Matrix.multi(getInvMatrix t, pointToMatrix p))
