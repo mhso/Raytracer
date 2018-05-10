@@ -6,6 +6,7 @@ open Tracer.ImplicitSurfaces.ExprToPoly
 open Tracer.ImplicitSurfaces.Main
 open Tracer.Basics
 open Tracer.ImplicitSurfaces.PolyToUnipoly
+open Tracer.Basics
 
 let allTest =
    
@@ -149,24 +150,13 @@ let allTest =
     Assert.Equal (expected, actualradical, "sphereTest2: sphere with radical")
 
   let test19 =
-
-    let bbFilter (s:Shape) : bool = 
-      try
-        s.getBoundingBox()
-        true
-      with
-      | _  -> false
-
-    let tex = Texture((fun x y -> MatteMaterial(Colour.Black, 1.0, Colour.Black, 1.0):>Material))
-    let imp = (mkImplicit "x").toShape tex
-    let ss = SphereShape(Point(0.,0.,0.), 2., tex):>Shape
-    let input = [imp;ss]
-    let actualBB = List.filter bbFilter input
-    let actualNoBB = List.filter (fun x -> bbFilter x = false) input
-    let expectedBB = [ss]
-    let expectedNoBB = [imp]
-    Assert.Equal (expectedBB, actualBB, "boundingBoxFilter, all the trues")
-    Assert.Equal (expectedNoBB, actualNoBB, "boundingBoxFilter, all the falses")
+    let sphere = (mkImplicit "x^2 + y^2 + z^2 - 1.0").toShape (Textures.mkMatTexture( PhongMaterial(Colour.Black, 0.2, Colour.Black, 0.8, Colour.Black, 0.7, 100)))
+    let actualInside = sphere.isInside (Point(0.,0.,0.))
+    let actualOutside = sphere.isInside (Point(0.,0.,2.))
+    let expectedInside = true
+    let expectedOutside = false
+    Assert.Equal (expectedInside, actualInside, "is.isInside true")
+    Assert.Equal (expectedOutside, actualOutside, "is.isInside false")
 
   test01
   test02

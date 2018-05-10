@@ -22,9 +22,9 @@ type Render(scene : Scene, camera : Camera) =
             filtershapes nobb (c::bb) cr
           with 
             | _ -> filtershapes (c::nobb) bb cr                   
-
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
 
+    // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
@@ -49,15 +49,15 @@ type Render(scene : Scene, camera : Camera) =
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
-                    let occlusion = this.Occlude light hitPoint
-                    let shadowColour = Colour.Black//this.CastShadow hitPoint light
+                    let occlusion = this.Occlude accel light hitPoint
+                    let shadowColour = this.CastShadow accel hitPoint light
                     acc + (colour + occlusion - shadowColour)) Colour.Black
             ambientLight + totalLight
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
 
-    member this.Occlude (light: Light) (hitPoint: HitPoint) = 
+    member this.Occlude accel (light: Light) (hitPoint: HitPoint) = 
         if light :? AmbientOccluder then
             let o = light :?> AmbientOccluder
             let samples = [for i=1 to o.Sampler.SampleCount do yield mapToHemisphere (o.Sampler.Next()) 1.]
@@ -68,17 +68,17 @@ type Render(scene : Scene, camera : Camera) =
                     let u = w % v
                     let spV = Tracer.Basics.Point(x,z,y).OrthonormalTransform(u, v, w)
                     let sp = Tracer.Basics.Point(spV)
-                    yield this.CastAmbientOcclusion sp o hitPoint ] |> List.average
+                    yield this.CastAmbientOcclusion accel sp o hitPoint ] |> List.average
         else 
             Colour.Black
 
         
 
-    member this.CastAmbientOcclusion (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
+    member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
         let direction = (hitPoint.Point - sp).Normalise
         let origin = hitPoint.EscapedPoint
         let ray = Ray(origin, direction)
-        let (hp:HitPoint) = this.GetFirstShadowHitPoint ray
+        let (hp:HitPoint) = this.GetFirstShadowHitPoint accel ray
         if hp.DidHit then
             o.MinIntensity * o.Intensity * o.Colour
         else
@@ -86,42 +86,20 @@ type Render(scene : Scene, camera : Camera) =
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
+      let rec findClosestHit (h:HitPoint) t' = function
+        | []    -> let hit = traverseIAcceleration accel ray bbshapes
+                   if hit.DidHit && hit.Time < t' then hit
+                   else h
+        | (s:Shape)::sl -> 
+                   let hit = s.hitFunction ray
+                   if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl
+                   else findClosestHit h t' sl
+      findClosestHit (HitPoint(ray)) infinity nobbshapes
 
-        // Get all hit points for shapes with no bounding boxes
-        let pointsThatHit = 
-            [for s in nobbshapes do yield s.hitFunction ray]
-                |> List.filter (fun hp -> hp.DidHit)
-        
-        // Add potential hitpoints from Acceleration structure shapes
-        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
-                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
-
-        // Check if the ray hit
-        if pointsThatHit.IsEmpty then
-            // If not, return an empty hit point
-            HitPoint(ray)
-        else
-            // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun hp -> hp.Time)
-
-    member this.GetFirstShadowHitPoint (ray:Ray) : HitPoint = 
-        
-        // Get all hit points
-        let pointsThatHit = 
-            [for s in this.Scene.Shapes do yield s.hitFunction ray]
-                |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
-                |> List.filter (fun (hp:HitPoint) -> not (hp.Material :? EmissiveMaterial)) // Filter out emisive materials
-        
-
-
-        // Check if the ray hit
-        if pointsThatHit.IsEmpty then
-            // If not, return an empty hit point
-            HitPoint(ray)
-        else
-            // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun hp -> hp.Time)
-
+    member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
+        let hit = this.GetFirstHitPoint accel ray
+        if hit.Material :? EmissiveMaterial then HitPoint(ray) // no shadow if we have direct rout to emissive material
+        else hit
 
     member this.GetFirstHitPointExcept (ray: Ray) (except: Shape) = 
 
@@ -139,13 +117,13 @@ type Render(scene : Scene, camera : Camera) =
             pointsThatHit |> List.minBy (fun (hp) -> hp.Time)
 
     // Returns the average shadow for a hitpoint and a light source
-    member this.CastShadow (hitPoint: HitPoint) (light: Light) : Colour = 
+    member this.CastShadow accel (hitPoint: HitPoint) (light: Light) : Colour = 
         if light :? AmbientLight 
             then Colour.Black
         else
             let shadowRays = light.GetShadowRay hitPoint
             let isShadow ray = 
-                let (hp) = (this.GetFirstShadowHitPoint ray)
+                let (hp) = (this.GetFirstShadowHitPoint accel ray)
                 if hp.DidHit then
                         Colour.White - this.Scene.Ambient.GetColour hitPoint
                     else 
@@ -187,9 +165,19 @@ type Render(scene : Scene, camera : Camera) =
             let dots = String.replicate (currentPct/2 + 1) "█"
             let white = String.replicate (50-(currentPct/2)) "░"
 
-            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
+            timer.Stop()
+            let msSpent = float timer.ElapsedMilliseconds
+            timer.Start()
+            let msRemaining = 
+              if currentPct <> 100 then ((100. - float currentPct) / float currentPct) * float msSpent
+              else 0.0000
+            let secondsRemaining = System.Math.Round (msRemaining * 0.001, 4)
+            Console.SetCursorPosition (0, Console.CursorTop - 2)
+            Console.Write("                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
+            printf ("\n\n                                             Time remaining: %.4f") secondsRemaining
+            printf " seconds                   "
             loadingIndex <- loadingIndex + 1
-    
+
     member this.PreProcessing =
         if ppRendering then
           Console.WriteLine(" 
@@ -207,7 +195,7 @@ type Render(scene : Scene, camera : Camera) =
                                  ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                          ░                                        
                                                                                                   ")
-          Console.WriteLine("                                                   Building KD-Trees..")
+          Console.WriteLine("                                                   Building Acceleration Structure..")
         else ()
         
         let kdTimer = Stopwatch.StartNew()
@@ -215,17 +203,15 @@ type Render(scene : Scene, camera : Camera) =
         kdTimer.Stop()
         
         if ppRendering then
-          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
+          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
           Console.WriteLine()
         else ()
 
-        timer.Start()
         accel
 
     member this.PostProcessing =
-
-        // Printing how much time was spent rendering
         timer.Stop()
+        // Printing how much time was spent rendering
         printfn ""
         printfn ""
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
@@ -251,6 +237,8 @@ type Render(scene : Scene, camera : Camera) =
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         
+        timer.Start()
+
         let mutable processed = 0.0
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
@@ -265,11 +253,16 @@ type Render(scene : Scene, camera : Camera) =
             let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
-            mutex.WaitOne() |> ignore
-            bmColourArray.[y,x] <- colour
-            processed <- processed + 1.0
-            this.CalculateProgress processed total
-            mutex.ReleaseMutex() |> ignore
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              mutex.ReleaseMutex() |> ignore
           ) |> ignore
         finally
           mutex.Dispose() |> ignore

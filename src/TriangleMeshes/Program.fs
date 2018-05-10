@@ -25,7 +25,7 @@ let main _ =
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
-    let position = Point(0.5,0.4,1.) //Position for bunny
+    //let position = Point(0.5,0.4,1.) //Position for bunny
     //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
     //let lookat = Point(0.,0.1,0.) //LookAt for happy
     let lookat = Point(0.05,0.1,0.) //LookAt for bunny
