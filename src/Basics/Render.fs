@@ -105,7 +105,13 @@ type Render(scene : Scene, camera : Camera) =
             pointsThatHit |> List.minBy (fun hp -> hp.Time)
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
-        traverseIAcceleration accel ray bbshapes
+        let hit = traverseIAcceleration accel ray bbshapes
+
+        if hit.Material :? EmissiveMaterial then
+           HitPoint(ray)
+        else
+        // If the ray hit, then return the first hit point
+           hit
 
 
     member this.GetFirstHitPointExcept (ray: Ray) (except: Shape) = 
