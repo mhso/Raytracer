@@ -131,8 +131,8 @@ module Main =
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
   // but adapted to a functional, immutable, approach
   let newtonRaphson f f' initial =
-    let tolerance = 0.000001 // 7 digit accuracy is desired
-    let epsilon = 0.0000000000001 // Don't want to divide by a number smaller than this
+    let tolerance = 0.00001 // 7 digit accuracy is desired
+    let epsilon = 0.00000001 // Don't want to divide by a number smaller than this
     let rec inner g iter =
       if iter < 0 then None
       else

@@ -32,7 +32,9 @@ module Acceleration =
         | BVHStructure(bvhStructure) -> traverse bvhStructure ray shapes
         | RegularGrid(rg) -> failwith "Not Implemented" //Look above...
 
-    type Acceleration = KDTree | BVH | RegularGrid
+    type Acceleration = KDTree
+                      | BVH
+                      | RegularGrid
 
     let setAcceleration (accel : Acceleration) : unit = 
         match accel with

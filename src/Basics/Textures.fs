@@ -11,15 +11,16 @@ module Textures =
         Texture func
 
     let getFunc (Texture func) = func
-
-//- For use with material-only data structures
-type TexturedMaterial(texture: Texture) = 
-    inherit Material()
-    default this.AmbientColour = Colour.Black
-    default this.ReflectionFactor = Colour.White
-    default this.Bounce(shape, hitPoint, light) = 
-        let func = Textures.getFunc texture
-        let mat = func hitPoint.U hitPoint.V
-        mat.Bounce(shape,hitPoint,light)
-    default this.BounceMethod hitPoint = [| hitPoint.Ray |]
-    default this.IsRecursive = false
+    
+    //- For use with material-only data structures
+    let getBaseTexturedMaterial(texture: Texture) = {
+            new Material() with
+                member this.AmbientColour = Colour.Black
+                member this.ReflectionFactor = Colour.White
+                member this.Bounce(shape, hitPoint, light) = 
+                    let func = getFunc texture
+                    let mat = func hitPoint.U hitPoint.V
+                    mat.Bounce(shape,hitPoint,light)
+                member this.BounceMethod hitPoint = [| hitPoint.Ray |]
+                member this.IsRecursive = false}
+        
