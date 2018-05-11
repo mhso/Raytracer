@@ -105,8 +105,8 @@ module Program =
     let chmutovcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
 
     //let render = Render(mkScene' sphere1, sphere1cam)
-    //let render = Render(mkScene' sphere2, sphere2cam)
-    let render = Render(mkScene' torus, toruscam)
+    let render = Render(mkScene' sphere2, sphere2cam)
+    //let render = Render(mkScene' torus, toruscam)
     //let render = Render(mkScene' heart, heartcam)
     //let render = Render(mkScene' (chmutov 2), chmutovcam)
     //let render = Render(mkScene' (chmutov 3), chmutovcam)

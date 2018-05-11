@@ -86,18 +86,19 @@ module Main =
     let bSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
     let hitFunction (r:Ray) =
-      let m = getVarMap r
-      let a = solveSE m 0.0 aSimple
-      let b = solveSE m 0.0 bSimple
+      let ox,oy,oz = r.GetOrigin.GetCoord
+      let dx,dy,dz = r.GetDirection.GetCoord
+      let a = solveSE aSimple ox oy oz dx dy dz
+      let b = solveSE bSimple ox oy oz dx dy dz
       let t = (-b) / a
       if t < 0.0 then None
       else 
         let c = new Colour(1.,1.,1.)
-        Some (t, normalVector (r.PointAtTime t) dx dy dz)
+        Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
     hitFunction
 
   let getSecondDegreeHF (P m) e :hf = 
@@ -110,14 +111,16 @@ module Main =
     let cSimple = match Map.tryFind 0 m with
                   | Some v -> v
                   | None   -> SE []
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
+
     let hitFunction (r:Ray) =
-      let m = getVarMap r
-      let a = solveSE m 0.0 aSimple
-      let b = solveSE m 0.0 bSimple
-      let c = solveSE m 0.0 cSimple
+      let ox,oy,oz = r.GetOrigin.GetCoord
+      let dx,dy,dz = r.GetDirection.GetCoord
+      let a = solveSE aSimple ox oy oz dx dy dz
+      let b = solveSE bSimple ox oy oz dx dy dz
+      let c = solveSE cSimple ox oy oz dx dy dz
       if discriminant a b c < 0.0 then None
       else
         let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
@@ -125,7 +128,7 @@ module Main =
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', normalVector hp dx dy dz)
+          Some (t', normalVector hp pdx pdy pdz)
     hitFunction
 
   let nrtolerance = 10.**(-7.)
@@ -146,7 +149,7 @@ module Main =
             then Some g'
           else
             inner g' (iter - 1)
-    inner initial 20
+    inner initial 15
 
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
@@ -178,7 +181,7 @@ module Main =
                     else
                       let hp = r.PointAtTime t
                       Some (t, normalVector hp pdx pdy pdz)
-      findx 0.0 100.0 20 0
+      findx 0.0 100.0 15 0
     hitFunction
 
   let mkImplicit (s:string) : baseShape =

@@ -10,8 +10,8 @@ module PolyToUnipoly =
   type unipoly = UP of (int * float) list
 
   let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
-
-  let polyToUnipoly (p: (int*simpleExpr) list) ox oy oz dx dy dz : unipoly =
+  
+  let solveSE (SE se) ox oy oz dx dy dz =
     let asolver = function
     | ANum c         -> c
     | AExponent(e,x) -> 
@@ -26,8 +26,10 @@ module PolyToUnipoly =
           | _    -> failwith "polyToUnipoly: unmatched clause"
         pown v x
     let agsolver ag = List.fold (fun acc a -> acc * asolver a) 1.0 ag
-    let sesolver se = List.fold (fun acc ag -> acc + agsolver ag) 0.0 se
-    UP (List.fold (fun acc (n, (SE se)) -> (n, sesolver se)::acc) [] p)
+    List.fold (fun acc ag -> acc + agsolver ag) 0.0 se
+
+  let polyToUnipoly (p: (int*simpleExpr) list) ox oy oz dx dy dz : unipoly =
+    UP (List.fold (fun acc (n, (SE se)) -> (n, solveSE (SE se) ox oy oz dx dy dz)::acc) [] p)
 
   let solveUnipoly (UP up:unipoly) t =
     List.fold (fun acc (n,c) -> if n > 0 then (acc + (pown t n) * c)

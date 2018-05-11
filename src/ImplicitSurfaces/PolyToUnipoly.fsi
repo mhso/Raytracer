@@ -10,7 +10,8 @@ module PolyToUnipoly =
     static member ( * ) : unipoly * (int * float) -> unipoly
   type simpleExpr = ExprToPoly.simpleExpr
 
-  val polyToUnipoly :  (int*simpleExpr) list -> float -> float -> float -> float -> float -> float -> unipoly
+  val solveSE : simpleExpr -> float -> float -> float -> float -> float -> float -> float
+  val polyToUnipoly : (int*simpleExpr) list -> float -> float -> float -> float -> float -> float -> unipoly
   val solveUnipoly : unipoly -> float -> float
   val unipolyDerivative : unipoly -> unipoly
   val sturmSeq : unipoly -> unipoly -> unipoly list
