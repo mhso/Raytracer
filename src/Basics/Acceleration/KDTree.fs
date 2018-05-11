@@ -104,6 +104,9 @@ module KD_tree =
         | 2 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Z < splitBox.highPoint.Z)
                ((f @ [splitBox]), s)
 
+    let mutable isFirstNode = true
+    let mutable right = 0
+    let mutable left = 0
 
     let rec createKDTreeFromList (boxes:list<ShapeBBox>) = 
         match boxes with
@@ -112,22 +115,33 @@ module KD_tree =
             let (MaxX, MinX) = findMaxMin boxes 0
             let (MaxY, MinY) = findMaxMin boxes 1
             let (MaxZ, MinZ) = findMaxMin boxes 2
+            printfn "MinMax found"
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             let XDistance = MaxX - MinX
             let YDistance = MaxY - MinY
             let ZDistance = MaxZ - MinZ
             let rec buildNode boxes (xVisited, yVisited, zVisited, axis) = 
+                printfn "buildNode started"
                 let buildNodeWithSpecifiedAxis boxes axis = 
+                    printfn "buoldnode with axis"
                     if List.length boxes <= 1 then Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
                     else
                     let splitBox = quickselect ((List.length boxes)/2) boxes axis
+                    printfn "quickSelect"
                     let (first, second) = partitionAfterSelect boxes splitBox axis
+                    printfn "partition"
                     let splitValue = findPointAxis (first.[(List.length first)-1].highPoint) axis
+                    printfn "splitvalue"
                     let newSecond = second
                     let firstlength = float(List.length first)
                     let secondLength = float(List.length second)
                     let newFirst = first @ (List.filter(fun n -> (findPointAxis(n.lowPoint) axis) < splitValue) second)
+                    printfn "list filter"
+                    if isFirstNode = true then isFirstNode <- false
+                                               right <- newSecond.Length
+                                               left <- newFirst.Length
+                                               printfn "left: %A, right: %A" left right
                     if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
                     else if List.length newFirst = List.length boxes && List.length newSecond = List.length boxes then Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
                     else if List.length newFirst = List.length boxes then Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), Leaf(BBox(KDMinXYZ, KDMaxXYZ),newFirst), createKDTreeFromList(newSecond))
@@ -154,7 +168,9 @@ module KD_tree =
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
         else
-            createKDTreeFromList ShapeBoxList
+            let kdTree = createKDTreeFromList ShapeBoxList
+            printfn "left: %A, right: %A" left right
+            kdTree
 
     let findRayDirectionFromA (a:int) (r:Ray) =
         match a with
@@ -168,8 +184,19 @@ module KD_tree =
         | 1 -> r.GetOrigin.Y
         | 2 -> r.GetOrigin.Z
 
+    let getFirstHitPoint (shapeBoxes:list<ShapeBBox>) (shapes:array<Shape>) (ray:Ray) : HitPoint = 
+      let rec findClosestHit (h:HitPoint) t' (shapeBoxes:list<ShapeBBox>) (shapes:array<Shape>) = 
+        match shapeBoxes with
+        | []    -> h
+        | (s:ShapeBBox)::sl -> 
+                   let hit = shapes.[s.shape].hitFunction ray
+                   if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl shapes
+                   else findClosestHit h t' sl shapes
+      findClosestHit (HitPoint(ray)) infinity shapeBoxes shapes
+
 
     let closestHit (shapeBoxes:list<ShapeBBox>) (ray:Ray) (shapes:array<Shape>) =
+        
         // Get all hit points
         //let pointsThatHit = 
         //    [for s in shapeBoxes do yield (let hitBox = shapes.[s.shape].getBoundingBox().intersect ray
@@ -178,17 +205,17 @@ module KD_tree =
         //                                   | None -> HitPoint(ray)
         //                                   )]
         //        |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
-        let pointsThatHit = 
-            [for s in shapeBoxes do yield (shapes.[s.shape].hitFunction ray )]
-                |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
-        
+        //let pointsThatHit = 
+        //    [for s in shapeBoxes do yield (shapes.[s.shape].hitFunction ray )]
+        //        |> List.filter (fun (hp:HitPoint) -> hp.DidHit)
+        let hit = getFirstHitPoint shapeBoxes shapes ray
         // Check if the ray hit
-        if pointsThatHit.IsEmpty then
+        if hit.DidHit then
             // If not, return an empty hit point
-            None
+            Some (hit)
         else
             // If the ray hit, then return the first hit point
-            Some (pointsThatHit |> List.minBy (fun (hp) -> hp.Time))
+            None
     
     let order (d:float, left:KDTree, right:KDTree) =
         if d > 0. then (left, right)
