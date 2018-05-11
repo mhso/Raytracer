@@ -1,7 +1,6 @@
-﻿namespace Tracer
+﻿namespace Tracer.Basics
 
 module BVH = 
-    open Tracer.Basics
     
     // Used for debug, will print to console etc. 
     let debug = false

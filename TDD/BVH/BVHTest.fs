@@ -1,7 +1,6 @@
 ﻿module BVHTest
 
 open Tracer.Basics
-open Tracer.BVH
 open Assert
 
 let allTest = 

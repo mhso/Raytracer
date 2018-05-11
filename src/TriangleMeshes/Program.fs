@@ -23,7 +23,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.BVH
+    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -140,7 +140,7 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    let shapes: Shape list      = [bunnyShape]
+    let shapes: Shape list      = [sL]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
