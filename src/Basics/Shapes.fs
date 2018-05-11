@@ -54,15 +54,15 @@ type Disc(center:Point, radius:float, tex:Texture)=
     member this.center = center
     member this.radius = radius // must not be a negative number
     member this.tex = tex
-    member this.bBox =
+    member this.bBox = 
         let e = 0.000001
-        let lx = (center.X - radius) - e
-        let ly = (center.Y - radius) - e
-        let lz = 0.0 - e
+        let lx = -radius - e
+        let ly = -radius - e
+        let lz = -e
 
-        let hx = (center.X + radius) + e
-        let hy = (center.Y + radius) + e
-        let hz = 0.0 + e
+        let hx = radius + e
+        let hy = radius + e
+        let hz = e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -607,14 +607,16 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         //i continue no matter what 
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        if s1Time = s2Time then HitPoint(r)
-        else
-            if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
-                                                          this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                                      else s1Hit //if the hit, is not inside s2, we have found the hitpoint
-            else if s1.isInside (r.PointAtTime s2Time) then 
-                    this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                 else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+        if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
+                                                      let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                                                      let newOrigin = (r.PointAtTime s1Time).Move moveVector
+                                                      this.unionHitFunctionInside (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                  else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+        else if s1.isInside (r.PointAtTime s2Time) then 
+                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
+                let newOrigin = (r.PointAtTime s2Time).Move moveVector
+                this.unionHitFunctionInside (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
