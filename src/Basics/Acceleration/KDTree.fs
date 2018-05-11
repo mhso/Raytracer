@@ -95,18 +95,63 @@ module KD_tree =
         | 1 -> point.Y
         | 2 -> point.Z
 
-    let partitionAfterSelect (boxes:list<ShapeBBox>) (splitBox:ShapeBBox) axis = 
+    let partitionAfterSelect2 (boxes:list<ShapeBBox>) (splitV:float) axis =
+        let rec inner left right (tosort:list<ShapeBBox>) axis = 
+            match tosort with
+              | [] -> left,right
+              | c::cr -> 
+                match axis with
+                | 0 -> let l = if c.lowPoint.X < splitV then c::left
+                               else left
+                       let r = if c.highPoint.X > splitV then c::right
+                               else right
+                       inner l r cr axis
+                | 1 -> let l = if c.lowPoint.Y < splitV then c::left
+                               else left
+                       let r = if c.highPoint.Y > splitV then c::right
+                               else right
+                       inner l r cr axis
+                | 2 -> let l = if c.lowPoint.Z < splitV then c::left
+                               else left
+                       let r = if c.highPoint.Z > splitV then c::right
+                               else right
+                       inner l r cr axis
+        inner [] [] boxes axis
+
+    let partitionAfterSelect (boxes:list<ShapeBBox>) (splitV:float) axis = 
         match axis with
-        | 0 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.X < splitBox.highPoint.X)
-               ((f @ [splitBox]), s)
-        | 1 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Y < splitBox.highPoint.Y)
-               ((f @ [splitBox]), s)
-        | 2 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Z < splitBox.highPoint.Z)
-               ((f @ [splitBox]), s)
+        | 0 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.X < splitV)
+               (f, s)
+        | 1 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Y < splitV)
+               (f, s)
+        | 2 -> let (f, s) = boxes |> List.partition (fun arg -> arg.highPoint.Z < splitV)
+               (f, s)
 
     let mutable isFirstNode = true
     let mutable right = 0
     let mutable left = 0
+
+    let findSplitValue (boxes:list<ShapeBBox>) axis = 
+        let boxesLength = float boxes.Length
+        if boxesLength = 0. then 0.
+        else
+        let rec inner acc (boxes:list<ShapeBBox>) axis = 
+            match boxes with
+            | [] -> acc/boxesLength
+            | x::xs -> 
+                match axis with
+                | 0 -> inner(acc+((x.highPoint.X+x.lowPoint.X)/2.)) xs axis
+                | 1 -> inner(acc+((x.highPoint.Y+x.lowPoint.Y)/2.)) xs axis
+                | 2 -> inner(acc+((x.highPoint.Z+x.lowPoint.Z)/2.)) xs axis
+        inner 0.0 boxes axis
+
+    let mutable avgLeafSize = 0.
+
+    let mutable totalLeafs = 0
+
+    let mutable totalLeafSize = 0
+
+    let mutable maxLeafSize = 0
 
     let rec createKDTreeFromList (boxes:list<ShapeBBox>) = 
         match boxes with
@@ -115,40 +160,63 @@ module KD_tree =
             let (MaxX, MinX) = findMaxMin boxes 0
             let (MaxY, MinY) = findMaxMin boxes 1
             let (MaxZ, MinZ) = findMaxMin boxes 2
-            printfn "MinMax found"
+            //printfn "MinMax found"
             let KDMaxXYZ = Point(MaxX, MaxY, MaxZ)
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             let XDistance = MaxX - MinX
             let YDistance = MaxY - MinY
             let ZDistance = MaxZ - MinZ
             let rec buildNode boxes (xVisited, yVisited, zVisited, axis) = 
-                printfn "buildNode started"
+                //printfn "buildNode started"
                 let buildNodeWithSpecifiedAxis boxes axis = 
-                    printfn "buoldnode with axis"
-                    if List.length boxes <= 1 then Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
+                    //printfn "buoldnode with axis"
+                    if List.length boxes <= 1 then if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+                                                   totalLeafs <- totalLeafs+1
+                                                   totalLeafSize <- totalLeafSize+boxes.Length
+                                                   Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
                     else
-                    let splitBox = quickselect ((List.length boxes)/2) boxes axis
-                    printfn "quickSelect"
-                    let (first, second) = partitionAfterSelect boxes splitBox axis
-                    printfn "partition"
-                    let splitValue = findPointAxis (first.[(List.length first)-1].highPoint) axis
-                    printfn "splitvalue"
-                    let newSecond = second
+                    let splitV = findSplitValue boxes axis
+                    //printfn "quickkSelect"
+                    let (first, second) = partitionAfterSelect2 boxes splitV axis
+                    //printfn "%A" first
+                    //printfn "%A" second
+                    //printfn "%A" splitV
+                    //printfn "Original Length%A" boxes.Length
+                    //printfn "axis: %i" axis
+                    //printfn "%A %A" first.Length second.Length
+                    //printfn "partition"
+                    let splitValue = splitV
+                    //printfn "splitvalue"
                     let firstlength = float(List.length first)
                     let secondLength = float(List.length second)
-                    let newFirst = first @ (List.filter(fun n -> (findPointAxis(n.lowPoint) axis) < splitValue) second)
-                    printfn "list filter"
-                    if isFirstNode = true then isFirstNode <- false
-                                               right <- newSecond.Length
-                                               left <- newFirst.Length
-                                               printfn "left: %A, right: %A" left right
-                    if ((float(List.length newFirst))-firstlength) > (((secondLength*60.))/100.) then buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
-                    else if List.length newFirst = List.length boxes && List.length newSecond = List.length boxes then Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
-                    else if List.length newFirst = List.length boxes then Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), Leaf(BBox(KDMinXYZ, KDMaxXYZ),newFirst), createKDTreeFromList(newSecond))
-                    else if List.length newSecond = List.length boxes then Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), Leaf(BBox(KDMinXYZ, KDMaxXYZ),newSecond))
-                    else Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(newFirst), createKDTreeFromList(newSecond))
+                    //printfn "list filter"
+                    //if isFirstNode = true then isFirstNode <- false
+                    //                           right <- newSecond.Length
+                    //                           left <- newFirst.Length
+                    //                           printfn "left: %A, right: %A" left right
+                    if (firstlength+secondLength)/(float(boxes.Length)) > 1.3  then buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                    else if List.length first = List.length boxes && List.length second = List.length boxes then 
+                                                                                                                 if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+                                                                                                                 totalLeafs <- totalLeafs+1
+                                                                                                                 totalLeafSize <- totalLeafSize+boxes.Length
+                                                                                                                 Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
+                    else if List.length first = List.length boxes then 
+                                                                       if boxes.Length > maxLeafSize then maxLeafSize <- first.Length
+                                                                       totalLeafs <- totalLeafs+1
+                                                                       totalLeafSize <- totalLeafSize+first.Length
+                                                                       Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), Leaf(BBox(KDMinXYZ, KDMaxXYZ),first), createKDTreeFromList(second))
+                    else if List.length second = List.length boxes then 
+                                                                        if boxes.Length > maxLeafSize then maxLeafSize <- first.Length
+                                                                        totalLeafs <- totalLeafs+1
+                                                                        totalLeafSize <- totalLeafSize+first.Length
+                                                                        Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(first), Leaf(BBox(KDMinXYZ, KDMaxXYZ),second))
+                    else Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList(first), createKDTreeFromList(second))
                 if axis <= 2 then buildNodeWithSpecifiedAxis boxes axis
-                else Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
+                else 
+                     if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+                     totalLeafs <- totalLeafs+1
+                     totalLeafSize <- totalLeafSize+boxes.Length
+                     Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
             buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, false, false, false))
 
     let buildKDTree (shapes:array<Shape>) = 
@@ -168,8 +236,11 @@ module KD_tree =
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
         else
+            printfn "KD-Build initialized..."
+            printfn "Total shape count: %A" ShapeBoxList.Length
             let kdTree = createKDTreeFromList ShapeBoxList
-            printfn "left: %A, right: %A" left right
+            printfn "MaxLeafSize: %A, Total Leafs: %A" maxLeafSize totalLeafs
+            printfn "Total Leaf Size: %A, Avg Leaf Size: %A" totalLeafSize (totalLeafSize/totalLeafs)
             kdTree
 
     let findRayDirectionFromA (a:int) (r:Ray) =
