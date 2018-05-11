@@ -91,7 +91,7 @@ module API =
     EmissiveMaterial(c, i) :> material
 
   let mkTransparent (cf_in : colour) (cf_out : colour) (eta_in : float) (eta_out : float) : material = 
-    failwith "mkTransparent not implemented"
+    TransparentMaterial(cf_in, cf_out, eta_in, eta_out) :> material
 
   let mkTexture (f : float -> float -> material) : texture = 
     Textures.mkTexture f

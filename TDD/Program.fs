@@ -4,7 +4,7 @@
 let main argv =
     let before = new System.TimeSpan()
     printfn("-=-=-=-=-=-=- BVH Test -=-=-=-=-=-=-")
-    BVHTest.allTest
+    //BVHTest.allTest
     printfn("-=-=-=-=-=-=- BVH Test -=-=-=-=-=-=-")
     RegularGridsTest.allTest
     printfn("-=-=-=-=-=-=- KD-Tree Test -=-=-=-=-=-=-")
