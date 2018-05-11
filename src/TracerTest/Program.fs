@@ -4,14 +4,14 @@ open Tracer.API
 let allTargets : Target list =
   List.concat 
     [
-     //Material.renderRegular;
+     Material.renderRegular;
      //Material.renderMulti;
      //Material.renderHigh;
      //ThinLens.render;
      //AreaLights.render;
      //Shapes.render;
      //Texture.render;
-     Transparency.render;
+     //Transparency.render;
      //Shapes.render;
      //AffineTransformations.render true;
      //AffineTransformations.render false;
