@@ -122,11 +122,6 @@ let main _ =
 
     //- CAMERA
     let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)
-    printfn "w %A" camera.W
-    printfn "v %A" camera.V
-    printfn "u %A" camera.U
-    printfn "pw %A" camera.Pw
-    printfn "ph %A" camera.Ph
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -155,6 +150,8 @@ let main _ =
     let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
+
+    //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
 
     let render = new Render(scene, camera)
     ignore (render.RenderToFile render.RenderParallel "image.bmp")
