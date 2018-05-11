@@ -5,31 +5,40 @@ module PolyToUnipoly =
   
   type poly = ExprToPoly.poly
   type simpleExpr = ExprToPoly.simpleExpr
+  type iAtom = IANum of float | IAExponent of int * int
+  type iAG = iAtom list
+  type simpleIntExpr = SIE of iAG list
 
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
   type unipoly = UP of (int * float) list
 
   let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
   
-  let solveSE (SE se) ox oy oz dx dy dz =
-    let asolver = function
-    | ANum c         -> c
-    | AExponent(e,x) -> 
-        let v =
+  let seToSIE (SE se) =
+    let asubst (a:atom) : iAtom =
+      match a with
+      | ANum c         -> IANum c
+      | AExponent(e,x) ->
           match e with
-          | "ox" -> ox
-          | "oy" -> oy
-          | "oz" -> oz
-          | "dx" -> dx
-          | "dy" -> dy
-          | "dz" -> dz
-          | _    -> failwith "polyToUnipoly: unmatched clause"
-        pown v x
-    let agsolver ag = List.fold (fun acc a -> acc * asolver a) 1.0 ag
-    List.fold (fun acc ag -> acc + agsolver ag) 0.0 se
+          | "ox" -> IAExponent(0,x)
+          | "oy" -> IAExponent(1,x)
+          | "oz" -> IAExponent(2,x)
+          | "dx" -> IAExponent(3,x)
+          | "dy" -> IAExponent(4,x)
+          | "dz" -> IAExponent(5,x)
+          | _    -> failwith "SEtoSIE: unmatched clause"
+    let agtrav ag = List.foldBack (fun a acc -> asubst a :: acc) ag []
+    SIE (List.foldBack (fun ag acc -> agtrav ag :: acc) se [])
 
-  let polyToUnipoly (p: (int*simpleExpr) list) ox oy oz dx dy dz : unipoly =
-    UP (List.fold (fun acc (n, (SE se)) -> (n, solveSE (SE se) ox oy oz dx dy dz)::acc) [] p)
+  let solveSIE (SIE sie) (valArr:float array) =
+    let iasolver = function
+    | IANum c         -> c
+    | IAExponent(e,x) -> pown (valArr.[e]) x
+    let iagsolver iag = List.fold (fun acc ia -> acc * iasolver ia) 1.0 iag
+    List.fold (fun acc iag -> acc + iagsolver iag) 0.0 sie
+
+  let toUnipoly (lis: (int*simpleIntExpr) list) valArr : unipoly =
+    UP (List.fold (fun acc (n, (SIE sie)) -> (n, solveSIE (SIE sie) valArr)::acc) [] lis)
 
   let solveUnipoly (UP up:unipoly) t =
     List.fold (fun acc (n,c) -> if n > 0 then (acc + (pown t n) * c)
