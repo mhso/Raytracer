@@ -15,7 +15,7 @@ module Acceleration =
         | "KDTree" -> KDTree(buildKDTree shapes)
         | "BVH"    -> BVHStructure (build shapes)
         | "RG"     -> failwith "Not Implemented"
-        | _        -> failwith "Unknown Acceleration Structure..."
+        | _        -> KDTree(buildKDTree shapes) //Default...
 
     let getAccelBoundingBox (accel:IAcceleration) = 
         match accel with

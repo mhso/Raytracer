@@ -1,9 +1,9 @@
 ﻿module GeneralTest
 
-open TracerTestSuite
+//open TracerTestSuite
 
-    [<EntryPoint>]
-    let main args = 
-        ignore Material.renderRegular
-        0
+//    [<EntryPoint>]
+//    let main args = 
+//        ignore Material.renderRegular
+//        0
     
