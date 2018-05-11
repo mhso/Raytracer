@@ -177,9 +177,30 @@ module KD_tree =
                                                    totalLeafSize <- totalLeafSize+boxes.Length
                                                    Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
                     else
-                    let splitV = findSplitValue boxes axis
-                    //printfn "quickkSelect"
-                    let (first, second) = partitionAfterSelect2 boxes splitV axis
+                    //let splitV = findSplitValue boxes axis
+                    ////printfn "quickkSelect"
+                    //let (first, second) = partitionAfterSelect2 boxes splitV axis
+
+                    let splitX = findSplitValue boxes 0
+
+                    let splitY = findSplitValue boxes 1
+                    
+                    let splitZ = findSplitValue boxes 2
+
+                    let (firstX, secondX) = partitionAfterSelect2 boxes splitX 0
+                    let (firstY, secondY) = partitionAfterSelect2 boxes splitY 1
+                    let (firstZ, secondZ) = partitionAfterSelect2 boxes splitZ 2
+
+                    let (xIntersect, yIntersect, zIntersect) = ((((float firstX.Length)+(float secondX.Length))/(float boxes.Length)),
+                                                                (((float firstY.Length)+(float secondY.Length))/(float boxes.Length)),
+                                                                (((float firstZ.Length)+(float secondZ.Length))/(float boxes.Length)))
+
+                    let (first, second, splitValue, axis) = if xIntersect <= yIntersect && xIntersect <= zIntersect then
+                                                                (firstX, secondX, splitX, 0)
+                                                            else if yIntersect < xIntersect && yIntersect <= zIntersect then
+                                                                (firstY, secondY, splitY, 1)
+                                                            else (firstZ, secondZ, splitZ, 2)
+
                     //printfn "%A" first
                     //printfn "%A" second
                     //printfn "%A" splitV
@@ -187,7 +208,7 @@ module KD_tree =
                     //printfn "axis: %i" axis
                     //printfn "%A %A" first.Length second.Length
                     //printfn "partition"
-                    let splitValue = splitV
+                    //let splitValue = splitV
                     //printfn "splitvalue"
                     let firstlength = float(List.length first)
                     let secondLength = float(List.length second)
@@ -196,7 +217,11 @@ module KD_tree =
                     //                           right <- newSecond.Length
                     //                           left <- newFirst.Length
                     //                           printfn "left: %A, right: %A" left right
-                    if (firstlength+secondLength)/(float(boxes.Length)) > 1.3  then buildNode boxes (findNextAxis (XDistance, YDistance, ZDistance, xVisited, yVisited, zVisited))
+                    if (firstlength+secondLength)/(float(boxes.Length)) > 1.3  then 
+                        if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+                        totalLeafs <- totalLeafs+1
+                        totalLeafSize <- totalLeafSize+boxes.Length
+                        Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
                     else if List.length first = List.length boxes && List.length second = List.length boxes then 
                                                                                                                  if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
                                                                                                                  totalLeafs <- totalLeafs+1
