@@ -29,7 +29,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -49,6 +49,7 @@ type Render(scene : Scene, camera : Camera) =
       let random = System.Random()  
       randomStrings.[random.Next(randomStrings.Length)]
 
+    let idOfScene = Acceleration.listOfKDTree.Length + 1
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
@@ -87,8 +88,6 @@ type Render(scene : Scene, camera : Camera) =
                     yield this.CastAmbientOcclusion accel sp o hitPoint ] |> List.average
         else 
             Colour.Black
-
-        
 
     member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
         let direction = (hitPoint.Point - sp).Normalise
@@ -195,7 +194,7 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
-        let accel = Acceleration.createAcceleration bbshapes
+        let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
         if ppRendering then
           Console.WriteLine(" 
         
