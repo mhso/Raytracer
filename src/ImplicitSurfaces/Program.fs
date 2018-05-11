@@ -117,5 +117,5 @@ module Program =
     //let render = Render(mkScene' testshape, testshapecam)
     //let render = Render(mkScene' linktorus, linktoruscam)
 
-    render.RenderToScreen render.Render |> ignore
+    render.RenderToScreen render.RenderParallel |> ignore
     0

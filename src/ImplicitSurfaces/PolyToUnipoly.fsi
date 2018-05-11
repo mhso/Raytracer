@@ -4,12 +4,13 @@ module PolyToUnipoly =
 
   type poly = ExprToPoly.poly
   type unipoly = 
-    (int * float) list
+    | UP of (int * float) list
     static member ( - ) : unipoly * unipoly -> unipoly
     static member ( % ) : unipoly * unipoly -> unipoly * unipoly
     static member ( * ) : unipoly * (int * float) -> unipoly
+  type simpleExpr = ExprToPoly.simpleExpr
 
-  val polyToUnipoly : poly -> float -> float -> float -> float -> float -> float -> unipoly
+  val polyToUnipoly :  (int*simpleExpr) list -> float -> float -> float -> float -> float -> float -> unipoly
   val solveUnipoly : unipoly -> float -> float
   val unipolyDerivative : unipoly -> unipoly
   val sturmSeq : unipoly -> unipoly -> unipoly list

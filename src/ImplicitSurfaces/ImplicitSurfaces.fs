@@ -79,8 +79,6 @@ module Main =
       .Add("dy", r.GetDirection.Y)
       .Add("dz", r.GetDirection.Z)
 
-  let 
-
   let getFirstDegreeHF (P m) e : hf =
     let aSimple = match Map.tryFind 1 m with
                   | Some v -> v
@@ -152,12 +150,13 @@ module Main =
 
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
-    let hitFunction r =
-      let m = getVarMap r
-      let up = polyToUnipoly p m
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
+    let hitFunction (r:Ray) =
+      let ox,oy,oz = r.GetOrigin.GetCoord
+      let dx,dy,dz = r.GetDirection.GetCoord
+      let up = polyToUnipoly p ox oy oz dx dy dz
       let up' = unipolyDerivative up
       let ss = sturmSeq up up'
       let rec findx l h max itcount =
@@ -178,7 +177,7 @@ module Main =
                       findx lo mid 5 (itcount + 1)
                     else
                       let hp = r.PointAtTime t
-                      Some (t, normalVector hp dx dy dz)
+                      Some (t, normalVector hp pdx pdy pdz)
       findx 0.0 100.0 20 0
     hitFunction
 
@@ -189,7 +188,7 @@ module Main =
       match getOrder m with
       | 1 -> getFirstDegreeHF (P m) exp
       | 2 -> getSecondDegreeHF (P m) exp
-      | _ -> getHigherDegreeHF (P m) exp
+      | _ -> getHigherDegreeHF (toList (P m)) exp
     let bsh = 
         { new baseShape() with
             member this.toShape tex =
