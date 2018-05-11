@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.,2.,-5.)
+    let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -141,9 +141,15 @@ let main _ =
 
     //Fancy CSG
     let texSolidYellow = Textures.mkMatTexture(matteYellow)
+    let texSolidGreen = Textures.mkMatTexture(matteGreen)
+    let texSolidBlue = Textures.mkMatTexture(matteBlue)
     let solid1 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
     let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
     let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
+
+
+    let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidGreen, texSolidGreen, texSolidGreen)
+    let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidBlue, texSolidBlue, texSolidBlue)
 
     let pi = Math.PI
 
@@ -168,7 +174,7 @@ let main _ =
 
     let csgSubTest = CSG(boxForcsg, csgUnion1, Subtraction)
 
-    let shapes : Shape List = [csgSubTest]
+    let shapes : Shape List = [csgUnion1]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
@@ -188,7 +194,7 @@ let main _ =
     let lightFront     = PointLight(Colour.White, 1.5, Point(2.,2.,7.))
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(1.,3.,0.))
     let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
-    let lightRight     = PointLight(Colour.White, 1., Point(0., -30., 0.))
+    let lightRight     = PointLight(Colour.White, 1., Point(-30., 0., 0.))
 
     let lightAmbient   = AmbientLight(Colour.White, 0.3)
     //let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
@@ -197,7 +203,7 @@ let main _ =
     //let plane          = InfinitePlane(matteWhite)
 
     //- FINAL
-    let lights: Light list      = [lightFront; lightBack; lightRight]
+    let lights: Light list      = [lightFront;]
     //let spheres: Shape list     = [sL;sC;sR;plane]
     let scene                   = Scene(shapes, lights, lightAmbient, 100)
 
