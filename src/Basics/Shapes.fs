@@ -165,13 +165,13 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     member this.tex = tex
     member this.bBox = //no point on the sphere should be larger than the center point + the radius...
         let e = 0.000001
-        let lx = (origin.X - radius) - e
-        let ly = (origin.Y - radius) - e
-        let lz = (origin.Z - radius) - e
+        let lx = - radius - e
+        let ly = - radius - e
+        let lz = - radius - e
 
-        let hx = (origin.X + radius) + e
-        let hy = (origin.Y + radius) + e
-        let hz = (origin.Z + radius) + e
+        let hx = radius + e
+        let hy = radius + e
+        let hz = radius + e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -229,13 +229,13 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.bBox = 
        
         let e = 0.000001
-        let lx = (center.X - radius) - e
-        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
-        let lz = (center.Z - radius) - e
+        let lx = - radius - e
+        let ly = - (height/2.) - e //height instead of radius for the Y coord
+        let lz = - radius - e
 
-        let hx = (center.X + radius) + e
-        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
-        let hz = (center.Z + radius) + e
+        let hx = radius + e
+        let hy = (height/2.) + e //height instead of radius for the Y coord
+        let hz = radius + e
         
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
@@ -372,7 +372,10 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
         Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
     //builds the hollow cylinder
     member this.hollowCylinder = HollowCylinder(center, radius, height, cylinder)
-    member this.bBox =
+    member this.bBox = this.hollowCylinder.bBox
+        //should only need the BBox of the Hollow Cylinder
+
+        (*
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
@@ -383,6 +386,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
         let hz = (center.Z + radius) + e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+        *)
 
     override this.isInside (p:Point) = 
         if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)

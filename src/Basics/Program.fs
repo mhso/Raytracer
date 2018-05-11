@@ -1,6 +1,6 @@
 ﻿open Tracer.Basics
 open Tracer.Sampling.Sampling
-open System.IO
+open System
 open Tracer.Basics.Render
 open Tracer.Basics.Transform
 //open System.Net.Mime.MediaTypeNames
@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,0.,5.)
+    let position = Point(2.,2.,5.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -145,8 +145,10 @@ let main _ =
     let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
     let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
 
-    let rotateX = Transformation.rotateX 90.
-    let rotateZ = Transformation.rotateZ 90.
+    let pi = Math.PI
+
+    let rotateX = Transformation.rotateX (pi/2.)
+    let rotateZ = Transformation.rotateZ (pi/2.)
 
     let transSolid2 = Transform.transform solid2 rotateX
     let transSolid3 = Transform.transform solid3 rotateZ
@@ -162,7 +164,11 @@ let main _ =
 
     let fancyCSG = CSG(csgInter, csgUnion2, Subtraction)
 
-    let shapes : Shape List = [csgShape2]
+    //Subtraction Test
+
+    let csgSubTest = CSG(boxForcsg, csgUnion1, Subtraction)
+
+    let shapes : Shape List = [csgSubTest]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
