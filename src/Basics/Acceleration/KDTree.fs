@@ -20,6 +20,8 @@ module KD_tree =
     type KDTree = Node of int * float * BBox * KDTree * KDTree
                  | Leaf of BBox * ShapeBBox list
 
+    let timer = new System.Diagnostics.Stopwatch()
+
 
     let rec quickselect k (list:list<ShapeBBox>) axis = 
         match list with
@@ -236,11 +238,16 @@ module KD_tree =
             let KDMinXYZ = Point(MinX, MinY, MinZ)
             Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
         else
-            printfn "KD-Build initialized..."
-            printfn "Total shape count: %A" ShapeBoxList.Length
+            printfn "KD-Build initialized with %A shapes" ShapeBoxList.Length
+            timer.Start()
             let kdTree = createKDTreeFromList ShapeBoxList
-            printfn "MaxLeafSize: %A, Total Leafs: %A" maxLeafSize totalLeafs
-            printfn "Total Leaf Size: %A, Avg Leaf Size: %A" totalLeafSize (totalLeafSize/totalLeafs)
+            timer.Stop()
+            printfn "Maximum Shapes referenced in one Leaf: %A" maxLeafSize
+            printfn "Total Leafs: %A" totalLeafs
+            printfn "Total references to Shapes in Leafs: %A" totalLeafSize
+            printfn "Avg Leaf Size: %A" (totalLeafSize/totalLeafs)
+            printfn "KD-Tree build in %f Seconds" timer.Elapsed.TotalSeconds
+
             kdTree
 
     let findRayDirectionFromA (a:int) (r:Ray) =
