@@ -32,7 +32,7 @@ type Render(scene : Scene, camera : Camera) =
     let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
-
+    let idOfScene = Acceleration.listOfKDTree.Length + 1
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
@@ -197,7 +197,7 @@ type Render(scene : Scene, camera : Camera) =
         else ()
         
         let kdTimer = Stopwatch.StartNew()
-        let accel = Acceleration.createAcceleration bbshapes
+        let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
         kdTimer.Stop()
         
         if ppRendering then
