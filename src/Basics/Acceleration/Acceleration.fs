@@ -8,14 +8,14 @@ module Acceleration =
 
     type IAcceleration = KDTree of KDTree
                        | BVHStructure of BVHStructure
-                       | RG of float // Swap with actual RG
+                       | RegularGrid of float // Swap with actual RG
 
     let createAcceleration (shapes:array<Shape>) = 
         match acceleration with
         | "KDTree" -> KDTree(buildKDTree shapes)
         | "BVH"    -> BVHStructure (build shapes)
         | "RG"     -> failwith "Not Implemented"
-        | _        -> failwith "Unknown Acceleration Structure..."
+        | _        -> KDTree(buildKDTree shapes) //Default...
 
     let getAccelBoundingBox (accel:IAcceleration) = 
         match accel with
@@ -24,14 +24,13 @@ module Acceleration =
             | KDTree.Leaf(bBox, shapes) -> bBox
             | KDTree.Node(axis, value, bBox, left, right) -> bBox
         | BVHStructure(bvh)       -> failwith "Not Implemented"
-        | RG(rg)         -> failwith "Not Implemented"
+        | RegularGrid(rg)         -> failwith "Not Implemented"
 
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with
         | KDTree(kdTree) -> traverseKDTree kdTree ray shapes
         | BVHStructure(bvhStructure) -> traverse bvhStructure ray shapes
-        | RG(rg) -> failwith "Not Implemented" //Look above...
-
+        | RegularGrid(rg) -> failwith "Not Implemented" //Look above...
 
     type Acceleration = KDTree
                       | BVH

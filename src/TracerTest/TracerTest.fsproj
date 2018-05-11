@@ -69,10 +69,10 @@
     <Compile Include="AreaLight.fs" />
     <Compile Include="CSG.fs" />
     <Compile Include="ImplicitSurfaces.fs" />
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="GeneralTest.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -91,11 +91,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TDD\TDD.fsproj">
-      <Name>TDD</Name>
-      <Project>{e7720e48-dfc5-41b5-914a-c6e4510e5f37}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
