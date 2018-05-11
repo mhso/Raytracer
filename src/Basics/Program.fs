@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(2.,4.,-5.)
+    let position = Point(0.,0.,5.)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -137,9 +137,32 @@ let main _ =
 
     let move = Transformation.translate 0. -1. 0.
     let transCylinder = Transform.transform cylinder move
-    let transCSG = Transform.transform csgShape2 move
+    let transCSG = Transform.transform csgShape3 move
 
-    let shapes : Shape List = [solidCylinder]
+    //Fancy CSG
+    let texSolidYellow = Textures.mkMatTexture(matteYellow)
+    let solid1 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
+    let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
+    let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
+
+    let rotateX = Transformation.rotateX 90.
+    let rotateZ = Transformation.rotateZ 90.
+
+    let transSolid2 = Transform.transform solid2 rotateX
+    let transSolid3 = Transform.transform solid3 rotateZ
+
+    let csgUnion1 = CSG(solid1, transSolid2, Union)
+    let csgUnion2 = CSG(csgUnion1, transSolid3, Union)
+
+    let boxTex = Textures.mkMatTexture(matteRed)
+    let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.65, Textures.mkMatTexture(matteBlue))
+
+    let csgInter = CSG(boxForcsg, sphereForcsg, Intersection)
+
+    let fancyCSG = CSG(csgInter, csgUnion2, Subtraction)
+
+    let shapes : Shape List = [csgShape2]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
