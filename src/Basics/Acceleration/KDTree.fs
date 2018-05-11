@@ -128,14 +128,11 @@ module KD_tree =
                 Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList false (first), Leaf(BBox(KDMinXYZ, KDMaxXYZ),second))
             else Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList false (first), createKDTreeFromList false (second))
                 
-    let resetMutables = 
+    let buildKDTree (shapes:array<Shape>) = 
         maxLeafSize <- 0
         totalLeafs <- 0
         totalLeafSize <- 0
         totalLeafs <- 0
-
-    let buildKDTree (shapes:array<Shape>) = 
-        resetMutables
         timer.Reset()
         let shapeBoxArray = Array.zeroCreate(shapes.Length)
         for i in 0..(shapes.Length-1) do
