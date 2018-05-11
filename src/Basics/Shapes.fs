@@ -582,7 +582,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                      else false
 
     override this.getBoundingBox () = match op with
-                                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lwest low coords, to form a new bounding box
+                                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                                             let bBox1 = s1.getBoundingBox ()
                                             let bBox2 = s2.getBoundingBox ()
                                             let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
@@ -607,12 +607,14 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         //i continue no matter what 
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
-                                                      this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                                  else s1Hit //if the hit, is not inside s2, we have found the hitpoint
-        else if s1.isInside (r.PointAtTime s2Time) then 
-                this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+        if s1Time = s2Time then HitPoint(r)
+        else
+            if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
+                                                          this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                      else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+            else if s1.isInside (r.PointAtTime s2Time) then 
+                    this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                 else s2Hit //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
