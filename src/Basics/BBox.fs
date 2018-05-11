@@ -3,6 +3,14 @@
 type BBox(lowPoint:Point, highPoint:Point) =
     member this.lowPoint = lowPoint
     member this.highPoint = highPoint
+    member this.isInside (p:Point) =
+        if lowPoint.X <= p.X && p.X <= highPoint.X then
+            if lowPoint.Y <= p.Y && p.Y <= highPoint.Y then
+                if lowPoint.Z <= p.Z && p.Z <= highPoint.Z then true
+                else false
+            else false
+        else false
+
     override this.ToString() =
             "BBox(Max: "+highPoint.ToString()+", Min: "+lowPoint.ToString()+")"
     override this.GetHashCode() =
