@@ -115,11 +115,11 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
         let e = 0.000001
         let lx = (min a.X (min b.X c.X)) - e
         let ly = (min a.Y (min b.Y c.Y)) - e
-        let lz = (min a.Z (min b.Z c.Z)) - e //might be redundant as Z should always equal 0
+        let lz = (min a.Z (min b.Z c.Z)) - e 
 
         let hx = (max a.X (max b.X c.X)) + e
         let hy = (max a.Y (max b.Y c.Y)) + e
-        let hz = (max a.Z (max b.Z c.Z)) + e //might be redundant as Z should always equal 0
+        let hz = (max a.Z (max b.Z c.Z)) + e 
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
         
@@ -165,13 +165,13 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     member this.tex = tex
     member this.bBox = //no point on the sphere should be larger than the center point + the radius...
         let e = 0.000001
-        let lx = (origin.X - radius) - e
-        let ly = (origin.Y - radius) - e
-        let lz = (origin.Z - radius) - e
+        let lx = - radius - e
+        let ly = - radius - e
+        let lz = - radius - e
 
-        let hx = (origin.X + radius) + e
-        let hy = (origin.Y + radius) + e
-        let hz = (origin.Z + radius) + e
+        let hx = radius + e
+        let hy = radius + e
+        let hz = radius + e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -227,14 +227,16 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.height = height
     member this.tex = tex
     member this.bBox = 
+       
         let e = 0.000001
-        let lx = (center.X - radius) - e
-        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
-        let lz = (center.Z - radius) - e
+        let lx = - radius - e
+        let ly = - (height/2.) - e //height instead of radius for the Y coord
+        let lz = - radius - e
 
-        let hx = (center.X + radius) + e
-        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
-        let hz = (center.Z + radius) + e
+        let hx = radius + e
+        let hy = (height/2.) + e //height instead of radius for the Y coord
+        let hz = radius + e
+        
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -275,28 +277,23 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                       else let p = r.PointAtTime t1
                            if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
                            else HitPoint(r)
-            (*
-            |(0.0) -> match (t1,t2) with //if D = 0 then t1 = t2, clean code...
-                      |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else this.determineHitPoint r t
-            *)
             |(D) when D < 0.0 -> HitPoint(r)
-            |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                      |(t1,t2) when t2 <= 0.0 && t1 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t2 < t1 && t2 > 0.0 then  /////TODO: fix cylinder bug, it doesnt render the second hit, if the first one is beyond the height of the cylinder
-                                      let p2 = r.PointAtTime t2
-                                      if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
-                                      else let p1 = r.PointAtTime t1
-                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                           else HitPoint(r)
-                                  else if t1 > 0.0 then
-                                           let p1 = r.PointAtTime t1
-                                           if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                           else HitPoint(r)
-                                       else 
-                                           let p2 = r.PointAtTime t2
-                                           if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                           else HitPoint(r)
+            |(_) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
+                    |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
+                    |(t1,t2) -> if t2 < t1 && t2 > 0.0 then
+                                    let p2 = r.PointAtTime t2
+                                    if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
+                                    else let p1 = r.PointAtTime t1
+                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                         else HitPoint(r)
+                                else if t1 > 0.0 then
+                                         let p1 = r.PointAtTime t1
+                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
+                                         else HitPoint(r)
+                                     else 
+                                         let p2 = r.PointAtTime t2
+                                         if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
+                                         else HitPoint(r)
         else HitPoint(r)
 
 ////TRANSFORM////                                                                                     
@@ -375,7 +372,10 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
         Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
     //builds the hollow cylinder
     member this.hollowCylinder = HollowCylinder(center, radius, height, cylinder)
-    member this.bBox =
+    member this.bBox = this.hollowCylinder.bBox
+        //should only need the BBox of the Hollow Cylinder
+
+        (*
         let e = 0.000001
         let lx = (center.X - radius) - e
         let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
@@ -386,6 +386,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
         let hz = (center.Z + radius) + e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+        *)
 
     override this.isInside (p:Point) = 
         if (p.X**2. + p.Z**2.) <= radius**2. then //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
@@ -402,19 +403,30 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
             let hpBottom = this.bottomDisc.hitFunction r
             let hpCylinder = this.hollowCylinder.hitFunction r
             //extract time from hitPoints
+            let tTop = match hpTop.DidHit with
+                            |true -> hpTop.Time
+                            |false -> infinity
+            let tBottom = match hpBottom.DidHit with
+                            |true -> hpBottom.Time
+                            |false -> infinity
+            let tCylinder = match hpCylinder.DidHit with
+                            |true -> hpCylinder.Time
+                            |false -> infinity
+
+            //attempt to optimize
+            (*
             let tTop = if hpTop.DidHit then hpTop.Time else infinity
             let tBottom = if hpBottom.DidHit then hpBottom.Time else infinity
             let tCylinder = if hpCylinder.DidHit then hpCylinder.Time else infinity
+            *)
 
             //Compare t values
-            if tTop = tBottom && tBottom = tCylinder then HitPoint(r) 
-            else
-                match (tTop, tBottom, tCylinder) with
-                |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
-                |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
-                |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
-                |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
-                |(_,_,_) -> HitPoint(r)
+            match (tTop, tBottom, tCylinder) with
+            |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
+            |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
+            |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
+            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
+            |(_,_,_) -> HitPoint(r)
         else HitPoint(r)
 
 
@@ -558,6 +570,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
+    member this.epsilon = 0.00001
     override this.isInside (p:Point) = match op with
                                         |Union -> if s1.isInside p || s2.isInside p then true
                                                   else false
@@ -569,7 +582,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                      else false
 
     override this.getBoundingBox () = match op with
-                                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lwest low coords, to form a new bounding box
+                                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                                             let bBox1 = s1.getBoundingBox ()
                                             let bBox2 = s2.getBoundingBox ()
                                             let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
@@ -594,12 +607,14 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         //i continue no matter what 
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        if s1Time <= s2Time then if s2.isInside (r.PointAtTime s1Time) then 
-                                    this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                 else s1Hit //if the hit, is not inside s2, we have found the hitpoint
-        else if s1.isInside (r.PointAtTime s2Time) then 
-                this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+        if s1Time = s2Time then HitPoint(r)
+        else
+            if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
+                                                          this.unionHitFunctionInside (new Ray((r.PointAtTime s1Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                      else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+            else if s1.isInside (r.PointAtTime s2Time) then 
+                    this.unionHitFunctionInside (new Ray((r.PointAtTime s2Time), r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                 else s2Hit //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
@@ -607,7 +622,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                 let s2Hit = s2.hitFunction r
                                                 let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
                                                 let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-                                                if s1Time <= s2Time then s1Hit else s2Hit
+                                                if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
                                             |true -> this.unionHitFunctionInside r
                                                
     ////INTERSECTION////
@@ -631,7 +646,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                            let PointAtTime = r.PointAtTime s1T
                                            let newOrigin = (r.PointAtTime s1T).Move moveVector
                                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when s1T = s2T -> s1Hit
+        |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> s1Hit
         |(s1T, s2T) -> 
                     //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
                     if s1T > s2T then 
@@ -750,7 +765,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
-        if s1Time <= s2Time then s1Hit else s2Hit
+        if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
 
     
     ////GENERAL HIT-FUNCTION////
