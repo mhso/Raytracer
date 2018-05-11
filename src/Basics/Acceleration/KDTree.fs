@@ -145,7 +145,7 @@ module KD_tree =
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
             shapeBoxArray.[i] <- newShapeBox
         let ShapeBoxList = (shapeBoxArray |> Array.toList)
-        printfn "KD-build Initialized..."
+        //printfn "KD-build Initialized..."
         if shapeBoxArray.Length < 11 then 
             let (MaxX, MinX) = findMaxMin ShapeBoxList 0
             let (MaxY, MinY) = findMaxMin ShapeBoxList 1

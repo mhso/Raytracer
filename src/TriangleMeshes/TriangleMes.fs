@@ -41,40 +41,67 @@ let drawTriangles (filepath:string) (smoothen:bool) =
     let baseShape = {new BaseShape() with
         member this.toShape(tex) = 
             let newTriangle = Array.zeroCreate(ar.Length)
-            for i in 0..(ar.Length-1) do
-                newTriangle.[i] <- (ar.[i]).toShape(tex)
+            let firstTriangle = (ar.[0]).toShape(tex)
+            newTriangle.[0] <- firstTriangle
+            let newPoints = Array.zeroCreate(2)
+            newPoints.[0] <- firstTriangle.getBoundingBox().lowPoint
+            newPoints.[1] <- firstTriangle.getBoundingBox().highPoint
+
+            for i in 1..(ar.Length-1) do
+                let triangle = (ar.[i]).toShape(tex)
+                let triangleLowPoint = triangle.getBoundingBox().lowPoint 
+                let triangleHightPoint = triangle.getBoundingBox().highPoint
+                newPoints.[0] <- newPoints.[0].Lowest triangleLowPoint
+                newPoints.[1] <- newPoints.[1].Highest triangleHightPoint
+                newTriangle.[i] <- triangle
             let accel = Acceleration.createAcceleration(newTriangle)
             let shape = {new Shape() with
                 member this.hitFunction r = 
                     let hit = traverseIAcceleration accel r newTriangle
-                    if(smoothen) then
-                        match hit.Shape with
-                        | :? Triangle -> 
-                            let triangle = hit.Shape :?> Triangle
-                            let alpha =  1. - triangle.beta - triangle.gamma
-                            let vertexNormal = 
-                                if (hasNormalWithin) then 
-                                    let na = 
-                                        let triangle = (triangle.a :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    let nb = 
-                                        let triangle = (triangle.b :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    let nc =
-                                        let triangle = (triangle.b :?> TriPoint).v
-                                        Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
-                                    [|na;nb;nc|]
-                                else
-                                    let na = (triangle.a :?> TriPoint).v.normal.Normalise
-                                    let nb = (triangle.b :?> TriPoint).v.normal.Normalise
-                                    let nc = (triangle.c :?> TriPoint).v.normal.Normalise
-                                    [|na;nb;nc|]
-                            let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) triangle.beta vertexNormal.[1]) |> ( + ) (( * ) triangle.gamma vertexNormal.[2]))
-                            let normal = V.Normalise
-                            HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
-                        | _ -> hit
-                    else hit
-                member this.getBoundingBox () = Acceleration.getAccelBoundingBox accel
+                    let finalHit = 
+                        if(smoothen) then
+                            match hit.Shape with
+                            | :? Triangle -> 
+                                let triangle = hit.Shape :?> Triangle
+                                let alpha =  1. - triangle.beta - triangle.gamma
+                                let vertexNormal = 
+                                    if (hasNormalWithin) then 
+                                        let na = 
+                                            let triangle = (triangle.a :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        let nb = 
+                                            let triangle = (triangle.b :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        let nc =
+                                            let triangle = (triangle.b :?> TriPoint).v
+                                            Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
+                                        [|na;nb;nc|]
+                                    else
+                                        let na = (triangle.a :?> TriPoint).v.normal.Normalise
+                                        let nb = (triangle.b :?> TriPoint).v.normal.Normalise
+                                        let nc = (triangle.c :?> TriPoint).v.normal.Normalise
+                                        [|na;nb;nc|]
+                                let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) triangle.beta vertexNormal.[1]) |> ( + ) (( * ) triangle.gamma vertexNormal.[2]))
+                                let normal = V.Normalise
+                                HitPoint(r, hit.Time, normal, hit.Material, hit.Shape)
+                            | _ -> hit
+                        else hit
+                    match finalHit.Shape with
+                    | :? Triangle -> 
+                        let triangle = hit.Shape :?> Triangle
+                        if (hasTexture) then
+                            let triA = (triangle.a :?> TriPoint).v
+                            let triB = (triangle.b :?> TriPoint).v
+                            let triC = (triangle.c :?> TriPoint).v
+                            let alpha = 1. - triangle.beta - triangle.gamma
+                            let test = alpha + triangle.beta + triangle.gamma
+                            let v = (alpha * triA.v.Value) + (triangle.beta * triB.v.Value) + (triangle.gamma * triC.v.Value)
+                            let u = (alpha * triA.u.Value) + (triangle.beta * triB.u.Value) + (triangle.gamma * triC.u.Value)
+                            let textureMati = ((Textures.getFunc tex) v u)
+                            HitPoint(r, finalHit.Time, finalHit.Normal, textureMati, finalHit.Shape, u, v)
+                        else finalHit
+                    | _ -> finalHit
+                member this.getBoundingBox () = BBox(newPoints.[0],newPoints.[1])
                 member this.isInside p = failwith "Maybe kdTree has some function for this"
             }
             shape

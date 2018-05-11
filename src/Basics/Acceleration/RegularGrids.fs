@@ -94,7 +94,7 @@ module RegularGrids =
                 
         
   // ######################### TRAVERSAL REGULAR GRID #########################
-    // Function for search of the grid.
+    //Function for search of the grid.
     let search (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
         let grid, nx, ny, nz, bbox = structure
         let value = bbox.intersect ray
@@ -104,7 +104,7 @@ module RegularGrids =
                                                 let d = ray.GetDirection
         | None -> None
 
-    // Function for traversal of the structure.
+     Function for traversal of the structure.
     let traverse (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) = 
         //printfn "traverse structure: %A" structure
         

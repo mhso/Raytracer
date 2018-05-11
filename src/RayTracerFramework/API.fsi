@@ -3,6 +3,7 @@
 open Tracer.Sampling.Sampling
 open Tracer.Basics
 open Transformation
+open Tracer.Basics.Acceleration
 
 module API =
   type dummy = unit
@@ -376,12 +377,12 @@ module API =
 
   /// Type of acceleration structure
   type Acceleration = Acceleration.Acceleration
-     ///// k-d tree; default
-     //| KDTree
-     ///// regular grid
-     //| RegularGrid
-     ///// bounding volume hierarchy
-     //| BVH
+  //   /// k-d tree; default
+  //   | KDTree
+  //   /// regular grid
+  //   | RegularGrid
+  //   /// bounding volume hierarchy
+  //   | BVH
 
   /// Set which type of acceleration structure to use. KDTree is the default.
   val setAcceleration : Acceleration -> unit
