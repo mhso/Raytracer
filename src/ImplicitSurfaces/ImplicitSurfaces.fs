@@ -188,7 +188,7 @@ module Main =
       match getOrder m with
       | 1 -> getFirstDegreeHF (P m) exp
       | 2 -> getSecondDegreeHF (P m) exp
-      | _ -> getHigherDegreeHF (toList (P m)) exp
+      | _ -> getHigherDegreeHF (polyAsList (P m)) exp
     let bsh = 
         { new baseShape() with
             member this.toShape tex =

@@ -126,7 +126,7 @@ let allTest =
                   .Add(0,SE [[]])
                   .Add(1,SE [[]])
                   .Add(2,SE [[]]))
-    let actual = toList pol
+    let actual = polyAsList pol
     let expected = [(0,SE [[]]);(1,SE [[]]);(2,SE [[]])]
     Assert.Equal (expected, actual, "poly to list of int * simpleExpr")
 

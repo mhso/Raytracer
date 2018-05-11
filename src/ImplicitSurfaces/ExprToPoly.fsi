@@ -16,7 +16,7 @@ module ExprToPoly =
 
   type poly = P of Map<int,simpleExpr>
 
-  val toList : poly -> (int * simpleExpr) list
+  val polyAsList : poly -> (int * simpleExpr) list
     
   val exprToPoly : expr -> string -> poly
   val ppPoly : string -> poly -> string
