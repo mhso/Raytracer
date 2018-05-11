@@ -7,14 +7,6 @@ exception BoundingBoxException
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
 ///////////////////////////////////
-
-////TRANSFORMSHAPE////
-type TransformShape (hitFunction) =
-    inherit Shape()
-    override this.isInside (p:Point) = failwith "Unsure what to do with TansformShape"
-    override this.getBoundingBox () = failwith "Unsure what to do with TansformShape"
-    default this.hitFunction(r: Ray) = hitFunction r
-
 ////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
@@ -153,13 +145,13 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
                     let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
                     let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
-                    this.beta <- x
-                    this.gamma <- y
                     let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
                     //x=beta, y=gamma, z=t
                     //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
-                    if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0)
-                            then HitPoint(r, z, (this.u % this.v).Normalise, mat, this) else HitPoint(r) //why mat instead of texture???
+                    if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0) then
+                            this.beta <- x
+                            this.gamma <- y
+                            HitPoint(r, z, (this.u % this.v).Normalise, mat, this) else HitPoint(r) //why mat instead of texture???
                             
 
 
@@ -333,9 +325,25 @@ module Transform =
             member this.getBoundingBox () = 
                 let bbH = s.getBoundingBox().highPoint
                 let bbL = s.getBoundingBox().lowPoint
-                let high = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbH))
-                let low = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix bbL))
-                BBox(low,high)
+                let vertex = 
+                    [|bbH; 
+                    Point(bbL.X, bbH.Y, bbH.Z);
+                    Point(bbL.X, bbH.Y, bbL.Z);
+                    Point(bbH.X, bbH.Y, bbL.Z);
+                    Point(bbH.X, bbL.Y, bbH.Z);
+                    Point(bbL.X, bbL.Y, bbH.Z);
+                    bbL;
+                    Point(bbH.X, bbL.Y, bbL.Z)|]
+                let newPos = Array.zeroCreate(2)
+                let firstPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[0]))
+                newPos.[0] <- firstPoint
+                newPos.[1] <- firstPoint
+                for i in 1..7 do 
+                    let newPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[i]))
+                    newPos.[0] <- (newPos.[0]).Lowest newPoint
+                    let pos1 = newPos.[1]
+                    newPos.[1] <- pos1.Highest newPoint
+                BBox(newPos.[0],newPos.[1])
             member this.isInside p = 
                 let oldP = matrixToPoint (Matrix.multi(getInvMatrix t, pointToMatrix p))
                 s.isInside(oldP)

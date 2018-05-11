@@ -145,7 +145,7 @@ module KD_tree =
             let newShapeBox = ShapeBBox((shape.getBoundingBox ()).highPoint, (shape.getBoundingBox ()).lowPoint, id)
             shapeBoxArray.[i] <- newShapeBox
         let ShapeBoxList = (shapeBoxArray |> Array.toList)
-        printfn "KD-build Initialized..."
+        //printfn "KD-build Initialized..."
         if shapeBoxArray.Length < 11 then 
             let (MaxX, MinX) = findMaxMin ShapeBoxList 0
             let (MaxY, MinY) = findMaxMin ShapeBoxList 1
@@ -187,12 +187,8 @@ module KD_tree =
             // If not, return an empty hit point
             None
         else
-            let closestHit = pointsThatHit |> List.minBy (fun (hp) -> hp.Time)
-            if closestHit.Material :? EmissiveMaterial then
-                None
-            else
             // If the ray hit, then return the first hit point
-                Some (pointsThatHit |> List.minBy (fun (hp) -> hp.Time))
+            Some (pointsThatHit |> List.minBy (fun (hp) -> hp.Time))
     
     let order (d:float, left:KDTree, right:KDTree) =
         if d > 0. then (left, right)

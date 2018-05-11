@@ -22,9 +22,9 @@ type Render(scene : Scene, camera : Camera) =
             filtershapes nobb (c::bb) cr
           with 
             | _ -> filtershapes (c::nobb) bb cr                   
-
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
 
+    // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
@@ -86,27 +86,20 @@ type Render(scene : Scene, camera : Camera) =
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
-
-        // Get all hit points for shapes with no bounding boxes
-        let pointsThatHit = 
-            [for s in nobbshapes do yield s.hitFunction ray]
-                |> List.filter (fun hp -> hp.DidHit)
-        
-        // Add potential hitpoints from Acceleration structure shapes
-        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
-                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
-
-        // Check if the ray hit
-        if pointsThatHit.IsEmpty then
-            // If not, return an empty hit point
-            HitPoint(ray)
-        else
-            // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun hp -> hp.Time)
+      let rec findClosestHit (h:HitPoint) t' = function
+        | []    -> let hit = traverseIAcceleration accel ray bbshapes
+                   if hit.DidHit && hit.Time < t' then hit
+                   else h
+        | (s:Shape)::sl -> 
+                   let hit = s.hitFunction ray
+                   if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl
+                   else findClosestHit h t' sl
+      findClosestHit (HitPoint(ray)) infinity nobbshapes
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
-        traverseIAcceleration accel ray bbshapes
-
+        let hit = this.GetFirstHitPoint accel ray
+        if hit.Material :? EmissiveMaterial then HitPoint(ray) // no shadow if we have direct rout to emissive material
+        else hit
 
     member this.GetFirstHitPointExcept (ray: Ray) (except: Shape) = 
 
@@ -172,9 +165,19 @@ type Render(scene : Scene, camera : Camera) =
             let dots = String.replicate (currentPct/2 + 1) "█"
             let white = String.replicate (50-(currentPct/2)) "░"
 
-            Console.Write("\r                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
+            timer.Stop()
+            let msSpent = float timer.ElapsedMilliseconds
+            timer.Start()
+            let msRemaining = 
+              if currentPct <> 100 then ((100. - float currentPct) / float currentPct) * float msSpent
+              else 0.0000
+            let secondsRemaining = System.Math.Round (msRemaining * 0.001, 4)
+            Console.SetCursorPosition (0, Console.CursorTop - 2)
+            Console.Write("                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
+            printf ("\n\n                                             Time remaining: %.4f") secondsRemaining
+            printf " seconds                   "
             loadingIndex <- loadingIndex + 1
-    
+
     member this.PreProcessing =
         if ppRendering then
           Console.WriteLine(" 
@@ -192,7 +195,7 @@ type Render(scene : Scene, camera : Camera) =
                                  ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                          ░                                        
                                                                                                   ")
-          Console.WriteLine("                                                   Building KD-Trees..")
+          Console.WriteLine("                                                   Building Acceleration Structure..")
         else ()
         
         let kdTimer = Stopwatch.StartNew()
@@ -200,17 +203,15 @@ type Render(scene : Scene, camera : Camera) =
         kdTimer.Stop()
         
         if ppRendering then
-          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.")
+          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
           Console.WriteLine()
         else ()
 
-        timer.Start()
         accel
 
     member this.PostProcessing =
-
-        // Printing how much time was spent rendering
         timer.Stop()
+        // Printing how much time was spent rendering
         printfn ""
         printfn ""
         printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
@@ -236,6 +237,8 @@ type Render(scene : Scene, camera : Camera) =
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         
+        timer.Start()
+
         let mutable processed = 0.0
         let pos = [for y in 0 .. camera.ResY - 1 do
                     for x in 0 .. camera.ResX - 1 do yield (x,y)]
@@ -250,11 +253,16 @@ type Render(scene : Scene, camera : Camera) =
             let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
               
             // using mutex to deal with shared ressources in a thread-safe manner
-            mutex.WaitOne() |> ignore
-            bmColourArray.[y,x] <- colour
-            processed <- processed + 1.0
-            this.CalculateProgress processed total
-            mutex.ReleaseMutex() |> ignore
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              mutex.ReleaseMutex() |> ignore
           ) |> ignore
         finally
           mutex.Dispose() |> ignore
