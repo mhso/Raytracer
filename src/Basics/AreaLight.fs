@@ -13,6 +13,7 @@ type AreaLight(surfaceMaterial: Material, sampler: Sampler) =
     member this.SurfaceMaterial = surfaceMaterial               // Material of emissive surface
     member this.SampleCount = sampler.SampleCount               // Sampler sample count
     member this.SampleSetCount = sampler.SetCount               // Sampler sample set count
+    member this.Sampler = sampler
     abstract member Shape: Shape                                // Shape of the surface
     abstract member SamplePoint: Point -> Point                 // Returns a new sample point
     abstract member SamplePointNormal: Point -> Vector          // Returns the normal of a sample point
@@ -141,5 +142,12 @@ module TransformLight =
         | :? AreaLight as a -> 
                 let movedShape = Transform.transform a.Shape t
                 let newPoint (p:Point) = a.SamplePoint (Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix p))))
-                a :> Light
+                let movedArea = 
+                    {new AreaLight(a.SurfaceMaterial, a.Sampler) with
+                        member this.Shape = movedShape
+                        member this.SamplePoint p = (Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix (newPoint p)))))
+                        member this.SamplePointNormal p = a.SamplePointNormal p
+                        member this.GetProbabilityDensity h = a.GetProbabilityDensity h
+                    }            
+                movedArea :> Light
         | _ -> light
