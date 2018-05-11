@@ -17,11 +17,11 @@ type MatteMaterial
     let pidivided = 1. / Math.PI
     member this.MatteCoefficient = matteCoefficient
     member this.MatteColour = matteColour
-    default this.AmbientColour hitPoint = ambientColour * ambientCoefficient
+    default this.AmbientColour(hitPoint, ambientLight) = ambientColour * ambientCoefficient * ambientLight.GetColour hitPoint
     default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.IsRecursive = false
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         
         // Initialize parameters 
         let ca = ambientColour                              // Ambient colour
@@ -33,12 +33,11 @@ type MatteMaterial
         let ld = (light.GetDirectionFromPoint hitPoint)     // Light direction
 
         // Determine the colour
-        if n * ld > 0. then
+        if n * ld > 0. then    
             let diffuse = (kd * cd) * pidivided
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
-            let matte = diffuse * volume * roundness   
-            matte
+            diffuse * volume * roundness   
         else
             Colour.Black
 
@@ -61,7 +60,7 @@ type PhongMaterial
     member this.SpecularColour = specularColour
     member this.SpecularExponent = specularExponent
     
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         
         // Initialize parameters
         let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
@@ -78,7 +77,7 @@ type PhongMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matte = base.Bounce(shape, hitPoint, light) 
+            let matte = base.Bounce(shape, hitPoint, light, ambientLight) 
             
             // The specular colour
             let specular = 
@@ -120,9 +119,9 @@ type MatteReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection.Normalise) |]
 
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light)
+        base.Bounce(shape, hitPoint, light, ambientLight)
 
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
@@ -175,9 +174,9 @@ type MatteGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light)
+        base.Bounce(shape, hitPoint, light, ambientLight)
 
 
 //- PHONG REFLECTIVE MATERIAL
@@ -210,9 +209,9 @@ type PhongReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light)
+        base.Bounce(shape, hitPoint, light, ambientLight)
 
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
@@ -270,9 +269,9 @@ type PhongGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light)
+        base.Bounce(shape, hitPoint, light, ambientLight)
 
 
 //- EMISSIVE MATERIAL
@@ -287,11 +286,11 @@ type EmissiveMaterial
     member this.LightColour = lightColour
     member this.LightIntensity = lightIntensity
     member this.EmisiveRadience = emisiveRadience
-    default this.AmbientColour hitPoint = Colour.Black
+    default this.AmbientColour(hitPoint, ambientLight) = Colour.Black
     default this.IsRecursive = false
     default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(shape, hitPoint, light, ambientLight) = 
         
         // Only emit light from the front
         if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then emisiveRadience
@@ -326,7 +325,7 @@ type TransparentMaterial
                 Colour.White * k_r
         else
             Colour.White
-    default this.AmbientColour hitPoint = Colour.Black
+    default this.AmbientColour(hitPoint, ambientLight) = Colour.Black
     default this.BounceMethod hitPoint = 
         let (shouldRefract, cos_angle_in, cos_angle_out_exp) = this.ShouldRefract hitPoint
 
@@ -340,7 +339,7 @@ type TransparentMaterial
         else
             [| perfectRay |]
 
-    default this.Bounce(shape, hitPoint, light) =
+    default this.Bounce(shape, hitPoint, light, ambientLight) =
         Colour.Black
 
     member this.ShouldRefract (hitPoint: HitPoint) = 

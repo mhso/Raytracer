@@ -4,7 +4,7 @@ open Tracer.API
 let allTargets : Target list =
   List.concat 
     [
-     Material.renderRegular;
+     //Material.renderRegular;
      //Material.renderMulti;
      //Material.renderHigh;
      //ThinLens.render;
@@ -18,7 +18,7 @@ let allTargets : Target list =
      //ImplicitSurfaces.render;
      //Meshes.render Tracer.API.Acceleration.KDTree;
      //Texture.render;
-     ////Light.render;
+     Light.render;
      //CSG.render;
      // AmbientOcclusion.render [1;2;4;8;16]
      // The test groups below is only needed for teams of 7 students.

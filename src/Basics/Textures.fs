@@ -15,12 +15,12 @@ module Textures =
     //- For use with material-only data structures
     let getBaseTexturedMaterial(texture: Texture) = {
             new Material() with
-                member this.AmbientColour hitPoint = Colour.Black
-                member this.ReflectionFactor (hitPoint,rayOut) = Colour.White
-                member this.Bounce(shape, hitPoint, light) = 
+                member this.AmbientColour(hitPoint, ambientLight) = Colour.Black
+                member this.ReflectionFactor (hitPoint, rayOut) = Colour.White
+                member this.Bounce(shape, hitPoint, light, ambientLight) = 
                     let func = getFunc texture
                     let mat = func hitPoint.U hitPoint.V
-                    mat.Bounce(shape,hitPoint,light)
+                    mat.Bounce(shape,hitPoint,light,ambientLight)
                 member this.BounceMethod hitPoint = [| hitPoint.Ray |]
                 member this.IsRecursive = false}
         
