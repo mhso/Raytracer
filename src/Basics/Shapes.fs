@@ -551,7 +551,7 @@ type InfinitePlane(tex:Texture) =
             let u = (r.PointAtTime t).X
             let v = (r.PointAtTime t).Y
             let mat = func u v
-            HitPoint(r, t, Vector(0.0, 1.0, 0.0), mat, this, u, v)
+            HitPoint(r, t, Vector(0.0, 0.0, -1.0), mat, this, u, v)
         else HitPoint(r)
 
 
