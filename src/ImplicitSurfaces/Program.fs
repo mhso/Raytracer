@@ -11,6 +11,7 @@ module Program =
   open Tracer.Basics.Textures
   open Tracer.Basics.Transform
   open Tracer.Basics.Transformation
+  open System
 
   type baseShape = Tracer.BaseShape.BaseShape
   type shape = Tracer.Basics.Shape
@@ -118,4 +119,5 @@ module Program =
     //let render = Render(mkScene' linktorus, linktoruscam)
 
     render.RenderToScreen render.RenderParallel |> ignore
+    Console.ReadKey () |> ignore
     0

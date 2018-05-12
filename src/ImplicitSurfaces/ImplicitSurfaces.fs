@@ -66,9 +66,7 @@ module Main =
     (pown b 2) - 4.0 * a * c
 
   let getDistances a b d = 
-    let sres = sqrt(d)
-    let ares = 2.0 * a
-    let res f = (f (-b) (sres)) / ares
+    let res f = (f (-b) (sqrt(d))) / 2.0 * a
     [res (+); res (-)]
 
   let getValArray (r:Ray) = 
@@ -203,10 +201,3 @@ module Main =
               }
           }
     bsh
-
-(*
-  [<EntryPoint>]
-  let main argv =
-    printfn "we are running this shit!"
-    0 // return a beautiful integer exit code
-*)
