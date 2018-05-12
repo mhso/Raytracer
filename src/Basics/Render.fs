@@ -29,9 +29,26 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = false
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
+    let randomStrings = [|"                                                      Traversing..."; 
+                          "                                                     Shooting Rays..."; 
+                          "                                              Applying Ambient Occlusion..."; 
+                          "                                                       Sampling..."; 
+                          "                                                 Transforming Bunnies..."; 
+                          "                                                 Stretching Triangles..."; 
+                          "                                                   Spawning Spheres..."; 
+                          "                                              Initializing Stackoverflow..."; 
+                          "                                                Creating Infinity Loops..."; 
+                          "                                               Making Surfaces Implicit..."; 
+                          "                                       Making Infinite Planes infinity + 1 long...";
+                          "                                             Deleting Random System File...";
+                          "                                          RayTracer.exe Has Stopped Working..."|]
+    let getRandomString () =  
+      let random = System.Random()  
+      randomStrings.[random.Next(randomStrings.Length)]
+
     let idOfScene = Acceleration.listOfKDTree.Length + 1
     member this.Camera = camera
     member this.Scene = scene
@@ -177,6 +194,7 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
+        let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
         if ppRendering then
           Console.WriteLine(" 
         
@@ -193,17 +211,17 @@ type Render(scene : Scene, camera : Camera) =
                                  ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                          ░                                        
                                                                                                   ")
-          Console.WriteLine("                                                   Building Acceleration Structure..")
+          printfn "%s" (getRandomString())
+          //Console.WriteLine("                                                   Building Acceleration Structure..")
         else ()
         
-        let kdTimer = Stopwatch.StartNew()
-        let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
-        kdTimer.Stop()
+        //let kdTimer = Stopwatch.StartNew()
+        //kdTimer.Stop()
         
-        if ppRendering then
-          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
-          Console.WriteLine()
-        else ()
+        //if ppRendering then
+         // Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
+          //Console.WriteLine()
+        //else ()
 
         accel
 
