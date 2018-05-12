@@ -5,7 +5,6 @@ open Tracer.Basics.Acceleration
 open System
 open System.Drawing
 open System.Windows.Forms
-open System.ComponentModel
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
@@ -27,7 +26,7 @@ type Render(scene : Scene, camera : Camera) =
     // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
-    let timer = new System.Diagnostics.Stopwatch()
+    let timer = new Stopwatch()
     let up = Vector(0., 1., 0.)
     let ppRendering = true
     let mutable currentPct = 0
@@ -45,6 +44,7 @@ type Render(scene : Scene, camera : Camera) =
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
             let ambientLight = this.Scene.Ambient.GetColour hitPoint * hitPoint.Material.AmbientColour
+
             let totalLight = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
@@ -71,8 +71,6 @@ type Render(scene : Scene, camera : Camera) =
                     yield this.CastAmbientOcclusion accel sp o hitPoint ] |> List.average
         else 
             Colour.Black
-
-        
 
     member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
         let direction = (hitPoint.Point - sp).Normalise
@@ -139,7 +137,7 @@ type Render(scene : Scene, camera : Camera) =
     member this.CastRecursively 
         (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
-        if bounces = 0 || not hitPoint.Material.IsRecursive then
+        if not hitPoint.Material.IsRecursive || bounces = 0 then
             acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
         else
             let outRay = reflectionFunction hitPoint
@@ -157,8 +155,9 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.CalculateProgress current total =
         let pct = int((current/total) * 100.0)
-        // Progress bar!!!
+        
         if pct > currentPct then 
+            // Progress bar!!!
             if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
             currentPct <- pct
 
