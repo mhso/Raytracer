@@ -722,7 +722,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                 let s2Hit = s2.hitFunction r //fire ray at second shape
 
                 if s2Hit.DidHit then 
-                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then s2Hit
+                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then
+                        HitPoint(r, s2Hit.Time, (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                     else 
                         let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
                         let newnewOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
