@@ -37,7 +37,7 @@ let drawTriangles (filepath:string) (smoothen:bool) =
     let hasTexture = triangleArray.[0].u.IsSome
 
     let ar = createTriangles triangleArray faceArray smoothen hasNormalWithin
-
+    let idOfShape = Acceleration.listOfKDTree.Length + 1
     let baseShape = {new BaseShape() with
         member this.toShape(tex) = 
             let newTriangle = Array.zeroCreate(ar.Length)
@@ -54,7 +54,8 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                 newPoints.[0] <- newPoints.[0].Lowest triangleLowPoint
                 newPoints.[1] <- newPoints.[1].Highest triangleHightPoint
                 newTriangle.[i] <- triangle
-            let accel = Acceleration.createAcceleration(newTriangle)
+            let sA = shapeArray(idOfShape, newTriangle, None)
+            let accel = Acceleration.createAcceleration(sA)
             let shape = {new Shape() with
                 member this.hitFunction r = 
                     let hit = traverseIAcceleration accel r newTriangle

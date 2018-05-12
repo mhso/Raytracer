@@ -15,12 +15,13 @@ module ExprToPoly =
   val simplifySimpleExpr : simpleExpr -> simpleExpr
 
   type poly = P of Map<int,simpleExpr>
+
+  val polyAsList : poly -> (int * simpleExpr) list
     
   val exprToPoly : expr -> string -> poly
   val ppPoly : string -> poly -> string
   val simpleExprToPoly : simpleExpr -> string -> poly
 
-  val solveSE : Map<string,float> -> float -> simpleExpr -> float
   val ppExpr : expr -> string
   val rewriteExpr : expr -> atom list list
   val simplifyAtomGroup : seq<atom> -> atomGroup
