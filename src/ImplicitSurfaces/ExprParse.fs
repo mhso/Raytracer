@@ -160,7 +160,7 @@ module ExprParse =
       | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
       | FRoot(FNum c1, n)       -> FNum (c1**(1. / (float n)))
       | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
-      | FExponent(FNum c1,n)    -> FNum (c1**(float n))
+      | FExponent(FNum c1,n)    -> FNum (pown c1 n)
       // all others should just continue recursively
       | FRoot(e1,n)        -> FRoot (inner e1, n)
       | FAdd(e1,e2)        -> FAdd (inner e1, inner e2)
@@ -184,7 +184,7 @@ module ExprParse =
   | FAdd(e1,e2)     -> solveExpr m e1 + solveExpr m e2
   | FMult(e1,e2)    -> solveExpr m e1 * solveExpr m e2
   | FDiv(e1,e2)     -> solveExpr m e1 / solveExpr m e2
-  | FExponent(e1,n) -> solveExpr m e1**(float n)
+  | FExponent(e1,n) -> pown (solveExpr m e1) n
 
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")

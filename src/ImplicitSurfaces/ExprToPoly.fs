@@ -80,7 +80,7 @@ module ExprToPoly =
       | FAdd(FNum c1, FNum c2)  -> FNum (c1 + c2)
       | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
       | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
-      | FExponent(FNum c, n)    -> FNum (c**(float n))
+      | FExponent(FNum c, n)    -> FNum (pown c n)
       | FRoot(FNum c, n)        -> FNum (c**(1./(float n)))
       // exponents
       | FExponent(_,0)          -> FNum 1.0
@@ -250,7 +250,7 @@ module ExprToPoly =
         | AExponent(e,x) -> 
             match Map.tryFind e m with
             | Some v -> if x = 1 then v * solveAG m r
-                          else v**(float x) * solveAG m r
+                          else (pown v x) * solveAG m r
             | None   -> failwith "solveAG: variable not found in map"
         | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
   

@@ -58,12 +58,12 @@ module PolyToUnipoly =
 
   // up2 is the unipoly to be subtracted from up1
   let subtractUnipoly (UP up1:unipoly) (UP up2:unipoly) : unipoly =
-    let rec inner res sub = function
-    | []        ->  if List.length sub > 0 then 
+    let rec inner res (sub:(int*float) list) = function
+    | []        ->  if not sub.IsEmpty then 
                       let (UP rest) = negateUnipoly (UP sub)
                       res @ rest
                     else res
-    | (n,c)::cr ->  if sub.Length < 1 then
+    | (n,c)::cr ->  if sub.IsEmpty then
                       if abs c < epsilon then inner res sub cr
                       else inner (res @ [(n, c)]) sub cr
                     else 
@@ -91,21 +91,21 @@ module PolyToUnipoly =
     Returns the remainder of the polynomial long division
     Logic inspired from https://rosettacode.org/wiki/Polynomial_long_division#OCaml
   *)
-  let unipolyLongDiv up1 up2 : unipoly * unipoly =
+  let unipolyLongDiv up1 up2 : unipoly = // * unipoly =
     // s is the smaller, f the larger, q is quotient.
-    let rec inner (f:unipoly) (s:unipoly) (UP q:unipoly) =
+    let rec inner (f:unipoly) (s:unipoly) = //(UP q:unipoly) =
       let ddif = getDegree f - getDegree s
-      if ddif < 0 then (UP q, f)
+      if ddif < 0 then f//(UP q, f)
       else
         let (fExp, fConst) = getFirstTerm f // dividend's highest degree term
         let (sExp, sConst) = getFirstTerm s // divisor's highest degree term
         let k = fExp - sExp, fConst / sConst // division of the two terms
         let ks = s * k // k multiplied into the divisor poly
-        let q' = UP (q @ [k]) // k added to the current result from former iterations
+        //let q' = UP (q @ [k]) // k added to the current result from former iterations
         let f' = f - ks
-        if isEmpty f' then (UP q, f)
-        else inner f' s q'
-    inner up1 up2 (UP [])
+        if isEmpty f' then f//(UP q, f)
+        else inner f' s //q'
+    inner up1 up2 //(UP [])
 
   type unipoly with 
     static member ( % ) (up1, up2) = unipolyLongDiv up1 up2
@@ -116,8 +116,7 @@ module PolyToUnipoly =
     let rec inner (uplist: unipoly list) = 
       match getDegree uplist.[0] with
       | 0 -> uplist
-      | _ -> let (_,res) = uplist.[1] % uplist.[0]
-             inner ((negateUnipoly res) :: uplist)
+      | _ -> inner ((negateUnipoly (uplist.[1] % uplist.[0])) :: uplist)
     inner [up';up] // p0 will always be the last element in the list
 
   let countSignChanges uplist x =

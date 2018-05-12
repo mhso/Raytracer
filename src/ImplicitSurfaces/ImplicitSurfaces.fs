@@ -63,10 +63,10 @@ module Main =
     Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
-    b**2.0 - 4.0 * a * c
+    (pown b 2) - 4.0 * a * c
 
-  let getDistances a b c = 
-    let sres = sqrt((b**2.0) - 4.0 * a * c)
+  let getDistances a b d = 
+    let sres = sqrt(d)
     let ares = 2.0 * a
     let res f = (f (-b) (sres)) / ares
     [res (+); res (-)]
@@ -121,9 +121,10 @@ module Main =
       let a = solveSIE aSIE valArray
       let b = solveSIE bSIE valArray
       let c = solveSIE cSIE valArray
-      if discriminant a b c < 0.0 then None
+      let d = discriminant a b c
+      if d < 0.0 then None
       else
-        let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
+        let ts = getDistances a b d |> List.filter (fun x -> x >= 0.0)
         if List.isEmpty ts then None
         else
           let t' = List.min ts
