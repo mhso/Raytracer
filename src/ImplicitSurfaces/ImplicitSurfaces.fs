@@ -171,13 +171,9 @@ module Main =
               match newtonRaphson up up' mid with
               | None    -> None
               | Some t  ->
-                  if t < lo then 
-                    printfn "t < lo"
-                    findx mid hi 5 (itcount + 1)
+                  if t < lo then findx mid hi 5 (itcount + 1)
                   else 
-                    if t > hi then 
-                      printfn "t > hi"
-                      findx lo mid 5 (itcount + 1)
+                    if t > hi then findx lo mid 5 (itcount + 1)
                     else
                       let hp = r.PointAtTime t
                       Some (t, normalVector hp pdx pdy pdz)
