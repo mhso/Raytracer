@@ -121,6 +121,15 @@ let allTest =
     let expected = 9999
     Assert.Equal (expected, actual, "getOrder, returns the largest element (inserted in decremented order)")
 
+  let test19 =
+    let pol = P (Map.empty
+                  .Add(0,SE [[]])
+                  .Add(1,SE [[]])
+                  .Add(2,SE [[]]))
+    let actual = polyAsList pol
+    let expected = [(0,SE [[]]);(1,SE [[]]);(2,SE [[]])]
+    Assert.Equal (expected, actual, "poly to list of int * simpleExpr")
+
   test01
   test02
   test03
@@ -139,3 +148,4 @@ let allTest =
   test16
   test17
   test18
+  test19

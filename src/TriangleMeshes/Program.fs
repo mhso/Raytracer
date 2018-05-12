@@ -7,6 +7,7 @@ open Tracer.Basics.Render
 open Tracer.Basics
 open Tracer.Basics
 open Tracer.Basics
+open Tracer.Basics
 
 [<EntryPoint>]
 let main _ = 
@@ -112,8 +113,11 @@ let main _ =
     let urn = i.toShape(tex)
     let t = Transformation.mergeTransformations
                 [Transformation.rotateY (System.Math.PI/4.0);
-                Transformation.scale 6.0 6.0 6.0]
+                Transformation.scale 6.0 6.0 6.0;
+                Transformation.translate 0. 3. 0.]
     let bunnyShape = Transform.transform urn t
+    let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
+
     let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
 
     //- CAMERA
@@ -147,8 +151,9 @@ let main _ =
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
+    //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
+
     let render = new Render(scene, camera)
     ignore (render.RenderToFile render.RenderParallel "image.bmp")
 
     0
-

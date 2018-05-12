@@ -9,7 +9,7 @@ open System
 let allTest = 
     let rectangle = new Rectangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
     let disc = new Disc(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
-    let triangle = new Triangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), (MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
+    let triangle = new Triangle(Point(0.,0.,0.), Point(0.,1.,0.), Point(1.,0.,0.), MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))
     let sphere = new SphereShape(Point(0.,0.,0.), 2., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
     let hollowCylinder = new HollowCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)))
     let solidCylinder = new SolidCylinder(Point(0.,0.,0.), 2., 4., Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.)),
@@ -134,6 +134,14 @@ let allTest =
     Assert.Equal(boxBBox.highPoint.Z, 1.000001, "test for box Bounding box, highPoint.Z")
 
 
+    //isInside function for shapes
+    Assert.True(sphere.isInside (Point(0.,0.,0.)), "test isInside function, for point inside sphere")
+    Assert.True(not(sphere.isInside (Point(7.,7.,7.))), "test isInside function, for point outside sphere")
+    Assert.True(solidCylinder.isInside (Point(0.,0.,0.)), "test isInside function, for point inside solidCylinder")
+    Assert.True(not(solidCylinder.isInside (Point(7.,7.,7.))), "test isInside function, for point outside solidCylinder")
+    Assert.True(box.isInside (Point(0.5,0.5,0.5)), "test isInside function, for point inside box")
+    Assert.True(not(box.isInside (Point(7.,7.,7.))), "test isInside function, for point outside box")
+
     //BBox Intersect test
     let bBox = BBox(Point(0.,0.,0.), Point(1.,1.,1.))
     let rayInside = Ray(Point(0.5,0.5,0.5), Vector(0.5,0.5,0.5))
@@ -146,28 +154,26 @@ let allTest =
     let hitOutsideMiss = bBox.intersect(rayOutsideMiss)
     Assert.True(hitOutsideMiss.IsNone, "test on BBox not intersect, for point outside BBox")
 
-
-    //isInside function for shapes
-    Assert.True(sphere.isInside (Point(0.,0.,0.)), "test isInside function, for point inside sphere")
-    Assert.True(not(sphere.isInside (Point(7.,7.,7.))), "test isInside function, for point outside sphere")
-    Assert.True(solidCylinder.isInside (Point(0.,0.,0.)), "test isInside function, for point inside solidCylinder")
-    Assert.True(not(solidCylinder.isInside (Point(7.,7.,7.))), "test isInside function, for point outside solidCylinder")
-    Assert.True(box.isInside (Point(0.5,0.5,0.5)), "test isInside function, for point inside box")
-    Assert.True(not(box.isInside (Point(7.,7.,7.))), "test isInside function, for point outside box")
-
-
     //Tests that hitFunctions act as expected
-    let rayHit =  Ray(Point(6., 3., 3.), Vector(-1., -0.5, -0.5))
+    let rayHit =  Ray(Point(0.25, 0.25, 0.25), Vector(0.5, 0.5, -0.5))
     let rayMiss =  Ray(Point(6., 3., 3.), Vector(1., -0.5, -0.5))
-    (*Assert.Equal((None,None,None), rectangle.hitFunction rayMiss, "hitFunction, rectangle, miss")
-    Assert.Equal((None,None,None), disc.hitFunction rayMiss, "hitFunction, disc, miss")
-    Assert.Equal((None,None,None), triangle.hitFunction rayMiss, "hitFunction, triangle, miss")
-    Assert.Equal((None,None,None), sphere.hitFunction rayMiss, "hitFunction, sphere, miss")
-    Assert.Equal((None,None,None), hollowCylinder.hitFunction rayMiss, "hitFunction, hollowCylinder, miss")
-    Assert.Equal((None,None,None), box.hitFunction rayMiss, "hitFunction, box, miss")*)
+    //Hit
+    Assert.True((rectangle.hitFunction rayHit).DidHit, "test on rectangle HitFunction, for Ray hitting")
+    Assert.True((disc.hitFunction rayHit).DidHit, "test on disc HitFunction, for Ray hitting")
+    Assert.True((triangle.hitFunction rayHit).DidHit, "test on triangle HitFunction, for Ray hitting")
+    Assert.True((sphere.hitFunction rayHit).DidHit, "test on sphere HitFunction, for Ray hitting")
+    Assert.True((hollowCylinder.hitFunction rayHit).DidHit, "test on hollowCylinder HitFunction, for Ray hitting")
+    Assert.True((solidCylinder.hitFunction rayHit).DidHit, "test on solidCylinder HitFunction, for Ray hitting")
+    Assert.True((box.hitFunction rayHit).DidHit, "test on box HitFunction, for Ray hitting")
 
-    //Assert.Equal((Some(float),Some(Vector),Some(Material)), rectangle.hitFunction rayHit, "hitFunction, rectangle, hit")
-
+    //Miss
+    Assert.True(not (rectangle.hitFunction rayMiss).DidHit, "test on rectangle HitFunction, for Ray missing")
+    Assert.True(not (disc.hitFunction rayMiss).DidHit, "test on disc HitFunction, for Ray missing")
+    Assert.True(not (triangle.hitFunction rayMiss).DidHit, "test on triangle HitFunction, for Ray missing")
+    Assert.True(not (sphere.hitFunction rayMiss).DidHit, "test on sphere HitFunction, for Ray missing")
+    Assert.True(not (hollowCylinder.hitFunction rayMiss).DidHit, "test on hollowCylinder HitFunction, for Ray missing")
+    Assert.True(not (solidCylinder.hitFunction rayMiss).DidHit, "test on solidCylinder HitFunction, for Ray missing")
+    Assert.True(not (box.hitFunction rayMiss).DidHit, "test on box HitFunction, for Ray missing")
     
 
     //Tests that toShape functions in BaseShape works
@@ -194,14 +200,6 @@ let allTest =
     Assert.Equal(toHollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
     Assert.Equal(toHollowCylinder.radius, 2., "hollowCylinder.radius")
     Assert.Equal(toHollowCylinder.height, 4., "hollowCylinder.height")
-
-
-    //test that all shapes hitfunctions act as expected
-    //test that shapes are built as expected - Done
-    //test that BaseShapes are built as expected - Done
-    //test BaseShape to Shape functions - Done
-    //test isInside function - Done
-    //test getBoundingBox functions - Done
 
     
     ////CSG TESTS////
@@ -259,10 +257,20 @@ let allTest =
     Assert.Equal(groupingBBox.highPoint.Y, 2.000001, "test for CSG Grouping Bounding box, highPoint.Y")
     Assert.Equal(groupingBBox.highPoint.Z, 2.000001, "test for CSG Grouping Bounding box, highPoint.Z")
 
+    //Tests that hitFunctions act as expected
+    let rayHitcsg =  Ray(Point(0.25, 0.25, 0.25), Vector(0.5, 0.5, -0.5))
+    let rayHitcsgSub =  Ray(Point(0.25, 0.25, 0.25), Vector(-0.5, -0.5, -0.5))
+    let rayMisscsg =  Ray(Point(6., 3., 3.), Vector(1., -0.5, -0.5))
+    //Hit
+    Assert.True((csgUnion.hitFunction rayHitcsg).DidHit, "test on CSG Union HitFunction, for Ray hitting")
+    Assert.True((csgIntersection.hitFunction rayHitcsg).DidHit, "test on CSG Intersection HitFunction, for Ray hitting")
+    Assert.True((csgSubtraction.hitFunction rayHitcsgSub).DidHit, "test on CSG Subtraction HitFunction, for Ray hitting")
+    Assert.True((csgGrouping.hitFunction rayHitcsg).DidHit, "test on CSG Grouping HitFunction, for Ray hitting")
 
+    //Miss
+    Assert.True(not (csgUnion.hitFunction rayMisscsg).DidHit, "test on CSG Union HitFunction, for Ray missing")
+    Assert.True(not (csgIntersection.hitFunction rayMisscsg).DidHit, "test on CSG Intersection HitFunction, for Ray missing")
+    Assert.True(not (csgSubtraction.hitFunction rayMisscsg).DidHit, "test on CSG Subtraction HitFunction, for Ray missing")
+    Assert.True(not (csgGrouping.hitFunction rayMisscsg).DidHit, "test on CSG Grouping HitFunction, for Ray missing")
 
-
-    //test isInside functions for CSG - Done
-    //test get BoundingBox for CSG - Done
-    //test hitFunctions for CSG
 
