@@ -362,12 +362,12 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
     //builds the transformed discs at the top and bottom of the solid cylinder
     member this.topDisc = 
         let rotate = rotateX (Math.PI/2.)
-        let move = translate 0. 0. (height/2.)
+        let move = translate 0. (height/2.) 0.
         let mergeTrans = mergeTransformations [rotate; move]
         Transform.transform (Disc(Point(0.,0.,0.), radius, top)) mergeTrans
     member this.bottomDisc = 
         let rotate = rotateX (Math.PI/2.)
-        let move = translate 0. 0. -(height/2.)
+        let move = translate 0. -(height/2.) 0.
         let mergeTrans = mergeTransformations [rotate; move]
         Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
     //builds the hollow cylinder
@@ -570,7 +570,22 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
-    member this.epsilon = 0.00001
+    member this.epsilon = 0.000001
+    member this.bBox = match op with
+                       |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
+                            let bBox1 = s1.getBoundingBox ()
+                            let bBox2 = s2.getBoundingBox ()
+                            let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                            let newHigh = Point((max bBox1.highPoint.X bBox2.highPoint.X), (max bBox1.highPoint.Y bBox2.highPoint.Y), (max bBox1.highPoint.Z bBox2.highPoint.Z))
+                            BBox(newLow, newHigh)
+                       |Intersection -> //chooses the highest of the low point coords, and the lowest of the highpoint coords, to approximate the intersection
+                            let bBox1 = s1.getBoundingBox ()
+                            let bBox2 = s2.getBoundingBox ()
+                            let newLow = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
+                            let newHigh = Point((min bBox1.highPoint.X bBox2.highPoint.X), (min bBox1.highPoint.Y bBox2.highPoint.Y), (min bBox1.highPoint.Z bBox2.highPoint.Z))
+                            BBox(newLow, newHigh)
+                       |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
+
     override this.isInside (p:Point) = match op with
                                         |Union -> if s1.isInside p || s2.isInside p then true
                                                   else false
@@ -581,20 +596,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Grouping -> if s1.isInside p || s2.isInside p then true
                                                      else false
 
-    override this.getBoundingBox () = match op with
-                                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
-                                            let bBox1 = s1.getBoundingBox ()
-                                            let bBox2 = s2.getBoundingBox ()
-                                            let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
-                                            let newHigh = Point((max bBox1.highPoint.X bBox2.highPoint.X), (max bBox1.highPoint.Y bBox2.highPoint.Y), (max bBox1.highPoint.Z bBox2.highPoint.Z))
-                                            BBox(newLow, newHigh)
-                                        |Intersection -> //chooses the highest of the low point coords, and the lowest of the highpoint coords, to approximate the intersection
-                                            let bBox1 = s1.getBoundingBox ()
-                                            let bBox2 = s2.getBoundingBox ()
-                                            let newLow = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
-                                            let newHigh = Point((min bBox1.highPoint.X bBox2.highPoint.X), (min bBox1.highPoint.Y bBox2.highPoint.Y), (min bBox1.highPoint.Z bBox2.highPoint.Z))
-                                            BBox(newLow, newHigh)
-                                        |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
+    override this.getBoundingBox () = this.bBox
                                         
 
     ////UNION////
@@ -608,24 +610,22 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
         if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
-                                                      let moveVector = Vector(r.GetDirection.X/10., r.GetDirection.Y/10., r.GetDirection.Z/10.)
-                                                      let newOrigin = (r.PointAtTime s1Time).Move moveVector
-                                                      this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                          let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon*2.))
+                                                          this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
                                                   else s1Hit //if the hit, is not inside s2, we have found the hitpoint
         else if s1.isInside (r.PointAtTime s2Time) then 
-                let moveVector = Vector(r.GetDirection.X/10., r.GetDirection.Y/10., r.GetDirection.Z/10.)
-                let newOrigin = (r.PointAtTime s2Time).Move moveVector
-                this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                    let newOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon*100.))
+                    this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
              else s2Hit //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
-                                                let s1Hit = s1.hitFunction r
-                                                let s2Hit = s2.hitFunction r
-                                                let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-                                                let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-                                                if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
-                                            |true -> this.unionHitFunctionInside r
+                                               let s1Hit = s1.hitFunction r
+                                               let s2Hit = s2.hitFunction r
+                                               let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
+                                               let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+                                               if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
+                                           |true -> this.unionHitFunctionInside r
                                                
     ////INTERSECTION////
     member this.intersectionHitFunction (r:Ray) = 
@@ -722,7 +722,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                 let s2Hit = s2.hitFunction r //fire ray at second shape
 
                 if s2Hit.DidHit then 
-                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then s2Hit
+                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then
+                        HitPoint(r, s2Hit.Time, (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                     else 
                         let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
                         let newnewOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
@@ -771,8 +772,10 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
     
     ////GENERAL HIT-FUNCTION////
-    override this.hitFunction (r:Ray) = match op with
-                                        |Union -> this.unionHitFunction r
-                                        |Intersection -> this.intersectionHitFunction r
-                                        |Subtraction -> this.subtractionHitFunction r
-                                        |Grouping -> this.groupingHitFunction r
+    override this.hitFunction (r:Ray) = //if (this.bBox.intersect r).IsSome then
+                                            match op with
+                                            |Union -> this.unionHitFunction r
+                                            |Intersection -> this.intersectionHitFunction r
+                                            |Subtraction -> this.subtractionHitFunction r
+                                            |Grouping -> this.groupingHitFunction r
+                                        //else HitPoint(r)
