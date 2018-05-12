@@ -23,9 +23,7 @@ type MatteMaterial
     default this.IsRecursive = false
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         
-        // Initialize parameters 
-        let ca = ambientColour                              // Ambient colour
-        let ka = ambientCoefficient                         // Ambient coefficient
+        // Initialize parameters
         let kd = matteCoefficient                           // Matte coefficient
         let cd = matteColour                                // Matte colour
         let lc = light.GetColour hitPoint                   // Light colour
