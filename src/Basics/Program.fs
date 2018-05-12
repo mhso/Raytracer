@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.2,2.2,5.2)
+    let position = Point(0.2,0.2,0.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -163,8 +163,9 @@ let main _ =
     let csgUnion2 = CSG(csgUnion1, transSolid3, Union)
 
     let boxTex = Textures.mkMatTexture(matteRed)
-    let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
-    let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.65, Textures.mkMatTexture(matteBlue))
+    let boxForcsg = Box(Point(-0.7,-0.7,-0.7), Point(0.7,0.7,0.7), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    let boxForcsg2 = Box(Point(-1.2,-1.2,-1.2), Point(1.2,1.2,1.2), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.9, Textures.mkMatTexture(matteBlue))
 
     let csgInter = CSG(boxForcsg, sphereForcsg, Intersection)
 
@@ -185,12 +186,14 @@ let main _ =
     let csgBoxUnion = CSG(boxSubTest, transBox, Union)
     let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
 
-    let sphereRadiusTest = 0.7
+    let sphereRadiusTest = 0.8
     let sphereSubTest = new SphereShape(sphereOrigin, sphereRadiusTest, texSphere)
 
-    let CSGSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
+    let csgSubTest = CSG(boxForcsg2, csgBoxUnion2, Subtraction)
 
-    let shapes : Shape List = [solidCylinder]
+    let csgSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
+
+    let shapes : Shape List = [csgUnion2]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     

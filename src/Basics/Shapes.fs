@@ -600,7 +600,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         
 
     ////UNION////
-    member this.unionHitFunctionInside (r:Ray) =
+    member this.unionHitFunctionInside (originalRay:Ray) (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
@@ -610,13 +610,13 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
         if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
-                                                          let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon*2.))
-                                                          this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                                  else s1Hit //if the hit, is not inside s2, we have found the hitpoint
+                                                          let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                                                          this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                                                  else HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s1Hit.Time)), s1Hit.Normal, s1Hit.Material, s1Hit.Shape) //if the hit, is not inside s2, we have found the hitpoint
         else if s1.isInside (r.PointAtTime s2Time) then 
-                    let newOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon*100.))
-                    this.unionHitFunction (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-             else s2Hit //if the hit, is not inside s1, we have found the hitpoint
+                    let newnewOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                    this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+             else HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, s2Hit.Shape) //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
@@ -625,7 +625,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
                                                let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
                                                if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
-                                           |true -> this.unionHitFunctionInside r
+                                           |true -> this.unionHitFunctionInside r r
                                                
     ////INTERSECTION////
     member this.intersectionHitFunction (r:Ray) = 
@@ -717,17 +717,17 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
 
         if s1Hit.DidHit then 
             if s2.isInside (r.PointAtTime (s1Hit.Time)) then //refire Ray
-                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                let newOrigin = (r.PointAtTime s1Hit.Time).Move moveVector
-                let s2Hit = s2.hitFunction r //fire ray at second shape
+                let newOrigin = (r.PointAtTime s1Hit.Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                let r2 = new Ray(newOrigin, r.GetDirection) //make new ray, so you dont repeat hits
+                let s2Hit = s2.hitFunction r2 //fire new ray at second shape
 
-                if s2Hit.DidHit then 
-                    if s1.isInside (r.PointAtTime (s2Hit.Time)) then
-                        HitPoint(r, s2Hit.Time, (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
+                if s2Hit.DidHit then //can it even not hit s2, after i make a new ray with origin inside s2?
+                    if s1.isInside (r2.PointAtTime (s2Hit.Time)) then //IMPORTANT, this case is the one creating that damned yellow square!!! i might need more logic here
+                                                                      //might get a hit from the union that is too early...
+                        HitPoint(r, r.TimeAtPoint(r2.PointAtTime(s2Hit.Time)), (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                     else 
-                        let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                        let newnewOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
-                        this.subtractionHitFunction (new Ray(newnewOrigin, r.GetDirection))
+                        let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
+                        this.subtractionHitFunction (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
                 else HitPoint(r)
             else s1Hit
         else HitPoint(r)
