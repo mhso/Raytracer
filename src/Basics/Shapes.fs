@@ -160,6 +160,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     inherit Shape()
 
     let pidivided = 1.0 / Math.PI
+    let pimult2 = Math.PI * 2.
     member this.Origin = origin //perhaps both should be lower case
     member this.Radius = radius
     member this.tex = tex
@@ -184,13 +185,8 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         (p - origin).Normalise
     
     member this.getTextureCoords (p:Point) =
-        let n = (this.NormalAtPoint p)
-        let theta = Math.Acos n.Y
-        let phiNot = Math.Atan2(n.X, n.Z)
-        let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
-        let u = phi / (2. * Math.PI)
-        let v = 1.0-(theta * pidivided)
-        (u / radius, v / radius) 
+        let n = this.NormalAtPoint p
+        (Math.Atan2(n.X, n.Z), 1. - (Math.Acos(n.Y) / Math.PI))
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
@@ -199,7 +195,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let v = snd uv
         let func = Textures.getFunc tex
         let mat = func u v 
-        HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
+        HitPoint(r, t, this.NormalAtPoint p, mat, this, u, v)
 
     override this.hitFunction (r:Ray) = 
         if (this.bBox.intersect r).IsSome then
