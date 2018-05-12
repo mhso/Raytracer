@@ -1,13 +1,19 @@
 ﻿namespace Tracer.Basics
-open System.Drawing
+open System
 
 module Textures = 
 
     let mkTexture func = 
-        Texture func
+        let funcWrapper u v = 
+            let uN = if Double.IsNaN(u) then 0. else u
+            let vN = if Double.IsNaN(v) then 0. else v
+            let uF = if uN < 0. then 1. - abs(uN) % 1. else uN % 1.
+            let vF = if vN < 0. then 1. - abs(vN) % 1. else vN % 1.
+            func uF vF
+        Texture funcWrapper
 
     let mkMatTexture mat =
-        let func x y = mat
+        let func _ _ = mat
         Texture func
 
     let getFunc (Texture func) = func

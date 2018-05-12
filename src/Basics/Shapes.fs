@@ -182,11 +182,11 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     override this.getBoundingBox () = this.bBox    
 
     member this.NormalAtPoint (p:Point) = 
-        (p - origin).Normalise
+        (p - origin) / radius
     
     member this.getTextureCoords (p:Point) =
         let n = this.NormalAtPoint p
-        (Math.Atan2(n.X, n.Z), 1. - (Math.Acos(n.Y) / Math.PI))
+        (Math.Atan2(n.X, n.Z) / pimult2, 1. - (Math.Acos(n.Y) / Math.PI))
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
