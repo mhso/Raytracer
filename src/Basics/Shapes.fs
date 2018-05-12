@@ -362,12 +362,12 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
     //builds the transformed discs at the top and bottom of the solid cylinder
     member this.topDisc = 
         let rotate = rotateX (Math.PI/2.)
-        let move = translate 0. 0. (height/2.)
+        let move = translate 0. (height/2.) 0.
         let mergeTrans = mergeTransformations [rotate; move]
         Transform.transform (Disc(Point(0.,0.,0.), radius, top)) mergeTrans
     member this.bottomDisc = 
         let rotate = rotateX (Math.PI/2.)
-        let move = translate 0. 0. -(height/2.)
+        let move = translate 0. -(height/2.) 0.
         let mergeTrans = mergeTransformations [rotate; move]
         Transform.transform (Disc(Point(0.,0.,0.), radius, bottom)) mergeTrans
     //builds the hollow cylinder

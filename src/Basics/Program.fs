@@ -190,7 +190,7 @@ let main _ =
 
     let CSGSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
 
-    let shapes : Shape List = [CSGSubTestUltra]
+    let shapes : Shape List = [solidCylinder]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
