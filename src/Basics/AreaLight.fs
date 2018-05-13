@@ -108,7 +108,7 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
         let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
 
         // Transform orthonormal coordinate space
-        let d_c_p = (point - this.SphereShape.Origin).Normalise
+        let d_c_p = (point - this.SphereShape.origin).Normalise
         let up = new Vector(0., 1., 0.)
         let w = d_c_p.Normalise
         let v = (up % w).Normalise
@@ -119,10 +119,10 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
         Point(v.X/2.,v.Y/2., v.Z/2.)
 
     override this.SamplePointNormal point = 
-        (point - this.SphereShape.Origin).Normalise
+        (point - this.SphereShape.origin).Normalise
 
     override this.GetProbabilityDensity hitPoint = 
-        2. * Math.PI * (this.SphereShape.Radius * this.SphereShape.Radius)
+        2. * Math.PI * (this.SphereShape.radius * this.SphereShape.radius)
 
 module TransformLight = 
     let transformDirectionalLight ((light:DirectionalLight),t) = 

@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.2,0.2,0.2)
+    let position = Point(-1.2,1.2,5.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -94,7 +94,7 @@ let main _ =
     let bLeft = new Point(0., 0., 0.)
     let tLeft = new Point(0., 1., 0.)
     let bRight = new Point(1., 0., 0.)
-    let texRectangle = Textures.mkMatTexture(matteWhite)
+    let texRectangle = Textures.mkMatTexture(matteRed)
     let rectangle = Rectangle(bLeft, tLeft, bRight, texRectangle) 
 
     let discCenter = new Point(0., 0., 0.)
@@ -193,7 +193,33 @@ let main _ =
 
     let csgSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
 
-    let shapes : Shape List = [csgUnion2]
+
+    //optimization
+    let rect1 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect2 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect3 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect4 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect5 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect6 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect7 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect8 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect9 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect10 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+
+    let sphere1 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere2 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere3 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere4 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere5 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere6 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere7 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere8 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere9 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere10 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+
+
+    //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
+    let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     

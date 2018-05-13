@@ -2,15 +2,16 @@ namespace Tracer.Basics
 open System
 open Transformation
 
-exception BoundingBoxException
+//exception BoundingBoxException
 
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
 ///////////////////////////////////
+
 ////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
-    member this.bottomleft = bottomLeft
+    member this.bottomLeft = bottomLeft
     member this.topLeft = topLeft
     member this.bottomRight = bottomRight
     member this.tex = tex
@@ -21,15 +22,16 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
         let e = 0.000001
         let lx = (min bottomLeft.X (min topLeft.X bottomRight.X)) - e
         let ly = (min bottomLeft.Y (min topLeft.Y bottomRight.Y)) - e
-        let lz = (min bottomLeft.Z (min topLeft.Z bottomRight.Z)) - e //might be redundant as Z should always equal 0
+        let lz = - e
 
         let hx = (max bottomLeft.X (max topLeft.X bottomRight.X)) + e
         let hy = (max bottomLeft.Y (max topLeft.Y bottomRight.Y)) + e
-        let hz = (max bottomLeft.Z (max topLeft.Z bottomRight.Z)) + e //might be redundant as Z should always equal 0
+        let hz = e
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+
     override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
@@ -43,7 +45,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                     let func = Textures.getFunc tex
                     let u = (px / this.width)
                     let v = (py / this.height)
-                    let mat = func (px / this.width) (py / this.height)
+                    let mat = func u v
                     HitPoint(r, t, this.normal, mat, this, u, v) 
                 else HitPoint(r)
 
@@ -52,7 +54,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
 type Disc(center:Point, radius:float, tex:Texture)=
     inherit Shape()
     member this.center = center
-    member this.radius = radius // must not be a negative number
+    member this.radius = Math.Abs radius // must not be a negative number
     member this.tex = tex
     member this.bBox = 
         let e = 0.000001
@@ -81,9 +83,9 @@ type Disc(center:Point, radius:float, tex:Texture)=
                     let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
                     if (((px*px)+(py*py)) <= radius*radius) 
                         then 
+                            let func = Textures.getFunc tex
                             let u = (px + radius)/(2.*radius)
                             let v = (py + radius)/(2.*radius)
-                            let func = Textures.getFunc tex
                             let mat = func u v
                             HitPoint(r, t, this.normal, mat, this, u, v) 
                     else HitPoint(r)
@@ -159,15 +161,15 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
 
-    let pidivided = 1.0 / Math.PI
+    let pidivided = 1.0 / Math.PI //why are these here ??? -Alex
     let pimult2 = 2. * Math.PI
 
-    member this.Origin = origin //perhaps both should be lower case
-    member this.Radius = radius
+    member this.origin = origin 
+    member this.radius = radius
     member this.tex = tex
-    member this.bBox = //no point on the sphere should be larger than the center point + the radius...
+    member this.bBox = //no point on the sphere should be larger than the center point + the radius.
         let e = 0.000001
-        let lx = - radius - e
+        let lx = - radius - e //as the sphere is alwas spawned in 0,0,0´the bounding box should not take the origin value into consideration
         let ly = - radius - e
         let lz = - radius - e
 
@@ -178,12 +180,13 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     override this.isInside (p:Point) =
-        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2.
-        if x < (radius**2.) then true else false
+        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2. // i might be able to remove origin from this, as it should always be 0,0,0
+        (x < (radius**2.))
+
     override this.getBoundingBox () = this.bBox    
 
     member this.NormalAtPoint (p:Point) = 
-        (p - origin).Normalise
+        (p - origin).Normalise //can i remove origin from here as well???
     
     member this.getTextureCoords (p:Point) =
         let n = this.NormalAtPoint p
@@ -199,7 +202,8 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
 
     override this.hitFunction (r:Ray) = 
-        if (this.bBox.intersect r).IsSome then
+        match (this.bBox.intersect r).IsSome with
+        |true ->
             let a = (r.GetDirection.X**2.) + (r.GetDirection.Y**2.) + (r.GetDirection.Z**2.) //Determines a in the quadratic equation
             let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
             let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
@@ -207,13 +211,17 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
             let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
             let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
             match D with
-            |(0.0) -> if t1 > 0.0 then this.determineHitPoint r t1 else HitPoint(r)
+            |(0.0) -> match t1 > 0.0 with
+                      |true -> this.determineHitPoint r t1 
+                      |false -> HitPoint(r)
             |(D) when D < 0.0 -> HitPoint(r)
             |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                       |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                      |(t1,t2) -> if t1 < t2 && t1 > 0.0 then this.determineHitPoint r t1 else  if t2 > 0.0 then this.determineHitPoint r t2 
-                                                                                                else this.determineHitPoint r t1
-        else HitPoint(r)
+                      |(t1,t2) -> match (t1 < t2 && t1 > 0.0) with
+                                  |true -> this.determineHitPoint r t1 
+                                  |false when t2 > 0.0 -> this.determineHitPoint r t2    
+                                  |false -> this.determineHitPoint r t1
+        |false -> HitPoint(r)
 
 
 ////HOLLOWCYLINDER////
