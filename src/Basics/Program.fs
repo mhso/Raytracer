@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-1.2,1.2,5.2)
+    let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -217,9 +217,20 @@ let main _ =
     let sphere9 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
     let sphere10 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
 
+    let cylinder1 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder2 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder3 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder4 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder5 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder6 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder7 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder8 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder9 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder10 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
 
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
-    let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
+    //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
+    let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     

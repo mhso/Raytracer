@@ -232,7 +232,6 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.height = height
     member this.tex = tex
     member this.bBox = 
-       
         let e = 0.000001
         let lx = - radius - e
         let ly = - (height/2.) - e //height instead of radius for the Y coord
@@ -241,7 +240,6 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let hx = radius + e
         let hy = (height/2.) + e //height instead of radius for the Y coord
         let hz = radius + e
-        
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
@@ -255,7 +253,9 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.getTextureCoords (p:Point) =
         let n = (this.NormalAtPoint p)
         let phiNot = Math.Atan2(n.X, n.Z)
-        let phi = if phiNot < 0. then (phiNot + 2.)*Math.PI else phiNot
+        let phi = match phiNot < 0. with
+                  |true -> (phiNot + 2.)*Math.PI 
+                  |false -> phiNot
         let u = phi / (2. * Math.PI)
         let v = (p.Y / height) + (1. / 2.)
         (u, v)
@@ -269,8 +269,13 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let mat = func u v 
         HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat, this, u, v) 
 
+    member this.determineIfPointIsInsideHeight (r:Ray) (t:float) =
+        let p = r.PointAtTime t
+        (p.Y > -(height/2.0) && p.Y < (height/2.0))
+
     override this.hitFunction (r:Ray) = 
-        if (this.bBox.intersect r).IsSome then
+        match (this.bBox.intersect r).IsSome with
+        |true ->
             let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
             let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
             let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
@@ -278,14 +283,32 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
             let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
             match D with
-            |(0.0) -> if t1 <= 0.0 then HitPoint(r)  //if D=0 then t1 = t2
-                      else let p = r.PointAtTime t1
-                           if p.Y > -(height/2.0) && p.Y < (height/2.0) then this.determineHitPoint r t1 
-                           else HitPoint(r)
+            |(0.0) -> match t1 <= 0.0 with //if D=0 then t1 = t2
+                      |true -> HitPoint(r) 
+                      |false -> let p = r.PointAtTime t1
+                                match (p.Y > -(height/2.0) && p.Y < (height/2.0)) with
+                                |true -> this.determineHitPoint r t1 
+                                |false -> HitPoint(r)
             |(D) when D < 0.0 -> HitPoint(r)
             |(_) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
-                    |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
-                    |(t1,t2) -> if t2 < t1 && t2 > 0.0 then
+                    |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r) //if both t's are a miss
+                    |(t1,t2) -> match t2 < t1 && t2 > 0.0 with
+                                |true ->
+                                    match this.determineIfPointIsInsideHeight r t2 with
+                                    |true -> this.determineHitPoint r t2 
+                                    |false -> match this.determineIfPointIsInsideHeight r t1 with
+                                              |true -> this.determineHitPoint r t1
+                                              |false -> HitPoint(r)
+                                |false -> match t1 > 0.0 with
+                                          |true ->  match this.determineIfPointIsInsideHeight r t1 with
+                                                    |true -> this.determineHitPoint r t1
+                                                    |false -> HitPoint(r)
+                                          |false -> match this.determineIfPointIsInsideHeight r t2 with
+                                                    |true -> this.determineHitPoint r t2
+                                                    |false -> HitPoint(r)                        
+                        
+                        
+                                (*if t2 < t1 && t2 > 0.0 then
                                     let p2 = r.PointAtTime t2
                                     if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
                                     else let p1 = r.PointAtTime t1
@@ -298,8 +321,9 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                                      else 
                                          let p2 = r.PointAtTime t2
                                          if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                         else HitPoint(r)
-        else HitPoint(r)
+                                         else HitPoint(r)*)
+                                         
+        |false -> HitPoint(r)
 
 ////TRANSFORM////                                                                                     
 module Transform =
