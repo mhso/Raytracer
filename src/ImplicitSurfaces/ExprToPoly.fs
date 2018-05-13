@@ -50,7 +50,6 @@ module ExprToPoly =
     | FExponent(_,0)  -> simplify (FNum 1.0)
     | FExponent(e1,1) -> simplify e1
     | FExponent(e1,n) -> if n < 0 then 
-                            printfn "are we ever here?"
                             match e1 with
                             | FNum c  -> combine (simplify (FNum (1./c))) (simplify (FExponent(e1, n + 1)))
                             | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
@@ -175,7 +174,7 @@ module ExprToPoly =
             match Map.tryFind cr vars with
             | Some v  -> vars <- Map.add cr (v + n) vars
             | None    -> vars <- Map.add cr n vars
-      | []            -> nums <- 0.0 
+      | []            -> nums <- nums 
       | _             -> failwith "simplifySimpleExpr: unmatched clause" // should never get here                   
     ) ags'
     // Last task is to group similar atomGroups into one group.
@@ -189,10 +188,8 @@ module ExprToPoly =
     let reduced =
       match simplifyExpr e with
       | FDiv(keep,_)  -> keep
-      | _             -> e
-    let x = (simplifyRoots << simplify) reduced
-    printfn "simpl: %A" (ppSimpleExpr (SE x))
-    x
+      | res           -> (simplifyRoots << simplify) reduced
+
 
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 

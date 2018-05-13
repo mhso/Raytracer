@@ -182,15 +182,7 @@ module Main =
 
   let mkImplicit (s:string) : baseShape =
     let exp = parseStr s // parsing the equation string to expression
-    //printfn "parse: %A" ((scan >> insertMult >> parse) s)
-    //printfn "reduced: %A" ((scan >> insertMult >> parse >> reduceExpr) s)
-    //printfn "pp parse: %A" (ppExpr ((scan >> insertMult >> parse) s))
-    //printfn "pp reduced %A" (ppExpr((scan >> insertMult >> parse >> reduceExpr) s))
-    //printfn "aspoly: %A" (ppPoly "" (exprToPoly (((scan >> insertMult >> parse) s)) ""))
-    let test = exprToPoly exp ""
     let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
-    //printfn "exp: %A" (ppExpr exp)
-    printfn "poly: %A" (ppPoly "" (exprToPoly exp ""))
     let hitfunction =
       match getOrder m with
       | 1 -> getFirstDegreeHF (P m) exp
