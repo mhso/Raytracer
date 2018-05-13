@@ -118,10 +118,10 @@ module Material =
 
   let renderWithSampler (gname : string) (sampler : unit -> sampler) : Target list = 
     List.map (fun (test, name) -> mkTarget gname ((fun _ -> test (sampler ()) ()), name))
-      [(scene, "AmbientLight");
-       (sceneEL, "EnvironmentLight");
-       (sceneAO, "AmbientOcclusion");
-       (sceneAOEL, "AmbientOclusionEnvironmentLight");
+      [//(scene, "AmbientLight");
+       //(sceneEL, "EnvironmentLight");
+       //(sceneAO, "AmbientOcclusion");
+       //(sceneAOEL, "AmbientOclusionEnvironmentLight");
        (sceneMatte, "matte");
        (scenePhongReflective, "phongReflective");
        (scenePhongPoint, "phongPoint");
@@ -136,5 +136,5 @@ module Material =
   let renderHigh : Target list = 
     renderWithSampler "material high" (fun () -> mkMultiJitteredSampler 6 83)
   let renderRegular : Target list =   
-    renderWithSampler "material regular" (fun () -> mkRegularSampler 4)
+    renderWithSampler "material regular" (fun () -> mkRegularSampler 1)
     

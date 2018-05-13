@@ -61,15 +61,15 @@ type Render(scene : Scene, camera : Camera) =
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let ambientLight = this.Scene.Ambient.GetColour hitPoint * hitPoint.Material.AmbientColour
-            let totalLight = 
+            let ambientColour = hitPoint.Material.AmbientColour(hitPoint, this.Scene.Ambient)
+            let totalLightColour = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
-                    let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
+                    let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude accel light hitPoint
-                    let shadowColour = this.CastShadow accel hitPoint light
-                    acc + (colour + occlusion - shadowColour)) Colour.Black
-            ambientLight + totalLight
+                    let total = colour + occlusion
+                    acc + total) Colour.Black
+            ambientColour + totalLightColour
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
@@ -133,14 +133,20 @@ type Render(scene : Scene, camera : Camera) =
 
     // Returns the average shadow for a hitpoint and a light source
     member this.CastShadow accel (hitPoint: HitPoint) (light: Light) : Colour = 
-        if light :? AmbientLight 
+        if light :? AmbientLight || hitPoint.Material :? TransparentMaterial
             then Colour.Black
         else
             let shadowRays = light.GetShadowRay hitPoint
+            
+            let maxTime =
+                match light with
+                | :? PointLight as p -> p.Position.Distance(hitPoint.Point).Magnitude
+                | _ -> 2147483647.
+
             let isShadow ray = 
-                let (hp) = (this.GetFirstShadowHitPoint accel ray)
-                if hp.DidHit then
-                        Colour.White - this.Scene.Ambient.GetColour hitPoint
+                let hp = (this.GetFirstShadowHitPoint accel ray)
+                if hp.DidHit && hp.Time < maxTime then
+                        Colour.White
                     else 
                         Colour.Black
             
@@ -152,22 +158,24 @@ type Render(scene : Scene, camera : Camera) =
 
     // Will cast a ray recursively
     member this.CastRecursively 
-        (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
+        (accel: IAcceleration) (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
+
+        let shadowColour = this.CastShadow accel hitPoint light
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
+            acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
+            let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 
                     let outHitPoint = this.GetFirstHitPointExcept outRay.[i] shape
                     if outHitPoint.DidHit then
-                        let recursiveColour = this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
-                        hitPoint.Material.ReflectionFactor * recursiveColour
+                        let recursiveColour = this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        hitPoint.Material.ReflectionFactor(hitPoint, outRay.[i]) * recursiveColour
                     else
-                        Colour.Black
+                        this.Scene.BackgroundColour
             baseColour + (outColour / float(outRay.Length))
 
     member this.CalculateProgress current total =
@@ -198,8 +206,6 @@ type Render(scene : Scene, camera : Camera) =
         if ppRendering then
           Console.WriteLine(" 
         
-
-
                              ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
                              ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
                              ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
@@ -243,8 +249,6 @@ type Render(scene : Scene, camera : Camera) =
         
         // Open image
         Process.Start(filepath) |> ignore
-
-        Console.ReadKey () |> ignore
 
     member this.RenderParallel = 
         // Prepare image
