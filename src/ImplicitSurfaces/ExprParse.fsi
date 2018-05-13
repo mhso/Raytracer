@@ -2,7 +2,7 @@ namespace Tracer.ImplicitSurfaces
 
 module ExprParse =
      
-  type terminal = | Add | Sub | Mul | Div | Pwr | Root | Lpar | Rpar | Int of int | Float of float | Var of string
+  type terminal = | Add | Mul | Div | Pwr | Root | Lpar | Rpar | Int of int | Float of float | Var of string
   exception ScanErrorException
   val scan : char seq -> terminal list
   val insertMult : terminal list -> terminal list
@@ -11,7 +11,6 @@ module ExprParse =
     | FNum of float
     | FVar of string
     | FAdd of expr * expr
-    | FSub of expr * expr
     | FMult of expr * expr
     | FDiv of expr * expr
     | FExponent of expr * int

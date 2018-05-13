@@ -10,7 +10,6 @@ module ExprToPoly =
     | FNum c            -> string(c)
     | FVar s            -> s
     | FAdd(e1,e2)       -> "(" + ppExpr e1 + " + " + ppExpr e2 + ")"
-    | FSub(e1,e2)       -> ppExpr e1 + " - " + ppExpr e2
     | FMult(e1,e2)      -> ppExpr e1 + " * " + ppExpr e2
     | FExponent(e,n)    -> "(" + ppExpr e + ")^" + string(n)
     | FDiv(e1,e2)       -> ppExpr e1 + " / " + ppExpr e2
@@ -21,7 +20,6 @@ module ExprToPoly =
     | FNum c          -> FNum c
     | FVar s          -> if s = x then ex else e
     | FAdd(a,b)       -> FAdd(subst a (x, ex), subst b (x, ex))
-    | FSub(a,b)       -> FSub(subst a (x, ex), subst b (x, ex))
     | FMult(a,b)      -> FMult(subst a (x, ex), subst b (x, ex))
     | FExponent(a,i)  -> FExponent(subst a (x, ex), i)
     | FDiv(a,b)       -> FDiv(subst a (x, ex), subst b (x, ex))
@@ -49,16 +47,6 @@ module ExprToPoly =
   let rec simplify = function
     | FNum c          -> [[ANum c]]
     | FVar s          -> [[AExponent(s,1)]]
-    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
-    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
-    | FSub(e1,e2)     -> 
-      let t = (FSub (e1,e2))
-      //printfn "ppExpr: %A" t
-      let x = simplify e1 @ combine [[ANum -1.0]] (simplify e2)
-      //printfn "ppSimpleExpr: %A" x
-      x
-    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
-    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
     | FExponent(_,0)  -> simplify (FNum 1.0)
     | FExponent(e1,1) -> simplify e1
     | FExponent(e1,n) -> if n < 0 then 
@@ -69,6 +57,10 @@ module ExprToPoly =
                                          else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
                             | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
                          else combine (simplify e1) (simplify (FExponent(e1, n-1)))
+    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
+    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
+    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
+    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
 
   let rec highestRoot (c:int) = function
     | []      -> c

@@ -17,7 +17,6 @@ module ExprParse =
 
   type terminal = 
     | Add               // addition
-    | Sub               // Subtraction
     | Mul               // multiplication
     | Div               // Division
     | Pwr               // Power
@@ -70,12 +69,12 @@ module ExprParse =
       | '(' :: cr                       -> Lpar :: sc cr
       | ')' :: cr                       -> Rpar :: sc cr
       | '_' :: cr                       -> Root :: sc cr
-      | '-' :: c :: cr when isdigit c   -> let (cs1, t) = scnum(cr, intval c)
-                                           negateNumber t :: sc cs1
-      | '-' :: c1 :: c2 :: cr when isblank c1 && isdigit c2 ->
-                                           let (cs1, t) = scnum(cr, intval c2)
-                                           Add :: negateNumber t :: sc cs1 
-      | '-' :: cr                       -> Sub :: sc cr
+      //| '-' :: c :: cr when isdigit c   -> let (cs1, t) = scnum(cr, intval c)
+      //                                     negateNumber t :: sc cs1
+      //| '-' :: c1 :: c2 :: cr when isblank c1 && isdigit c2 ->
+      //                                     let (cs1, t) = scnum(cr, intval c2)
+      //                                     Add :: negateNumber t :: sc cs1 
+      | '-' :: cr                       -> Add :: Float -1.0 :: Mul :: sc cr // Subtraction and negation is treated as multiplied by minus 1//Sub :: sc cr
       //Add :: Float -1.0 :: Mul :: sc cr // Subtraction and negation is treated as multiplied by minus 1
       | c :: cr when isdigit c          -> let (cs1, t) = scnum(cr, intval c)
                                            t :: sc cs1
@@ -104,7 +103,6 @@ module ExprParse =
     | FNum of float
     | FVar of string
     | FAdd of expr * expr
-    | FSub of expr * expr
     | FMult of expr * expr
     | FDiv of expr * expr
     | FExponent of expr * int
@@ -116,9 +114,7 @@ module ExprParse =
   and Eopt (ts, (inval)) = 
     match ts with 
     | Add::tr   -> let (ts1, tv) = T tr
-                   Eopt (ts1, FAdd (inval, tv))    
-    | Sub::tr   -> let (ts1, tv) = T tr
-                   Eopt (ts1, FSub (inval, tv))
+                   Eopt (ts1, FAdd (inval, tv))
     | _         -> (ts, inval)
   and T ts = (F >> Topt) ts // or Topt (F ts)
   and Topt (ts, inval) =
@@ -143,6 +139,7 @@ module ExprParse =
                      match ts1 with
                      | Rpar :: tr -> (tr, ev)
                      | _          -> raise ParseErrorException
+    | Add::tr -> P tr 
     | _           -> raise ParseErrorException
 
   let parse ts : expr= 
@@ -168,7 +165,6 @@ module ExprParse =
       // all others should just continue recursively
       | FRoot(e1,n)        -> FRoot (inner e1, n)
       | FAdd(e1,e2)        -> FAdd (inner e1, inner e2)
-      | FSub(e1,e2)        -> FSub (inner e1, inner e2)
       | FMult(e1,e2)       -> FMult (inner e1, inner e2)
       | FDiv(e1,e2)        -> FDiv (inner e1, inner e2)
       | FExponent(e1,n)    -> FExponent (inner e1, n)
@@ -190,7 +186,6 @@ module ExprParse =
   | FMult(e1,e2)    -> solveExpr m e1 * solveExpr m e2
   | FDiv(e1,e2)     -> solveExpr m e1 / solveExpr m e2
   | FExponent(e1,n) -> pown (solveExpr m e1) n
-  | FSub(e1,e2)     -> solveExpr m e1 - solveExpr m e2
 
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")
