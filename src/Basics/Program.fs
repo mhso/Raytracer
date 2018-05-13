@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.2,2.2,5.2)
+    let position = Point(-0.2,0.2,0.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -234,6 +234,7 @@ let main _ =
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
+    //let shapes : Shape List = [csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;]
     
 
     //- THIN LENS SAMPLE SETTINGS

@@ -644,14 +644,9 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                        |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
 
     override this.isInside (p:Point) = match op with //if-then-else can be removed here... silly me...
-                                        |Union -> if s1.isInside p || s2.isInside p then true
-                                                  else false
-                                        |Intersection -> if s1.isInside p && s2.isInside p then true
-                                                         else false
-                                        |Subtraction -> if s1.isInside p && (not (s2.isInside p)) then true
-                                                        else false
-                                        |Grouping -> if s1.isInside p || s2.isInside p then true
-                                                     else false
+                                        |Union|Grouping -> (s1.isInside p || s2.isInside p)
+                                        |Intersection -> (s1.isInside p && s2.isInside p)
+                                        |Subtraction -> (s1.isInside p && (not (s2.isInside p)))
 
     override this.getBoundingBox () = this.bBox
                                         
@@ -660,28 +655,46 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.unionHitFunctionInside (originalRay:Ray) (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
-        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+        let s1Time = match s1Hit.DidHit with
+                     |true -> s1Hit.Time 
+                     |false -> infinity
+        let s2Time = match s2Hit.DidHit with
+                     |true -> s2Hit.Time 
+                     |false -> infinity
 
         //i continue no matter what 
 
         //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        if s1Time <= (s2Time + this.epsilon) then if s2.isInside (r.PointAtTime s1Time) then 
-                                                          let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                                                          this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-                                                  else HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s1Hit.Time)), s1Hit.Normal, s1Hit.Material, s1Hit.Shape) //if the hit, is not inside s2, we have found the hitpoint
-        else if s1.isInside (r.PointAtTime s2Time) then 
-                    let newnewOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                    this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-             else HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, s2Hit.Shape) //if the hit, is not inside s1, we have found the hitpoint
+        match (s1Time <= (s2Time + this.epsilon)) with 
+        |true -> 
+            match (s2.isInside (r.PointAtTime s1Time)) with
+            |true ->  
+                let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+            |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s1Hit.Time)), s1Hit.Normal, s1Hit.Material, s1Hit.Shape) //if the hit, is not inside s2, we have found the hitpoint
+        |false -> 
+            match (s1.isInside (r.PointAtTime s2Time)) with
+            |true ->
+                let newnewOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+            |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, s2Hit.Shape) //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 
-                                               let s1Hit = s1.hitFunction r
-                                               let s2Hit = s2.hitFunction r
-                                               let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-                                               let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-                                               if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
+                                                let s1Hit = s1.hitFunction r
+                                                let s2Hit = s2.hitFunction r
+                                                match (not(s1Hit.DidHit) && not(s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
+                                                |true ->
+                                                    let s1Time = match s1Hit.DidHit with
+                                                                 |true -> s1Hit.Time 
+                                                                 |false -> infinity
+                                                    let s2Time = match s2Hit.DidHit with
+                                                                 |true -> s2Hit.Time 
+                                                                 |false -> infinity
+                                                    match (s1Time <= (s2Time + this.epsilon)) with
+                                                    |true -> s1Hit
+                                                    |false -> s2Hit
+                                                |false -> HitPoint(r)
                                            |true -> this.unionHitFunctionInside r r
                                                
     ////INTERSECTION////
