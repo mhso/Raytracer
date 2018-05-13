@@ -643,7 +643,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                             BBox(newLow, newHigh)
                        |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
 
-    override this.isInside (p:Point) = match op with
+    override this.isInside (p:Point) = match op with //if-then-else can be removed here... silly me...
                                         |Union -> if s1.isInside p || s2.isInside p then true
                                                   else false
                                         |Intersection -> if s1.isInside p && s2.isInside p then true
