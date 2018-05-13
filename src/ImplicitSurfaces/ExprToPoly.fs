@@ -188,8 +188,8 @@ module ExprToPoly =
     let reduced =
       match simplifyExpr e with
       | FDiv(keep,_)  -> keep
-      | res           -> (simplifyRoots << simplify) reduced
-
+      | res           -> res
+    (simplifyRoots << simplify) reduced
 
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
