@@ -228,4 +228,3 @@ let main _ =
     ignore (render.RenderToFile render.RenderParallel "TracedRays.bmp")
 
     0
-
