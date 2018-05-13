@@ -602,13 +602,14 @@ type InfinitePlane(tex:Texture) =
     override this.getBoundingBox () = failwith "Infinite Plane cannot havea Bounding Box"
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
-        if r.GetDirection.Z <> 0.0 && t > 0.0 then 
+        match (r.GetDirection.Z <> 0.0 && t > 0.0) with
+        |true ->
             let func = Textures.getFunc tex
             let u = (r.PointAtTime t).X
             let v = (r.PointAtTime t).Y
             let mat = func u v
             HitPoint(r, t, Vector(0.0, 0.0, -1.0), mat, this, u, v)
-        else HitPoint(r)
+        |false -> HitPoint(r)
 
 
 
