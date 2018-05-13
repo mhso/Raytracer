@@ -24,14 +24,15 @@ module Main =
       let ez = FAdd(FVar "oz", FMult(FVar "t",FVar "dz"))
       List.fold subst e [("x",ex);("y",ey);("z",ez)]
 
-  let rec containsVar var = function
-    | FVar x        -> x = var
-    | FNum _        -> false
-    | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
-    | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
-    | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
-    | FExponent(e,_)-> containsVar var e
-    | FRoot(e,_)    -> containsVar var e
+  //let rec containsVar var = function
+  //  | FVar x        -> x = var
+  //  | FNum _        -> false
+  //  | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FSub(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
+  //  | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
+  //  | FExponent(e,_)-> containsVar var e
+  //  | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
   let rec partialDerivative var e =
@@ -41,6 +42,7 @@ module Main =
       | FVar x          -> if x <> var then FNum 0.0 // case 1
                            else FNum 1.0 // case 2
       | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
+      | FSub(e1, e2)    -> FSub (inner e1, inner e2)
       | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
       | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
       | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
@@ -181,7 +183,15 @@ module Main =
 
   let mkImplicit (s:string) : baseShape =
     let exp = parseStr s // parsing the equation string to expression
+    //printfn "parse: %A" ((scan >> insertMult >> parse) s)
+    //printfn "reduced: %A" ((scan >> insertMult >> parse >> reduceExpr) s)
+    //printfn "pp parse: %A" (ppExpr ((scan >> insertMult >> parse) s))
+    //printfn "pp reduced %A" (ppExpr((scan >> insertMult >> parse >> reduceExpr) s))
+    //printfn "aspoly: %A" (ppPoly "" (exprToPoly (((scan >> insertMult >> parse) s)) ""))
+
     let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    //printfn "exp: %A" (ppExpr exp)
+    //printfn "poly: %A" (ppPoly "" (exprToPoly exp ""))
     let hitfunction =
       match getOrder m with
       | 1 -> getFirstDegreeHF (P m) exp

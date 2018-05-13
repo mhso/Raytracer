@@ -91,7 +91,7 @@ module API =
     EmissiveMaterial(c, i) :> material
 
   let mkTransparent (cf_in : colour) (cf_out : colour) (eta_in : float) (eta_out : float) : material = 
-    failwith "mkTransparent not implemented"
+    TransparentMaterial(cf_in, cf_out, eta_in, eta_out) :> material
 
   let mkTexture (f : float -> float -> material) : texture = 
     Textures.mkTexture f
@@ -107,7 +107,8 @@ module API =
     b.toShape t
   
   let mkSphere (p : point) (r : float) (m : texture) : shape = 
-    new SphereShape(p, r, m) :> shape
+    let sphere = SphereShape(p, r, m)
+    Transform.transform sphere (Transformation.translate p.X p.Y p.Z)
   
   let mkBaseSphere (p : point) (r : float)  : baseShape = 
     new BaseSphere(p, r) :> baseShape
@@ -132,13 +133,16 @@ module API =
     TriangleMes.drawTriangles filename smooth
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
-    new HollowCylinder(c, r, h, t) :> shape
+    let s = HollowCylinder(c, r, h, t)
+    Transform.transform s (Transformation.translate c.X c.Y c.Z)
 
   let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape = 
-    new SolidCylinder(c, r, h, t, top, bottom) :> shape
+    let s = SolidCylinder(c, r, h, t, top, bottom) :> shape
+    Transform.transform s (Transformation.translate c.X c.Y c.Z)
 
   let mkDisk (c : point) (r : float) (t : texture) : shape = 
-    new Disc(c, r, t) :> shape
+    let disc = Disc(Point.Zero, r, t) :> shape
+    Transform.transform disc (Transformation.translate c.X c.Y c.Z)
 
   let mkBaseDisk (c : point) (r : float) : baseShape = 
     new BaseDisc(c, r) :> baseShape
@@ -203,7 +207,7 @@ module API =
   /////////////////////
 
   let mkScene (s : shape list) (l : light list) (a : ambientLight)(m : int) : scene = 
-    new Scene(s, l, a, m)
+    Scene(s, l, a, m)
   
   let renderToScreen (sc : scene) (c : camera) : unit = 
     let render = new Render(sc, c)
