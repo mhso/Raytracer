@@ -9,9 +9,9 @@ module ExprToPoly =
   let rec ppExpr = function
     | FNum c            -> string(c)
     | FVar s            -> s
-    | FAdd(e1,e2)       -> "(" + (ppExpr e1) + " + " + (ppExpr e2) + ")"
-    | FMult(e1,e2)      -> (ppExpr e1) + " * " + (ppExpr e2)
-    | FExponent(e,n)    -> "(" + (ppExpr e) + ")^" + string(n)
+    | FAdd(e1,e2)       -> "(" + ppExpr e1 + " + " + ppExpr e2 + ")"
+    | FMult(e1,e2)      -> ppExpr e1 + " * " + ppExpr e2
+    | FExponent(e,n)    -> "(" + ppExpr e + ")^" + string(n)
     | FDiv(e1,e2)       -> ppExpr e1 + " / " + ppExpr e2
     | FRoot(e,n)        -> "(" + ppExpr e + ")_" + string(n)
 
@@ -19,11 +19,11 @@ module ExprToPoly =
     match e with    
     | FNum c          -> FNum c
     | FVar s          -> if s = x then ex else e
-    | FAdd(a,b)       -> FAdd(subst a (x,ex), subst b (x, ex))
-    | FMult(a,b)      -> FMult(subst a (x,ex), subst b (x,ex))
-    | FExponent(a,i)  -> FExponent(subst a (x,ex), i)
-    | FDiv(a,b)       -> FDiv(subst a (x,ex), subst b (x,ex))
-    | FRoot(a,i)      -> FRoot(subst a (x,ex), i)
+    | FAdd(a,b)       -> FAdd(subst a (x, ex), subst b (x, ex))
+    | FMult(a,b)      -> FMult(subst a (x, ex), subst b (x, ex))
+    | FExponent(a,i)  -> FExponent(subst a (x, ex), i)
+    | FDiv(a,b)       -> FDiv(subst a (x, ex), subst b (x, ex))
+    | FRoot(a,i)      -> FRoot(subst a (x, ex), i)
 
   type atom = ANum of float | AExponent of string * int | ARadical of simpleExpr * int
   and atomGroup = atom list  
@@ -47,10 +47,6 @@ module ExprToPoly =
   let rec simplify = function
     | FNum c          -> [[ANum c]]
     | FVar s          -> [[AExponent(s,1)]]
-    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
-    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
-    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
-    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
     | FExponent(_,0)  -> simplify (FNum 1.0)
     | FExponent(e1,1) -> simplify e1
     | FExponent(e1,n) -> if n < 0 then 
@@ -60,6 +56,10 @@ module ExprToPoly =
                                          else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
                             | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
                          else combine (simplify e1) (simplify (FExponent(e1, n-1)))
+    | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
+    | FAdd(e1,e2)     -> simplify e1 @ simplify e2
+    | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
+    | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
 
   let rec highestRoot (c:int) = function
     | []      -> c
@@ -80,7 +80,7 @@ module ExprToPoly =
       | FAdd(FNum c1, FNum c2)  -> FNum (c1 + c2)
       | FMult(FNum c1, FNum c2) -> FNum (c1 * c2)
       | FDiv(FNum c1, FNum c2)  -> FNum (c1 / c2)
-      | FExponent(FNum c, n)    -> FNum (c**(float n))
+      | FExponent(FNum c, n)    -> FNum (pown c n)
       | FRoot(FNum c, n)        -> FNum (c**(1./(float n)))
       // exponents
       | FExponent(_,0)          -> FNum 1.0
@@ -174,7 +174,7 @@ module ExprToPoly =
             match Map.tryFind cr vars with
             | Some v  -> vars <- Map.add cr (v + n) vars
             | None    -> vars <- Map.add cr n vars
-      | []            -> nums <- 0.0 
+      | []            -> nums <- nums 
       | _             -> failwith "simplifySimpleExpr: unmatched clause" // should never get here                   
     ) ags'
     // Last task is to group similar atomGroups into one group.
@@ -188,8 +188,8 @@ module ExprToPoly =
     let reduced =
       match simplifyExpr e with
       | FDiv(keep,_)  -> keep
-      | _             -> e
-    (simplifyRoots << simplify) reduced
+      | res           -> (simplifyRoots << simplify) reduced
+
 
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
@@ -250,7 +250,7 @@ module ExprToPoly =
         | AExponent(e,x) -> 
             match Map.tryFind e m with
             | Some v -> if x = 1 then v * solveAG m r
-                          else v**(float x) * solveAG m r
+                          else (pown v x) * solveAG m r
             | None   -> failwith "solveAG: variable not found in map"
         | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
   

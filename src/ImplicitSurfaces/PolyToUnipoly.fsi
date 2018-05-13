@@ -6,7 +6,7 @@ module PolyToUnipoly =
   type unipoly = 
     | UP of (int * float) list
     static member ( - ) : unipoly * unipoly -> unipoly
-    static member ( % ) : unipoly * unipoly -> unipoly * unipoly
+    static member ( % ) : unipoly * unipoly -> unipoly //* unipoly
     static member ( * ) : unipoly * (int * float) -> unipoly
   type simpleExpr = ExprToPoly.simpleExpr
   type iAtom = IANum of float | IAExponent of int * int

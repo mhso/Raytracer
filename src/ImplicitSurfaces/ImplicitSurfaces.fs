@@ -24,14 +24,15 @@ module Main =
       let ez = FAdd(FVar "oz", FMult(FVar "t",FVar "dz"))
       List.fold subst e [("x",ex);("y",ey);("z",ez)]
 
-  let rec containsVar var = function
-    | FVar x        -> x = var
-    | FNum _        -> false
-    | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
-    | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
-    | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
-    | FExponent(e,_)-> containsVar var e
-    | FRoot(e,_)    -> containsVar var e
+  //let rec containsVar var = function
+  //  | FVar x        -> x = var
+  //  | FNum _        -> false
+  //  | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FSub(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
+  //  | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
+  //  | FExponent(e,_)-> containsVar var e
+  //  | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
   let rec partialDerivative var e =
@@ -63,12 +64,10 @@ module Main =
     Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
-    b**2.0 - 4.0 * a * c
+    (pown b 2) - 4.0 * a * c
 
-  let getDistances a b c = 
-    let sres = sqrt((b**2.0) - 4.0 * a * c)
-    let ares = 2.0 * a
-    let res f = (f (-b) (sres)) / ares
+  let getDistances a b d = 
+    let res f = (f (-b) (sqrt(d))) / 2.0 * a
     [res (+); res (-)]
 
   let getValArray (r:Ray) = 
@@ -121,9 +120,10 @@ module Main =
       let a = solveSIE aSIE valArray
       let b = solveSIE bSIE valArray
       let c = solveSIE cSIE valArray
-      if discriminant a b c < 0.0 then None
+      let d = discriminant a b c
+      if d < 0.0 then None
       else
-        let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
+        let ts = getDistances a b d |> List.filter (fun x -> x >= 0.0)
         if List.isEmpty ts then None
         else
           let t' = List.min ts
@@ -171,13 +171,9 @@ module Main =
               match newtonRaphson up up' mid with
               | None    -> None
               | Some t  ->
-                  if t < lo then 
-                    printfn "t < lo"
-                    findx mid hi 5 (itcount + 1)
+                  if t < lo then findx mid hi 5 (itcount + 1)
                   else 
-                    if t > hi then 
-                      printfn "t > hi"
-                      findx lo mid 5 (itcount + 1)
+                    if t > hi then findx lo mid 5 (itcount + 1)
                     else
                       let hp = r.PointAtTime t
                       Some (t, normalVector hp pdx pdy pdz)
@@ -206,10 +202,3 @@ module Main =
               }
           }
     bsh
-
-(*
-  [<EntryPoint>]
-  let main argv =
-    printfn "we are running this shit!"
-    0 // return a beautiful integer exit code
-*)

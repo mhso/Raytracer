@@ -15,10 +15,10 @@ let allTargets : Target list =
      //Shapes.render;
      //AffineTransformations.render true;
      //AffineTransformations.render false;
-     //ImplicitSurfaces.render;
+     ImplicitSurfaces.render;
      //Meshes.render Tracer.API.Acceleration.KDTree;
      //Texture.render;
-     Light.render;
+     //Light.render;
      //CSG.render;
      // AmbientOcclusion.render [1;2;4;8;16]
      // The test groups below is only needed for teams of 7 students.
@@ -45,7 +45,7 @@ let main argv =
     // Util.setTimeout 300;
 
     // run all test cases
-    renderAll true;
+    renderAll false;
 
     // To only run some test groups, use the following
     // renderGroups false ["material high"]
