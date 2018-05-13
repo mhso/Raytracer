@@ -8,9 +8,13 @@ open Tracer.Basics
 open Tracer.Basics
 open Tracer.Basics
 open Tracer.Basics
+open System.Diagnostics
+open PLYParser
+open System
+open TriangleMes
 
 [<EntryPoint>]
-let main _ = 
+let main _ =
     // General settings
     let mkTextureFromFile (tr : float -> float -> float * float) (file : string) =
         let img = new System.Drawing.Bitmap(file)
@@ -106,7 +110,6 @@ let main _ =
         then matteRed :> Material
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
-
 
     let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
     let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
