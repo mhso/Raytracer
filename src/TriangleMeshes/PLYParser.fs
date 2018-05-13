@@ -4,6 +4,8 @@ open FParsec
 open System.IO
 open System
 open Tracer.Basics
+open System.Threading.Tasks
+open System.Diagnostics
 
 
 type UserState = unit
@@ -72,7 +74,7 @@ let findVertexFromArray (floatsList : float list) (posArray : int array)=
     new Vertex(x,y,z,nx,ny,nz,u,v)
 
 let parsePLY (filepath:string) = 
-    let sr = new StreamReader(filepath)
+    use sr = new StreamReader(filepath)
     let mutable headerCharCount = 0
     let proceed (s:StreamReader) = 
         let nextLine = s.ReadLine()
@@ -144,76 +146,78 @@ let parsePLY (filepath:string) =
                 let typeVal = typeParser lineSplit.[1]
                 skipAbleProperty <- List.append skipAbleProperty [typeVal]
             nextLine <- proceed sr
-        (nextLine <- sr.ReadLine()) |> ignore
-
+        //(nextLine <- sr.ReadLine()) |> ignore
         match isAscii,isBoolean with
+        //ASCII PARSING
         | true,_ -> 
-            for i in 0..triangleArray.Length-1 do
-                if(nextLine.EndsWith(" ")) then
-                    nextLine <- nextLine.Substring(0,nextLine.Length-1)
-                let listFloatParser = (sepBy pfloat WhiteSpace)
-                let listFloat = parse listFloatParser nextLine
-                triangleArray.[i] <- findVertexFromArray listFloat vertexPosition
-                nextLine <- sr.ReadLine()
-            for i in 0..faceArray.Length-1 do 
-                if(nextLine.EndsWith(" ")) then
-                    nextLine <- nextLine.Substring(0,nextLine.Length-1)
-                let listIntParser = (sepBy pint32 WhiteSpace)
-                let listInt = parse listIntParser nextLine
-                faceArray.[i] <- listInt
-                nextLine <- sr.ReadLine()
+            //VERTEX PARSING
+            let lines = Array.zeroCreate(triangleArray.Length + faceArray.Length)
+            //READING UPCOMING LINES FOR USING PARALLEL
+            for i in 0..lines.Length-1 do 
+                lines.[i] <- sr.ReadLine()
+            let listFloatParser = (sepBy pfloat WhiteSpace)
+            let listIntParser = (sepBy pint32 WhiteSpace)
+            let hasExstraWS = lines.[0].EndsWith(" ")
+
+            Parallel.For(0, lines.Length, fun i ->
+                let line = 
+                    let tempLine = lines.[i]
+                    if(hasExstraWS) then
+                        tempLine.Substring(0,tempLine.Length-1)
+                    else tempLine
+                if (i < triangleArray.Length) then
+                    let listFloat = parse listFloatParser line
+                    triangleArray.[i] <- findVertexFromArray listFloat vertexPosition
+                else
+                    let k = i - triangleArray.Length
+                    let listInt = parse listIntParser line
+                    faceArray.[k] <- listInt) |> ignore
+
             (triangleArray,faceArray)
         | _,true -> 
-            printfn ("BINARY START")
             let stream = sr.BaseStream
-            stream.Seek((int64 (headerCharCount-3)), SeekOrigin.Begin) |> ignore
+            stream.Seek((int64 (headerCharCount - 3)), SeekOrigin.Begin) |> ignore
             let br = new BinaryReader(stream)
-            let mutable numberOfBytesRead = 0
-            for j in 0..(triangleArray.Length-1) do 
-                let vertexProps = Array.zeroCreate(vertexProperty.Length)
-                for k in 0..(vertexProperty.Length-1) do
+            let vertexProbs = vertexProperty
+            for j in 0..triangleArray.Length-1 do 
+                let vertexProps = Array.zeroCreate(vertexProbs.Length)
+                for k in 0..(vertexProbs.Length-1) do
                     let f = 
-                        match vertexProperty.[k] with
+                        match vertexProbs.[k] with
                         | 1 -> 
                             let buffer : byte[] = Array.zeroCreate(1)
-                            br.Read(buffer,0,1)
+                            br.Read(buffer,0,1) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 1
                             (float buffer.[0])
                         | 2 -> 
                             let buffer : byte[] = Array.zeroCreate(2)
-                            br.Read(buffer,0,2)
+                            br.Read(buffer,0,2) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 2
                             (float (BitConverter.ToInt16 (buffer, 0)))
                         | 3 -> 
                             let buffer : byte[] = Array.zeroCreate(4)
-                            br.Read(buffer,0,4)
+                            br.Read(buffer,0,4) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 4
                             (float (BitConverter.ToInt32 (buffer, 0)))
                         | 4 -> 
                             let buffer : byte[] = Array.zeroCreate(4)
-                            br.Read(buffer,0,4)
+                            br.Read(buffer,0,4) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 4
                             (float (BitConverter.ToSingle (buffer, 0)))
                         | 5 -> 
                             let buffer : byte[] = Array.zeroCreate(8)
-                            br.Read(buffer,0,8)
+                            br.Read(buffer,0,8) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 8
                             (float (BitConverter.ToDouble (buffer, 0)))
                         | _ -> 0.0
                     vertexProps.[k] <- f
                 triangleArray.[j] <- findVertexFromArray (vertexProps |> Array.toList) vertexPosition
             //Parsing Triangles
-            numberOfBytesRead <- 0
             for j in 0..faceArray.Length-1 do 
                 let numbers = Array.zeroCreate(4)
                 let typeToByte i = 
@@ -231,38 +235,33 @@ let parsePLY (filepath:string) =
                     match n with
                         | 1 -> 
                             let buffer : byte[] = Array.zeroCreate(1)
-                            br.Read(buffer,0,1)
+                            br.Read(buffer,0,1) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 1
                             (int buffer.[0])
                         | 2 -> 
                             let buffer : byte[] = Array.zeroCreate(2)
-                            br.Read(buffer,0,2)
+                            br.Read(buffer,0,2) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 2
                             (int (BitConverter.ToInt16 (buffer, 0)))
                         | 3 -> 
                             let buffer : byte[] = Array.zeroCreate(4)
-                            br.Read(buffer,0,4)
+                            br.Read(buffer,0,4) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 4
                             (int (BitConverter.ToInt32 (buffer, 0)))
                         | 4 -> 
                             let buffer : byte[] = Array.zeroCreate(4)
-                            br.Read(buffer,0,4)
+                            br.Read(buffer,0,4) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 4
                             (int (BitConverter.ToSingle (buffer, 0)))
                         | 5 -> 
                             let buffer : byte[] = Array.zeroCreate(8)
-                            br.Read(buffer,0,8)
+                            br.Read(buffer,0,8) |> ignore
                             if(isBigEndian) then
                                 Array.Reverse(buffer)
-                            numberOfBytesRead <- numberOfBytesRead + 8
                             (int (BitConverter.ToDouble (buffer, 0)))
                         | _ -> 0
                 faceArray.[j] <- [intValue faceProperty.[0] ; intValue faceProperty.[1]; intValue faceProperty.[1]; intValue faceProperty.[1]]

@@ -13,7 +13,7 @@ type TriPoint (v : Vertex) =
 
 let createTriangles (triangleArray : Vertex array) (faceArray : int list array) (smooth:bool) (hasNormalWithin : bool)= 
     let ar = Array.zeroCreate(faceArray.Length)
-    for i in 0..(ar.Length-1) do 
+    Parallel.For(0, ar.Length, fun i ->
         let v1 = triangleArray.[faceArray.[i].[1]]
         let p1 = new TriPoint(v1)
         let v2 = triangleArray.[faceArray.[i].[2]]
@@ -25,7 +25,7 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
             v1.normal <- triangle.n
             v2.normal <- triangle.n
             v3.normal <- triangle.n
-        ar.[i] <- (triangle)
+        ar.[i] <- (triangle)) |> ignore
     ar
         
 
@@ -47,13 +47,13 @@ let drawTriangles (filepath:string) (smoothen:bool) =
             newPoints.[0] <- firstTriangle.getBoundingBox().lowPoint
             newPoints.[1] <- firstTriangle.getBoundingBox().highPoint
 
-            for i in 1..(ar.Length-1) do
+            Parallel.For(0, ar.Length, fun i ->
                 let triangle = (ar.[i]).toShape(tex)
                 let triangleLowPoint = triangle.getBoundingBox().lowPoint 
                 let triangleHightPoint = triangle.getBoundingBox().highPoint
                 newPoints.[0] <- newPoints.[0].Lowest triangleLowPoint
                 newPoints.[1] <- newPoints.[1].Highest triangleHightPoint
-                newTriangle.[i] <- triangle
+                newTriangle.[i] <- triangle) |> ignore
             let sA = shapeArray(idOfShape, newTriangle, None)
             let accel = Acceleration.createAcceleration(sA)
             let shape = {new Shape() with
@@ -103,7 +103,7 @@ let drawTriangles (filepath:string) (smoothen:bool) =
                         else finalHit
                     | _ -> finalHit
                 member this.getBoundingBox () = BBox(newPoints.[0],newPoints.[1])
-                member this.isInside p = failwith "Maybe kdTree has some function for this"
+                member this.isInside p = false
             }
             shape
     }
