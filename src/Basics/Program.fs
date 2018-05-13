@@ -190,7 +190,7 @@ let main _ =
 
     let CSGSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
 
-    let shapes : Shape List = [solidCylinder]
+    let shapes : Shape List = [transBox]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
@@ -201,7 +201,7 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 1 1)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 2 127)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))

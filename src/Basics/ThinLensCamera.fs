@@ -19,10 +19,8 @@ type ThinLensCamera
     ) = 
     inherit Camera(position, lookat, up, zoom, width, height, resX, resY)   
     
-    // Reuse array for better performance.
-    let reuseRayArr = Array.zeroCreate lensSamples.SampleCount
-
     default this.CreateRays x y =
+        let rays = Array.zeroCreate lensSamples.SampleCount
         for i in 0..lensSamples.SampleCount-1 do
             // Create Ray, setup direction and origin.
             let qx, qy = viewSamples.Next() // Sample unit square for center ray.
@@ -40,5 +38,5 @@ type ThinLensCamera
             let rayOrigin = base.Position + lx * base.V + ly * base.U
 
             let rayDirection = ((px - lx) * base.V + (py - ly) * base.U - f * base.W).Normalise
-            reuseRayArr.[i] <- (new Ray(rayOrigin, rayDirection))
-        reuseRayArr
+            rays.[i] <- (new Ray(rayOrigin, rayDirection))
+        rays
