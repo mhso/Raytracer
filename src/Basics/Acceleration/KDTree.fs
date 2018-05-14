@@ -147,9 +147,9 @@ module KD_tree =
         let shapeString = if ShapeBoxList.Length = 1 then "shape" else "shapes"
         printfn "KD-build initialized with %A %s" ShapeBoxList.Length shapeString
         timer.Start()
-        let kdTree = if shapeBoxArray.Length < 11 then 
+        let kdTree = if shapeBoxArray.Length < 10 then 
                          let (KDMaxXYZ, KDMinXYZ) = findMaxMin ShapeBoxList
-                         let leaf = Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
+                         let leaf = Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
                          timer.Stop()
                          printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
                          leaf
@@ -160,7 +160,7 @@ module KD_tree =
                          printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
                          printfn "Total leafs: %A" totalLeafs
                          printfn "Total references to shapes in leafs: %A" totalLeafSize
-                         printfn "Avg leaf Size: %A" (totalLeafSize/totalLeafs)
+                         printfn "Avg leaf Size: %A" ((float totalLeafSize)/(float totalLeafs))
                          kdTree
         printfn ""
         kdTree
