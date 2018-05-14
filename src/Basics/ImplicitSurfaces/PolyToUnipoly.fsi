@@ -1,8 +1,9 @@
-﻿namespace Tracer.ImplicitSurfaces
+﻿namespace Tracer
 
 module PolyToUnipoly =
 
   type poly = ExprToPoly.poly
+
   type unipoly = 
     | UP of (int * float) list
     static member ( - ) : unipoly * unipoly -> unipoly

@@ -10,9 +10,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sampling", "src\Sampling\Sa
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "src\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ImplicitSurfaces", "src\ImplicitSurfaces\ImplicitSurfaces.fsproj", "{940A3706-DAE3-4F52-87B8-D71F44641B0D}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TDD", "TDD\TDD.fsproj", "{E7720E48-DFC5-41B5-914A-C6E4510E5F37}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnitTests", "src\UnitTests\UnitTests.fsproj", "{E7720E48-DFC5-41B5-914A-C6E4510E5F37}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriangleMeshes", "src\TriangleMeshes\TriangleMeshes.fsproj", "{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}"
 EndProject
@@ -38,10 +36,6 @@ Global
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{940A3706-DAE3-4F52-87B8-D71F44641B0D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|Any CPU.Build.0 = Release|Any CPU

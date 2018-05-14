@@ -1,7 +1,7 @@
 module ExprToPolyTests
 
-  open Tracer.ImplicitSurfaces.ExprParse
-  open Tracer.ImplicitSurfaces.ExprToPoly
+  open Tracer.ExprParse
+  open Tracer.ExprToPoly
   open Assert
 
   // All of these tests are based on the ones given in the Functional Programming course

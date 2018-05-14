@@ -5,7 +5,6 @@ open Tracer.Basics.Acceleration
 open System
 open System.Drawing
 open System.Windows.Forms
-open System.ComponentModel
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
