@@ -35,7 +35,7 @@ type MatteMaterial
             let diffuse = (kd * cd) * pidivided
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
-            diffuse * volume * roundness   
+            diffuse * volume * roundness
         else
             Colour.Black
 

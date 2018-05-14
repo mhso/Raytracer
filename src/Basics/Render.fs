@@ -133,7 +133,7 @@ type Render(scene : Scene, camera : Camera) =
             then Colour.Black
         else
             let shadowRays = light.GetShadowRay hitPoint
-            
+
             let maxTime =
                 match light with
                 | :? PointLight as p -> p.Position.Distance(hitPoint.Point).Magnitude
@@ -150,6 +150,8 @@ type Render(scene : Scene, camera : Camera) =
                 Colour.Black
             else
                 let totalShadow = Array.fold (fun acc ray -> acc + isShadow ray) Colour.Black shadowRays
+                printfn "total shadow %A" totalShadow
+                printfn "t / sr length %A" (totalShadow / float(shadowRays.Length))
                 (totalShadow / float(shadowRays.Length))
 
     // Will cast a ray recursively
@@ -304,7 +306,7 @@ type Render(scene : Scene, camera : Camera) =
 
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
-                this.CalculateProgress (float(x*y)) total
+                if ppRendering then this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
                 let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
@@ -313,7 +315,7 @@ type Render(scene : Scene, camera : Camera) =
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.PostProcessing
-        renderedImage
+        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
 
     member this.RenderToFile renderMethod filename =
         let image = renderMethod
