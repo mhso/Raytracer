@@ -199,7 +199,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        let (u,v) = this.getTextureCoords (r.PointAtTime t)
+        let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
         HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
@@ -266,9 +266,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        let uv = this.getTextureCoords (r.PointAtTime t)
-        let u = fst uv
-        let v = snd uv
+        let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
         HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat, this, u, v) 
