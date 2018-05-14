@@ -3,10 +3,11 @@
 module RegularGrids =
 
     // Used for debug, will print to console etc. 
-    let debug = true
+    let debug = false
+    let debug2 = false
 
     // Type of the BVHTree, with Nodes and Leafs.
-    type RGStructure = Shape list[,,]*int*int*int*BBox  
+    type RGStructure = Shape array[,,]*int*int*int*BBox  
 
     let clamp (x:float,b:int) =
         match x with
@@ -27,12 +28,14 @@ module RegularGrids =
 
     // Function for getting combined outer low and high from a array og bounding boxes.
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
-        let lowX = Array.fold (fun acc (box:BBox) -> if box.lowPoint.X < acc then box.lowPoint.X else acc) infinity boxes
-        let lowY = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Y < acc then box.lowPoint.Y else acc) infinity boxes
-        let lowZ = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Z > acc then box.lowPoint.Z else acc) -infinity boxes
-        let highX = Array.fold (fun acc (box:BBox) -> if box.highPoint.X > acc then box.highPoint.X else acc) -infinity boxes
-        let highY = Array.fold (fun acc (box:BBox) -> if box.highPoint.Y > acc then box.highPoint.Y else acc) -infinity boxes
-        let highZ = Array.fold (fun acc (box:BBox) -> if box.highPoint.Z < acc then box.highPoint.Z else acc) infinity boxes
+        if boxes.Length = 0 then failwith "findOuterBoundingBoxLowHighPoints -> Empty array"
+        let first = boxes.[0]
+        let lowX = Array.fold (fun acc (box:BBox) -> if box.lowPoint.X < acc then box.lowPoint.X else acc) first.lowPoint.X boxes
+        let lowY = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Y < acc then box.lowPoint.Y else acc) first.lowPoint.Y boxes
+        let lowZ = Array.fold (fun acc (box:BBox) -> if box.lowPoint.Z < acc then box.lowPoint.Z else acc) first.lowPoint.Z boxes
+        let highX = Array.fold (fun acc (box:BBox) -> if box.highPoint.X > acc then box.highPoint.X else acc) first.highPoint.X boxes
+        let highY = Array.fold (fun acc (box:BBox) -> if box.highPoint.Y > acc then box.highPoint.Y else acc) first.highPoint.Y boxes
+        let highZ = Array.fold (fun acc (box:BBox) -> if box.highPoint.Z > acc then box.highPoint.Z else acc) first.highPoint.Z boxes
         
         Point(lowX, lowY, lowZ), Point(highX, highY, highZ)
     
@@ -51,44 +54,34 @@ module RegularGrids =
     let build (shapes:array<Shape>):RGStructure =
 
         let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
-        let lp, hp = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
-        let w = Vector(hp.X-lp.Y, hp.Y-lp.Y, hp.Z-lp.Z) // Vector from low to high of the outer bounding box.
+        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
+        let boxIntList = [0..boxes.Length-1]
+        let box = BBox (lowPoint, highPoint)
+        let w = Vector(highPoint.X-lowPoint.X, highPoint.Y-lowPoint.Y, highPoint.Z-lowPoint.Z) // Vector from low to high of the outer bounding box.
         let m = 2.0 // m a constant to ajust the size of the grid structure.
         let n = shapes.Length // Number of shapes.
         let nx, ny, nz = calcAxisCells w.X w.Y w.Z m n
-
-        let gridArr = Array.zeroCreate nx
-        for jix in 0..gridArr.Length do
-            gridArr.[jix] <- Array.zeroCreate ny
-            for jjx in 00..gridArr.[jix].Length do
-                gridArr.[jix].[jjx] <- Array.zeroCreate nz
 
         let bbx = calcBbox nx w.X
         let bby = calcBbox ny w.Y
         let bbz = calcBbox nz w.Z
 
-        let grid = Array3D.zeroCreate<Shape list> nx ny nz
+        let mutable grid = Array3D.zeroCreate<Shape array> nx ny nz
 
         for shape in shapes do 
             let bb = shape.getBoundingBox()
-            let ixMin = int(clamp((bb.lowPoint.X-lp.X)*bbx, nx-1))
-            let iyMin = int(clamp((bb.lowPoint.Y-lp.Y)*bby, ny-1))
-            let izMin = int(clamp((bb.lowPoint.Z-lp.Z)*bbz, nz-1))
+            let ixMin = int(clamp((bb.lowPoint.X-lowPoint.X)*bbx, nx-1))
+            let iyMin = int(clamp((bb.lowPoint.Y-lowPoint.Y)*bby, ny-1))
+            let izMin = int(clamp((bb.lowPoint.Z-lowPoint.Z)*bbz, nz-1))
 
-            let ixMax = int(clamp((bb.highPoint.X-lp.X)*bbx, nx-1))
-            let iyMax = int(clamp((bb.highPoint.Y-lp.Y)*bby, ny-1))
-            let izMax = int(clamp((bb.highPoint.Z-lp.Z)*bbz, nz-1))
+            let ixMax = int(clamp((bb.highPoint.X-lowPoint.X)*bbx, nx-1))
+            let iyMax = int(clamp((bb.highPoint.Y-lowPoint.Y)*bby, ny-1))
+            let izMax = int(clamp((bb.highPoint.Z-lowPoint.Z)*bbz, nz-1))
 
             for iz=izMin to izMax do
                 for iy=iyMin to iyMax do
                     for ix=ixMin to ixMax do
-                        printfn "Do stuff"
-                        grid.[ix,iy,iz] <- [shape] |> List.append grid.[ix,iy,iz]
-        
-        let boxes = convertShapesToBBoxes shapes
-        let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes
-        let box = BBox (lowPoint, highPoint)
-        
+                        grid.[ix,iy,iz] <- [|shape|]
         (grid, nx, ny, nz, box)
                 
         
@@ -108,7 +101,7 @@ module RegularGrids =
         | _ -> failwith "nextStepStop -> float compareTo out of range (-1,0,1)"
 
     // Functions finds closest hit of a ray in structure.
-    let closestHit (shapeList:Shape list) (ray:Ray) : HitPoint option =
+    let closestHit (shapeList:Shape array) (ray:Ray) : HitPoint option =
         match shapeList with
         |  shapes ->    let mutable closestHit = None
                         let mutable closestDist = infinity
@@ -125,9 +118,9 @@ module RegularGrids =
 
     //Function for search of the grid.
     let search (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
+        //printfn "search: %A" structure
         let grid, nx, ny, nz, bbox = structure
-        let value = bbox.intersectRG ray
-        match value with
+        match bbox.intersectRG ray with
         | Some (t,t',tx,ty,tz,tx',ty',tz') ->
                                                 let p = ray.GetOrigin
 
@@ -148,6 +141,7 @@ module RegularGrids =
                                                     let rec loop ix iy iz txNext tyNext tzNext =
                                                         let checkForHit = closestHit grid.[ix,iy,iz] ray
                                                         if txNext<tyNext && txNext<tzNext then
+                                                            if debug2 then printfn "search->Not inside->txNext<tyNext && txNext<tzNext"
                                                             match checkForHit with
                                                             | Some hitFound ->
                                                                 if hitFound.Time<txNext then Some hitFound
@@ -157,6 +151,7 @@ module RegularGrids =
                                                             | _ -> None
                                                         else
                                                             if tyNext<tzNext then
+                                                                if debug2 then printfn "search->Not inside->tyNext<tzNext"
                                                                 match checkForHit with
                                                                 | Some hitFound ->
                                                                     if hitFound.Time<tyNext then Some hitFound
@@ -167,6 +162,7 @@ module RegularGrids =
                                                                             else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
                                                                 | _ -> None
                                                             else
+                                                                if debug2 then printfn "search->Not inside->else"
                                                                 match checkForHit with
                                                                 | Some hitFound -> 
                                                                     if hitFound.Time<tzNext then Some hitFound
@@ -176,15 +172,13 @@ module RegularGrids =
                                                                 | _ ->  None
                                                     loop ix iy iz txNext tyNext tzNext
                                                 else
+                                                    if debug2 then printfn "search->Inside"
                                                     None
                                                     
         | None -> None
 
     //Function for traversal of the structure.
     let traverse (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) = 
-        //printfn "traverse structure: %A" structure
-        
-        let result = search structure ray shapes
-        match result with
+        match search structure ray shapes with
         | Some r -> r
         | None -> HitPoint ray

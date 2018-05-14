@@ -28,7 +28,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -111,17 +111,17 @@ let main _ =
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
-    let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
-    let urn = i.toShape(tex)
-    let t = Transformation.mergeTransformations
-                [Transformation.rotateY (System.Math.PI/4.0);
-                Transformation.scale 6.0 6.0 6.0;
-                Transformation.translate 0. 3. 0.]
-    let bunnyShape = Transform.transform urn t
-    let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
+    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
+    //let urn = i.toShape(tex)
+    //let t = Transformation.mergeTransformations
+    //            [Transformation.rotateY (System.Math.PI/4.0);
+    //            Transformation.scale 6.0 6.0 6.0;
+    //            Transformation.translate 0. 3. 0.]
+    //let bunnyShape = Transform.transform urn t
+    //let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
 
-    let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
+    //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
 
     //- CAMERA
     let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)
@@ -148,7 +148,7 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    let shapes: Shape list      = [bunnyShape]
+    let shapes: Shape list      = [sR]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
