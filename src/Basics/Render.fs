@@ -8,7 +8,10 @@ open System.Windows.Forms
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
+open System.Runtime.InteropServices
+open System.Drawing.Imaging
+open System.Resources
 
 type Render(scene : Scene, camera : Camera) =
 
@@ -28,7 +31,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -238,9 +241,10 @@ type Render(scene : Scene, camera : Camera) =
     member this.PostProcessing =
         timer.Stop()
         // Printing how much time was spent rendering
-        printfn ""
-        printfn ""
-        printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
+        if ppRendering then
+          printfn ""
+          printfn ""
+          printfn "                                            Rendering Time: %f Seconds\n\n" timer.Elapsed.TotalSeconds
 
     member this.ShowImageOnScreen (renderedImage:Bitmap) =
         let window = new Form(ClientSize=Size(renderedImage.Width, renderedImage.Height), StartPosition=FormStartPosition.CenterScreen)
@@ -252,52 +256,54 @@ type Render(scene : Scene, camera : Camera) =
         renderedImage.Save(filepath)
         
         // Open image
-        Process.Start(filepath) |> ignore
+        //Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
-        // Prepare image
-        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
-
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
-        
         timer.Start()
 
-        let mutable processed = 0.0
-        let pos = [for y in 0 .. camera.ResY - 1 do
-                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
-        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
-        let mutex = new Mutex()
+        // Prepare image
+        let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
+        use g = Graphics.FromImage(renderedImage)
+        use brush = new SolidBrush(Color.Black)
+        g.FillRectangle(brush, 0,0,camera.ResX,camera.ResY)
+        
+        //ref: http://csharpexamples.com/fast-image-processing-c/
+        let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
+        let bytesPrPixel = Bitmap.GetPixelFormatSize(renderedImage.PixelFormat) / 8
+        let byteCount = bitmapData.Stride * renderedImage.Height
+        let pixel : byte[] = Array.zeroCreate(byteCount)
+        let firstPixel = bitmapData.Scan0
+        Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
+        let heightInPixel = bitmapData.Height
+        let widthInBytes = bitmapData.Width * bytesPrPixel
+        
+        Parallel.For(0, heightInPixel, fun y ->
+        //for y in 0..(heightInPixel-1) do 
+            let currentLine = y * bitmapData.Stride
+        
+            let mutable x = 0
+            while (x < widthInBytes) do
+                let coordsX = x/bytesPrPixel
+                let rays = camera.CreateRays coordsX y
+                let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+                let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
 
-        try
-          // Shoot rays and save the resulting colors, using parallel computations.
-          Parallel.ForEach (pos, fun (x,y) ->
-            let rays = camera.CreateRays x y
-            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
-              
-            // using mutex to deal with shared ressources in a thread-safe manner
-            if ppRendering then 
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              processed <- processed + 1.0
-              this.CalculateProgress processed total
-              mutex.ReleaseMutex() |> ignore
-            else 
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              mutex.ReleaseMutex() |> ignore
-          ) |> ignore
-        finally
-          mutex.Dispose() |> ignore
+                let color = colour.ToColor
 
-        // Apply the colors to the image.
-        for y in 0 .. camera.ResY - 1 do
-          for x in 0 .. camera.ResX - 1 do
-            let yrev = (camera.ResY - 1) - y
-            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
+                pixel.[currentLine + x] <- (byte)color.B
+                pixel.[currentLine + x + 1] <- (byte)color.G
+                pixel.[currentLine + x + 2] <- (byte)color.R
+                //processed <- processed + 1.0
+                //this.CalculateProgress processed total
+                x <- x + bytesPrPixel
+            ) |> ignore
+        Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
+        renderedImage.UnlockBits(bitmapData)
 
         this.PostProcessing
+        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
         renderedImage
 
     member this.Render =
@@ -315,8 +321,7 @@ type Render(scene : Scene, camera : Camera) =
                 let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
                 
-                let yrev = (camera.ResY - 1) - y
-                renderedImage.SetPixel(x, yrev, colour.ToColor)
+                renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.PostProcessing
         renderedImage

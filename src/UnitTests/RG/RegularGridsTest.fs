@@ -1,6 +1,6 @@
 ﻿module RegularGridsTest
 
-open Tracer.RegularGrids
+open Tracer.Basics.RegularGrids
 open Assert
 
 let allTest = 

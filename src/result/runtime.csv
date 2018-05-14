@@ -1,0 +1,15 @@
+test name, construction, rendering, total
+implicitSurfaces/heart, 0,3906801, 11,1582478, 11,5489279
+implicitSurfaces/sphere1, 0,006147, 26,1430846, 26,1492316
+implicitSurfaces/sphere2, 0,0084993, 0,5050127, 0,513512
+implicitSurfaces/planeX, 0,0010383, 0,9845452, 0,9855835
+implicitSurfaces/planeY, 0,0006551, 1,0247632, 1,0254183
+implicitSurfaces/planeZ, 0,0005943, 1,4484013, 1,4489956
+implicitSurfaces/torus, 0,0042239, 4,0628233, 4,0670472
+implicitSurfaces/torus2, 0,0049368, 5,1355586, 5,1404954
+implicitSurfaces/testShape, 0,0078612, 4,1484821, 4,1563433
+implicitSurfaces/chmutov2, 0,0046336, 0,7597317, 0,7643653
+implicitSurfaces/chmutov3, 0,0011799, 10,2800652, 10,2812451
+implicitSurfaces/chmutov4, 0,00423, 4,2694741, 4,2737041
+implicitSurfaces/chmutov5, 0,0117314, 23,5958103, 23,6075417
+implicitSurfaces/chmutov6, 0,0593051, 7,7303982, 7,7897033

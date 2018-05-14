@@ -1,7 +1,5 @@
 namespace Tracer.Basics
 
-open Tracer.Sampling
-
 type Point(x:float, y:float, z:float) = 
     //- PRIVATE FIELDS
     let x = x
