@@ -1,6 +1,6 @@
 ﻿open Tracer.Basics
 open Tracer.Basics.Textures
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render

@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 
 type ThinLensCamera
     (

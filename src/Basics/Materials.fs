@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 open System
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System.Drawing
 
 

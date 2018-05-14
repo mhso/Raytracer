@@ -1,5 +1,5 @@
 ﻿open Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System
 open Tracer.Basics.Render
 open Tracer.Basics.Transform
@@ -435,7 +435,7 @@ let main _ =
   //let render = Render(mkScene' testshape, testshapecam)
   //let render = Render(mkScene' linktorus, linktoruscam)
 
-  render.RenderToScreen render.RenderParallelOld |> ignore
+  render.RenderToScreen render.RenderParallel |> ignore
   Console.ReadKey () |> ignore
   
   0

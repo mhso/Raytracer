@@ -2,7 +2,7 @@
 
 open System.Drawing
 open System
-open Tracer.Sampling
+open Tracer.Basics.Sampling
 
 [<AbstractClass>]
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =

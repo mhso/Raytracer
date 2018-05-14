@@ -1,6 +1,6 @@
 ﻿module SamplingTest
 
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System
 open Assert
 
