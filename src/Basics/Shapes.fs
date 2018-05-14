@@ -35,10 +35,13 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
-        match r with
-        |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
-        |(r) when (-((r.GetOrigin.Z) / (r.GetDirection.Z))) <= 0.0 -> HitPoint(r) //This checks if t is 0 or smaller, in which case there is no hit
-        |(r) -> let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
+        match (r.GetDirection.Z = 0.0) with //This method checks if dz = 0.0, which would make the ray, parrallel to the plane
+        |true -> HitPoint(r)
+        |false -> 
+            let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
+            match t <= 0.0 with
+            |true -> HitPoint(r)
+            |false ->
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                 let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
                 if (px >= 0.0 && px <= this.width) && (py >= 0.0 && py <= this.height) then 
@@ -48,7 +51,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                     let mat = func u v
                     HitPoint(r, t, this.normal, mat, this, u, v) 
                 else HitPoint(r)
-
+        
                       
 ////DISC////
 type Disc(center:Point, radius:float, tex:Texture)=
@@ -775,7 +778,6 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         else HitPoint(r)
     
     
-
     member this.subtractionHitFunction (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at first shapes
         if s1Hit.DidHit then 
@@ -819,7 +821,6 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s2Hit = s2.hitFunction r
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-
         match (s1Time, s2Time) with 
         |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
         |(s1T, s2T) when s2T = infinity -> if s2.isInside then //refire 
@@ -868,4 +869,3 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Intersection -> this.intersectionHitFunction r r //because they need the original ray, to calculate correct t-value
                                         |Subtraction -> this.subtractionHitFunction r r //because they need the original ray, to calculate correct t-value
                                         |Grouping -> this.groupingHitFunction r
-                                        
