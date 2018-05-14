@@ -6,7 +6,7 @@ module RegularGrids =
     let debug = true
 
     // Type of the BVHTree, with Nodes and Leafs.
-    type RGStructure = Shape list[,,]*int*int*int*BBox
+    type RGStructure = Shape list[,,]*int*int*int*BBox  
 
     let clamp (x:float,b:int) =
         match x with
