@@ -5,8 +5,8 @@ open Tracer.Basics.Render
 open Tracer.Basics.Transform
 //open System.Net.Mime.MediaTypeNames
 
-    [<EntryPoint>]
-    let main _ = 
+[<EntryPoint>]
+let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
@@ -282,7 +282,7 @@ open Tracer.Basics.Transform
     let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
 
 
-    let shapes : Shape List = [solidCylinder]
+    let shapes : Shape List = [rectangleTest1]
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
     //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]

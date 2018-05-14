@@ -35,10 +35,13 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
-        match r with
-        |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
-        |(r) when (-((r.GetOrigin.Z) / (r.GetDirection.Z))) <= 0.0 -> HitPoint(r) //This checks if t is 0 or smaller, in which case there is no hit
-        |(r) -> let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
+        match (r.GetDirection.Z = 0.0) with //This method checks if dz = 0.0, which would make the ray, parrallel to the plane
+        |true -> HitPoint(r)
+        |false -> 
+            let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
+            match t <= 0.0 with
+            |true -> HitPoint(r)
+            |false ->
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                 let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
                 if (px >= 0.0 && px <= this.width) && (py >= 0.0 && py <= this.height) then 
@@ -48,7 +51,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
                     let mat = func u v
                     HitPoint(r, t, this.normal, mat, this, u, v) 
                 else HitPoint(r)
-
+        
                       
 ////DISC////
 type Disc(center:Point, radius:float, tex:Texture)=
