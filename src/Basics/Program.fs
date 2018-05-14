@@ -15,8 +15,8 @@ open Tracer.Basics.Transformation
 open System
 //open System.Net.Mime.MediaTypeNames
 
-[<EntryPoint>]
-let main _ = 
+    [<EntryPoint>]
+    let main _ = 
     //Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-2.2,2.2,5.2)
     //let lookat = Point(0.,0.,0.)
@@ -289,7 +289,7 @@ let main _ =
     //let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
     //let lightRight     = PointLight(Colour.White, 1., Point(-30., 0., 0.))
     ////- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, regular 1)
+    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, regular 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0, regular 1, regular 1)
     ////                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     ////                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
