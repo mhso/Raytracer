@@ -117,7 +117,7 @@ module RegularGrids =
                 None
 
     //Function for search of the grid.
-    let search (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
+    let search (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =
         //printfn "search: %A" structure
         let grid, nx, ny, nz, bbox = structure
         match bbox.intersectRG ray with
@@ -143,33 +143,22 @@ module RegularGrids =
                                                         if txNext<tyNext && txNext<tzNext then
                                                             if debug2 then printfn "search->Not inside->txNext<tyNext && txNext<tzNext"
                                                             match checkForHit with
-                                                            | Some hitFound ->
-                                                                if hitFound.Time<txNext then Some hitFound
-                                                                else
-                                                                    if ix+ixStep = ixStop then None
+                                                            | Some hitFound when hitFound.Time<txNext -> Some hitFound
+                                                            | _ ->  if ix+ixStep = ixStop then None
                                                                     else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
-                                                            | _ -> None
                                                         else
                                                             if tyNext<tzNext then
                                                                 if debug2 then printfn "search->Not inside->tyNext<tzNext"
                                                                 match checkForHit with
-                                                                | Some hitFound ->
-                                                                    if hitFound.Time<tyNext then Some hitFound
-                                                                    else
-                                                                        if iy = iyStop then None
-                                                                        else
-                                                                            if ix+ixStep = ixStop then None
-                                                                            else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
-                                                                | _ -> None
+                                                                | Some hitFound when hitFound.Time<tyNext -> Some hitFound
+                                                                | _ -> if iy = iyStop then None
+                                                                       else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
                                                             else
                                                                 if debug2 then printfn "search->Not inside->else"
                                                                 match checkForHit with
-                                                                | Some hitFound -> 
-                                                                    if hitFound.Time<tzNext then Some hitFound
-                                                                    else
-                                                                        if iz = izStop then None
+                                                                | Some hitFound when hitFound.Time<tzNext -> Some hitFound
+                                                                | _ ->  if iz = izStop then None
                                                                         else loop iz iy (iz+izStep) txNext tyNext (tzNext+dtz)
-                                                                | _ ->  None
                                                     loop ix iy iz txNext tyNext tzNext
                                                 else
                                                     if debug2 then printfn "search->Inside"
@@ -181,6 +170,6 @@ module RegularGrids =
         if debug then printfn "¤¤¤¤¤¤¤¤¤¤¤ structure BEGIN ¤¤¤¤¤¤¤¤¤¤¤"
         if debug then printfn "structure %A" structure
         if debug then printfn "¤¤¤¤¤¤¤¤¤¤¤ structure END ¤¤¤¤¤¤¤¤¤¤¤"
-        match search structure ray shapes with
+        match search structure shapes ray with
         | Some r -> r
         | None -> HitPoint ray
