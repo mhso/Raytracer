@@ -10,7 +10,7 @@ module KD_tree =
                 | Leaf of BBox * ShapeBBox list
 
     let timer = new System.Diagnostics.Stopwatch()
-
+    let debug = false
 
     let findMaxMin (xs:list<ShapeBBox>) = 
         match xs with
@@ -142,24 +142,24 @@ module KD_tree =
             shapeBoxArray.[i] <- newShapeBox
         let ShapeBoxList = shapeBoxArray |> Array.toList
         let shapeString = if ShapeBoxList.Length = 1 then "shape" else "shapes"
-        printfn "KD-build initialized with %A %s" ShapeBoxList.Length shapeString
+        if debug then printfn "KD-build initialized with %A %s" ShapeBoxList.Length shapeString
         timer.Start()
         let kdTree = if shapeBoxArray.Length < 11 then 
                          let (KDMaxXYZ, KDMinXYZ) = findMaxMin ShapeBoxList
                          let leaf = Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for 10 shaper or less. If that is the case, no KD-tree will be built
                          timer.Stop()
-                         printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
+                         if debug then printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
                          leaf
                      else
                          let kdTree = createKDTreeFromList true ShapeBoxList
                          timer.Stop()
-                         printfn "KD-Tree build in %f seconds" timer.Elapsed.TotalSeconds
-                         printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
-                         printfn "Total leafs: %A" totalLeafs
-                         printfn "Total references to shapes in leafs: %A" totalLeafSize
-                         printfn "Avg leaf Size: %A" (totalLeafSize/totalLeafs)
+                         if debug then printfn "KD-Tree build in %f seconds" timer.Elapsed.TotalSeconds
+                         if debug then printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
+                         if debug then printfn "Total leafs: %A" totalLeafs
+                         if debug then printfn "Total references to shapes in leafs: %A" totalLeafSize
+                         if debug then printfn "Avg leaf Size: %A" (totalLeafSize/totalLeafs)
                          kdTree
-        printfn ""
+        if debug then printfn ""
         kdTree
 
     let findRayDirectionFromA (a:int) (r:Ray) =
