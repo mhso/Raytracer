@@ -10,6 +10,9 @@ open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
 open Tracer.Sampling.Sampling
+open System.Runtime.InteropServices
+open System.Drawing.Imaging
+open System.Resources
 
 type Render(scene : Scene, camera : Camera) =
 
@@ -252,8 +255,11 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.RenderParallel = 
         // Prepare image
-        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
-
+        let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
+        use g = Graphics.FromImage(renderedImage)
+        use brush = new SolidBrush(Color.Black)
+        g.FillRectangle(brush, 0,0,camera.ResX,camera.ResY)
+        
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         
@@ -287,10 +293,29 @@ type Render(scene : Scene, camera : Camera) =
         finally
           mutex.Dispose() |> ignore
 
-        // Apply the colors to the image.
-        for y in 0 .. camera.ResY - 1 do
-          for x in 0 .. camera.ResX - 1 do
-            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor) 
+        //ref: http://csharpexamples.com/fast-image-processing-c/
+        let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
+        let bytesPrPixel = Bitmap.GetPixelFormatSize(renderedImage.PixelFormat) / 8
+        let byteCount = bitmapData.Stride * renderedImage.Height
+        let pixel : byte[] = Array.zeroCreate(byteCount)
+        let firstPixel = bitmapData.Scan0
+        Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
+        let heightInPixel = bitmapData.Height
+        let widthInBytes = bitmapData.Width * bytesPrPixel
+        
+        for y in 0..(heightInPixel-1) do 
+            let currentLine = y * bitmapData.Stride
+        
+            let mutable x = 0
+            while (x < widthInBytes) do
+                let color = bmColourArray.[y,x/bytesPrPixel].ToColor
+
+                pixel.[currentLine + x] <- (byte)color.B
+                pixel.[currentLine + x + 1] <- (byte)color.G
+                pixel.[currentLine + x + 2] <- (byte)color.R
+                x <- x + bytesPrPixel
+        Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
+        renderedImage.UnlockBits(bitmapData)
 
         this.PostProcessing
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
