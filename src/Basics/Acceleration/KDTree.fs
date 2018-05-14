@@ -83,6 +83,7 @@ module KD_tree =
                                       totalLeafSize <- totalLeafSize+boxes.Length
                                       Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
             else
+            let boxesLength = boxes.Length
             let (splitX, splitY, splitZ) = findSplitValues boxes
 
             let (firstX, secondX, firstY, secondY, firstZ, secondZ) = partitionAfterSelect boxes splitX splitY splitZ
@@ -96,6 +97,8 @@ module KD_tree =
                                                     else if yIntersect < xIntersect && yIntersect <= zIntersect then
                                                         (firstY, secondY, splitY, 1)
                                                     else (firstZ, secondZ, splitZ, 2)
+            let firstLength = first.Length
+            let secondLength = second.Length
 
             //printfn "%A" first
             //printfn "%A" second
@@ -106,25 +109,25 @@ module KD_tree =
             //printfn "partition"
             //printfn "splitvalue"
             //printfn "list filter"
-            if  float((first.Length+second.Length))/(float(boxes.Length)) > 1.3  then 
-                if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+            if  float((firstLength+secondLength))/(float(boxesLength)) > 1.3  then 
+                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
                 totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+boxes.Length
+                totalLeafSize <- totalLeafSize+boxesLength
                 Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
-            else if first.Length = boxes.Length && second.Length = boxes.Length then 
-                if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+            else if firstLength = boxesLength && secondLength = boxesLength then 
+                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
                 totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+boxes.Length
+                totalLeafSize <- totalLeafSize+boxesLength
                 Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
-            else if first.Length = boxes.Length then 
-                if boxes.Length > maxLeafSize then maxLeafSize <- first.Length
+            else if firstLength = boxesLength then 
+                if boxesLength > maxLeafSize then maxLeafSize <- firstLength
                 totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+first.Length
+                totalLeafSize <- totalLeafSize+firstLength
                 Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), Leaf(BBox(KDMinXYZ, KDMaxXYZ),first), createKDTreeFromList false (second))
-            else if second.Length = boxes.Length then 
-                if boxes.Length > maxLeafSize then maxLeafSize <- first.Length
+            else if secondLength = boxesLength then 
+                if boxesLength > maxLeafSize then maxLeafSize <- secondLength
                 totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+first.Length
+                totalLeafSize <- totalLeafSize+secondLength
                 Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList false (first), Leaf(BBox(KDMinXYZ, KDMaxXYZ),second))
             else Node(axis, splitValue, BBox(KDMinXYZ, KDMaxXYZ), createKDTreeFromList false (first), createKDTreeFromList false (second))
                 
