@@ -187,13 +187,17 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     
     member this.getTextureCoords (p:Point) =
         let n = this.NormalAtPoint p
-        (Math.Atan2(n.X, n.Z) / pimult2, 1. - (Math.Acos(n.Y) / Math.PI))
+        let u = Math.Atan2(n.X, n.Z) / pimult2
+        let v = 1. - (Math.Acos(n.Y) / Math.PI)
+
+        let uF = if u < 0. then 1. + u else u
+        let vF = if v < 0. then 1. + v else v
+        (uF, vF)
+
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        let uv = this.getTextureCoords (r.PointAtTime t)
-        let u = fst uv
-        let v = snd uv
+        let (u,v) = this.getTextureCoords (r.PointAtTime t)
         let func = Textures.getFunc tex
         let mat = func u v 
         HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
@@ -560,8 +564,9 @@ type InfinitePlane(tex:Texture) =
         let t = -(r.GetOrigin.Z / r.GetDirection.Z) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         if r.GetDirection.Z <> 0.0 && t > 0.0 then 
             let func = Textures.getFunc tex
-            let u = (r.PointAtTime t).X
-            let v = (r.PointAtTime t).Y
+            let p = r.PointAtTime t
+            let u = p.X
+            let v = p.Y
             let mat = func u v
             HitPoint(r, t, Vector(0.0, 0.0, -1.0), mat, this, u, v)
         else HitPoint(r)
