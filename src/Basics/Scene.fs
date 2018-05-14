@@ -1,13 +1,5 @@
 namespace Tracer.Basics
 
-open System
-open System.Drawing
-open System.Diagnostics
-open System.Threading.Tasks
-open System.Threading
-open Tracer.Sampling
-open Acceleration
-
 type Scene(shapes: Shape list, lights: Light list, ambient : AmbientLight, maxBounces : int) = 
 
     let backgroundColour = new Colour(0., 0., 0.)
