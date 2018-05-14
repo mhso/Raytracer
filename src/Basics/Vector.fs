@@ -33,7 +33,10 @@ type Vector(x:float, y:float, z:float) =
     member this.AngleBetween (a: Vector) (b: Vector) =
         (a.Magnitude * b.Magnitude) / (a.DotProduct b)
         
-    member this.Normalise = new Vector(x/this.Magnitude, y/this.Magnitude, z/this.Magnitude)
+    member this.Normalise = 
+      match this.Magnitude with
+      | 0.        -> invalidArg "magnitude = 0." "Cannot divide by 0.0. Either the zero vector is being passed, or the floating points of the vector are so small, that it is computationally a zero vector"
+      | length    -> new Vector (x / length, y / length, z / length)
     member this.Round (d:int) = new Vector(System.Math.Round(x,d),System.Math.Round(y,d),System.Math.Round(z,d))
     static member Zero = Vector(0.,0.,0.)
     static member DivideByInt(a: Vector, s: int) = a / float(s)

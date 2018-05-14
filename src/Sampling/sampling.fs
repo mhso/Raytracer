@@ -75,16 +75,15 @@ let createSampler (set:(float * float)[][]) =
     new Sampler(set)
 
 let random n sn =
-    let ns = n*n
     let sets = Array.create sn [|(0.0, 0.0)|]
-    let samples = Array.create ns (0.0, 0.0)
+    let samples = Array.create n (0.0, 0.0)
     let rec loop k =
         let rec inner = function
             | 0 -> samples.[0] <- (rand.NextDouble(), rand.NextDouble())
             | c -> 
                 samples.[c] <- (rand.NextDouble(), rand.NextDouble())
                 inner (c-1)
-        inner (ns-1)
+        inner (n-1)
         sets.[k] <- samples
         if k > 0 then loop (k-1)
     loop (sn-1)

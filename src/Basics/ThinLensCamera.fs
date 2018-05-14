@@ -17,7 +17,8 @@ type ThinLensCamera
         viewSamples : Sampler,
         lensSamples : Sampler
     ) = 
-    inherit Camera(position, lookat, up, zoom, width, height, resX, resY)    
+    inherit Camera(position, lookat, up, zoom, width, height, resX, resY)   
+    
     default this.CreateRays x y =
         let rays = Array.zeroCreate lensSamples.SampleCount
         for i in 0..lensSamples.SampleCount-1 do
