@@ -173,8 +173,7 @@ module RegularGrids =
                                                     loop ix iy iz txNext tyNext tzNext
                                                 else
                                                     if debug2 then printfn "search->Inside"
-                                                    None
-                                                    
+                                                    None                    
         | None -> None
 
     //Function for traversal of the structure.
