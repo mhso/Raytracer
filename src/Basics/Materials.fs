@@ -110,12 +110,10 @@ type MatteReflectiveMaterial
     default this.IsRecursive = true
     default this.BounceMethod hitPoint = 
         // Determine the perfect outgoing ray
-        let dir = hitPoint.Ray.GetDirection
-        let normal = hitPoint.Normal
-        let rayDirection = (dir + (-2. * (normal * dir)) * normal)
+        let rayDirection = (hitPoint.Ray.GetDirection + (-2. * (hitPoint.Normal * hitPoint.Ray.GetDirection)) * hitPoint.Normal).Normalise
 
         // Only one reflected ray
-        [| Ray(hitPoint.EscapedPoint, rayDirection.Normalise) |]
+        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material, handle the reflection in the raycaster

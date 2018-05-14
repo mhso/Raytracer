@@ -3,7 +3,7 @@ open System
 
 module Textures = 
 
-    let mkTexture func = 
+    let mkTexture func =
         Texture func
 
     let mkMatTexture mat =
