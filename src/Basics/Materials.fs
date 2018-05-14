@@ -75,7 +75,7 @@ type PhongMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matte = base.Bounce(shape, hitPoint, light, ambientLight) 
+            let matte = (matteCoefficient * matteColour) * pidivided
             
             // The specular colour
             let specular = 

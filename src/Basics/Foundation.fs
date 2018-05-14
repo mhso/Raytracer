@@ -80,7 +80,7 @@ and AmbientLight(colour: Colour, intensity: float) =
     inherit Light(colour, intensity)
 
     default this.GetColour hitPoint = 
-        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+        colour * intensity
     override this.GetDirectionFromPoint hitPoint = 
         hitPoint.Normal
     override this.GetShadowRay hitPoint = 
