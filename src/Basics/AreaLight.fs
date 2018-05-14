@@ -145,8 +145,12 @@ module TransformLight =
                 let movedArea = 
                     {new AreaLight(a.SurfaceMaterial, a.Sampler) with
                         member this.Shape = movedShape
-                        member this.SamplePoint p = newPoint p(*(Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix (newPoint p)))))*)
-                        member this.SamplePointNormal p = a.SamplePointNormal p
+                        member this.SamplePoint p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            Transformation.transformPoint (a.SamplePoint inverted, Transformation.getMatrix t)
+                        member this.SamplePointNormal p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            a.SamplePointNormal inverted
                         member this.GetProbabilityDensity h = a.GetProbabilityDensity h
                     }            
                 movedArea :> Light

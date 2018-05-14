@@ -24,3 +24,5 @@ val rotateY : angle : float -> Transformation
 val rotateZ : angle : float -> Transformation
 val sheare : xy : float * xz :float * yx : float * yz : float * zx : float * zy : float-> Transformation
 val mergeTransformations : Transformation list -> Transformation
+val transformPoint : Point * Matrix -> Point
+val transformVector : Vector * Matrix -> Vector

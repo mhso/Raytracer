@@ -117,5 +117,9 @@ open System
         let z = a.[2].[3]
         new Point(x, y, z)
 
+    let transformPoint (p,m) = (matrixToPoint (Matrix.multi (m, (pointToMatrix p))))
+    let transformVector (v,m) = (matrixToVector (Matrix.multi (m, (vectorToMatrix v))))
+
+
 
     
