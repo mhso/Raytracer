@@ -4,42 +4,18 @@ open Tracer.Sampling.Sampling
 open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open System.Diagnostics
-open PLYParser
-open System
-open TriangleMes
+open Tracer.Basics.Transform
 
 [<EntryPoint>]
-let main _ =
+let main _ = 
     // General settings
-    let mkTextureFromFile (tr : float -> float -> float * float) (file : string) =
-        let img = new System.Drawing.Bitmap(file)
-        let width = img.Width - 1
-        let height = img.Height - 1
-        let widthf = float width
-        let heightf = float height
-        let texture x y =
-          let (x', y') = tr x y
-          let x'', y'' = int (widthf * x'), int (heightf * y')
-          let c = lock img (fun () -> img.GetPixel(x'',y''))
-          (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
-        mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
-    //let position = Point(-30.,140.,-200.) //Position for Armadillo
-    //let position = Point(0.,1.,1.) //Position for Happy
-    //let position = Point(0.5,0.4,1.) //Position for bunny
-    //let lookat = Point(0.,60.,0.) //Lookat for Armadillo
-    //let lookat = Point(0.,0.1,0.) //LookAt for happy
-    let lookat = Point(0.05,0.1,0.) //LookAt for bunny
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    let position = Point(0.,2.,5.)
+    let lookat = Point(0.,2.,0.)
     let up = Vector(0.,1.,0.)
-    //let zoom = 1. //Normal zoom
-    let zoom = 5. //Zoom for Happy
-    let resX = 800
-    let resY = 600
+    let zoom = 1.
+    let resX = 1000
+    let resY = 700
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
@@ -51,10 +27,12 @@ let main _ =
 
     // Override these if needed
     let CAM_SETS = BASE_SET_COUNT
-    let VIEW_SAMPLES = 2
+    let VIEW_SAMPLES = 8
     let LENS_SAMPLES = 8
     let MATERIAL_SAMPLES = BASE_SAMPLE_COUNT
     let MATERIAL_SETS = BASE_SET_COUNT
+    let LIGHT_SAMPLES = 8
+    let LIGHT_SETS = BASE_SET_COUNT
 
     //- MATERIALS
     // Matte
@@ -86,11 +64,6 @@ let main _ =
     let matBlueTex = mkMatTexture matteBlue
     let matYellowTex = mkMatTexture matteYellow
 
-    let perfRedTex = mkMatTexture perfectRed
-    let perfYellowTex = mkMatTexture perfectYellow
-    let perfGreenTex = mkMatTexture perfectGreen
-    let perfBlueTex = mkMatTexture perfectBlue
-
     let sL = SphereShape(Point(-1., 0., -1.), 1., mkMatTexture matteRed)
     let sC = SphereShape(Point(0., 0., 0.), 1., mkMatTexture matteYellow)
     let sR = SphereShape(Point(1., 0., 1.), 1., mkMatTexture matteGreen)
@@ -99,7 +72,12 @@ let main _ =
     let thinBoxL = Box(Point(-5.5, 0., -6.), Point(-3.5, 3., -5.), matRedTex, matRedTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
     let thinBoxC = Box(Point(-1.5, 0., -4.), Point(0.5, 3., -3.), matYellowTex, matYellowTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
     let thinBoxR = Box(Point(2., 0., -1.), Point(4., 3., 0.), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
-    let sphereBox = Box(Point (-5.02335445580023,-3.116544,-5.76361464552949),Point (5.01352001468749,-3.116544,4.27325982495822), matGreenTex, matGreenTex, matBlueTex, matBlueTex, matBlueTex, matBlueTex)
+
+    let center = Point(0.,0.,0.)
+    let radius = 0.5
+    let height = 2.0
+    let tex = Textures.mkMatTexture(matteBlue)
+    let cylinder = HollowCylinder(center, radius, height, tex)
 
     let sTop = SphereShape(Point(0., 0., 10.), 5., Textures.mkMatTexture matteWhite)
     let discC = Disc(Point(0., 0., 0.), 4., Textures.mkMatTexture emissive)
@@ -108,55 +86,35 @@ let main _ =
         let abs' f = if f < 0.0 then 1.0 - (f*2.0) else f * 2.0
         if (int (abs' x) + int (abs' y)) % 2 = 0
         then matteRed :> Material
-        else glossyBlue :> Material
+        else perfectWhite :> Material
     let plane =  InfinitePlane(mkTexture(checker))
 
-    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
-    //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
-    //let urn = i.toShape(tex)
-    //let t = Transformation.mergeTransformations
-    //            [Transformation.rotateY (System.Math.PI/4.0);
-    //            Transformation.scale 6.0 6.0 6.0;
-    //            Transformation.translate 0. 3. 0.]
-    //let bunnyShape = Transform.transform urn t
-    //let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
-
-    //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
-
     //- CAMERA
-    let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered VIEW_SAMPLES CAM_SETS)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
-    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    //                        multiJittered VIEW_SAMPLES CAM_SETS,
+    //                        multiJittered LENS_SAMPLES CAM_SETS)
     
     //- PLAIN LIGHTS
     let lightTop = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
 
     //- AREA LIGHTS
-    let sampler        = multiJittered 5 1
     let baseSphere = BaseSphere(Point.Zero, 1.)
     let baseRect = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
     let baseDisc = BaseDisc(Point.Zero, 1.)
-    let lightSphere    = SphereAreaLight(emissive, baseSphere, sampler)
-    let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
-    let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
+    let lightSphere    = SphereAreaLight(emissive, baseSphere, multiJittered LIGHT_SAMPLES LIGHT_SETS)
+    let lightRect      = RectangleAreaLight(emissive, baseRect, multiJittered LIGHT_SAMPLES LIGHT_SETS)
+    let lightDisc      = DiscAreaLight(emissive, baseDisc, multiJittered LIGHT_SAMPLES LIGHT_SETS)
 
-    let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
-    let mkPoint a b c = Point(a,b,c)
-    let l1 = PointLight(Colour.White, 0.5, (mkPoint 6.0 2.0 6.0))
-    let l2 = PointLight(Colour.Red, 0.5 ,(mkPoint -6.0 2.0 6.0))
-    let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
-    let lights: Light list      = [l1;l2;l3; lightTop]
-    let shapes: Shape list      = [sR]
+    let lights: Light list      = [lightSphere]
+    //let shapes: Shape list      = [thinBoxL; thinBoxR; plane; lightSphere.Shape]
+    let shapes: Shape list = [cylinder]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
-
-    //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
-
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "image.bmp")
+    ignore (render.RenderToFile render.RenderParallel "path")
 
     0
