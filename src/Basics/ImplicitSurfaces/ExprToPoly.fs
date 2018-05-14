@@ -1,10 +1,10 @@
-namespace Tracer.ImplicitSurfaces
+namespace Tracer
 
 module ExprToPoly =
 
-  open Tracer.ImplicitSurfaces.ExprParse
+  open Tracer.ExprParse
 
-  type expr = Tracer.ImplicitSurfaces.ExprParse.expr
+  type expr = Tracer.ExprParse.expr
   
   let rec ppExpr = function
     | FNum c            -> string(c)

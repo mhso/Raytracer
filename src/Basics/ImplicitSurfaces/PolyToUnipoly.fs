@@ -1,7 +1,7 @@
-﻿namespace Tracer.ImplicitSurfaces
+﻿namespace Tracer
 
 module PolyToUnipoly =
-  open Tracer.ImplicitSurfaces.ExprToPoly
+  open Tracer.ExprToPoly
   
   type poly = ExprToPoly.poly
   type simpleExpr = ExprToPoly.simpleExpr

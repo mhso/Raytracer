@@ -13,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFSharpCoreVersion>4.4.3.0</TargetFSharpCoreVersion>
-    <Name>TDD</Name>
+    <Name>UnitTests</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -89,17 +89,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Basics\Basics.fsproj">
+    <ProjectReference Include="..\Basics\Basics.fsproj">
       <Name>Basics</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\src\ImplicitSurfaces\ImplicitSurfaces.fsproj">
-      <Name>ImplicitSurfaces</Name>
-      <Project>{940a3706-dae3-4f52-87b8-d71f44641b0d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\src\Sampling\Sampling.fsproj">
+    <ProjectReference Include="..\Sampling\Sampling.fsproj">
       <Name>Sampling</Name>
       <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
