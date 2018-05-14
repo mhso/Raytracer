@@ -31,7 +31,7 @@ let allTest =
 
 
     //Tests that shapes are built correctly
-    Assert.Equal(rectangle.bottomleft, Point(0.,0.,0.), "rectangle.bottomLeft")
+    Assert.Equal(rectangle.bottomLeft, Point(0.,0.,0.), "rectangle.bottomLeft")
     Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")
     Assert.Equal(rectangle.bottomRight, Point(1.,0.,0.), "rectangle.bottomRight")
 
@@ -42,8 +42,8 @@ let allTest =
     Assert.Equal(triangle.b, Point(0.,1.,0.), "triangle.b")
     Assert.Equal(triangle.c, Point(1.,0.,0.), "triangle.c")
 
-    Assert.Equal(sphere.Origin, Point(0.,0.,0.), "sphere.origin")
-    Assert.Equal(sphere.Radius, 2., "sphere.radius")
+    Assert.Equal(sphere.origin, Point(0.,0.,0.), "sphere.origin")
+    Assert.Equal(sphere.radius, 2., "sphere.radius")
 
     Assert.Equal(hollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
     Assert.Equal(hollowCylinder.radius, 2., "hollowCylinder.radius")
@@ -183,7 +183,7 @@ let allTest =
     let toSphere = baseSphere.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> SphereShape
     let toHollowCylinder = baseHollowCylinder.toShape (Textures.mkMatTexture(MatteMaterial(Colour(1.,1.,1.), 1., Colour(1.,1.,1.), 1.))) :?> HollowCylinder
 
-    Assert.Equal(toRectangle.bottomleft, Point(0.,0.,0.), "rectangle.bottomLeft")
+    Assert.Equal(toRectangle.bottomLeft, Point(0.,0.,0.), "rectangle.bottomLeft")
     Assert.Equal(rectangle.topLeft, Point(0.,1.,0.), "rectangle.topLeft")
     Assert.Equal(rectangle.bottomRight, Point(1.,0.,0.), "rectangle.bottomRight")
 
@@ -194,8 +194,8 @@ let allTest =
     Assert.Equal(toTriangle.b, Point(0.,1.,0.), "triangle.b")
     Assert.Equal(toTriangle.c, Point(1.,0.,0.), "triangle.c")
 
-    Assert.Equal(toSphere.Origin, Point(0.,0.,0.), "sphere.origin")
-    Assert.Equal(toSphere.Radius, 2., "sphere.radius")
+    Assert.Equal(toSphere.origin, Point(0.,0.,0.), "sphere.origin")
+    Assert.Equal(toSphere.radius, 2., "sphere.radius")
 
     Assert.Equal(toHollowCylinder.center, Point(0.,0.,0.), "hollowCylinder.center")
     Assert.Equal(toHollowCylinder.radius, 2., "hollowCylinder.radius")

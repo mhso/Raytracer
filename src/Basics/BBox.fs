@@ -25,18 +25,32 @@ type BBox(lowPoint:Point, highPoint:Point) =
         let boolY = r.GetDirection.Y >= 0.0
         let boolZ = r.GetDirection.Z >= 0.0
         
-        let tx = if boolX then (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X else (highPoint.X - r.GetOrigin.X)/r.GetDirection.X
-        let tx' = if boolX then (highPoint.X - r.GetOrigin.X)/r.GetDirection.X else (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X
-        let ty = if boolY then (lowPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y else (highPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y
-        let ty' = if boolY then (highPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y else (lowPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y
-        let tz = if boolZ then (lowPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z else (highPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z
-        let tz' = if boolZ then (highPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z else (lowPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z
+        let tx =  match boolX with
+                  |true -> (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X 
+                  |false -> (highPoint.X - r.GetOrigin.X)/r.GetDirection.X
+        let tx' = match boolX with
+                  |true -> (highPoint.X - r.GetOrigin.X)/r.GetDirection.X 
+                  |false -> (lowPoint.X - r.GetOrigin.X)/r.GetDirection.X
+        let ty =  match boolY with
+                  |true -> (lowPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y 
+                  |false -> (highPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let ty' = match boolY with
+                  |true -> (highPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y 
+                  |false -> (lowPoint.Y - r.GetOrigin.Y)/r.GetDirection.Y
+        let tz =  match boolZ with
+                  |true -> (lowPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z 
+                  |false -> (highPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z
+        let tz' = match boolZ with
+                  |true -> (highPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z 
+                  |false -> (lowPoint.Z - r.GetOrigin.Z)/r.GetDirection.Z
         
 
         let t = max tx (max ty tz)
 
         let t' = min tx' (min ty' tz')
 
-        if t < t' && t' > 0.0 then Some(t, t') else None
+        match (t < t' && t' > 0.0) with
+        |true -> Some(t, t') 
+        |false -> None
 
 
