@@ -1,4 +1,4 @@
-namespace Tracer.ImplicitSurfaces
+namespace Tracer
 
 module ExprParse =
 
