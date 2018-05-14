@@ -161,7 +161,6 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
 type SphereShape(origin: Point, radius: float, tex: Texture) = 
     inherit Shape()
 
-    let pidivided = 1.0 / Math.PI //why are these here ??? -Alex
     let pimult2 = 2. * Math.PI
 
     member this.origin = origin 
@@ -599,7 +598,7 @@ type InfinitePlane(tex:Texture) =
     inherit Shape()
     member this.tex = tex
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
-    override this.getBoundingBox () = failwith "Infinite Plane cannot havea Bounding Box"
+    override this.getBoundingBox () = failwith "Infinite Plane cannot have a Bounding Box"
     override this.hitFunction (r:Ray) = 
         let t = -(r.GetOrigin.Z / r.GetDirection.Z) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
         match (r.GetDirection.Z <> 0.0 && t > 0.0) with
@@ -699,48 +698,62 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                
     ////INTERSECTION////
     member this.intersectionHitFunction (r:Ray) = 
-        let s1Hit = s1.hitFunction r //fire ray at both shapes
-        let s2Hit = s2.hitFunction r
-        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
+        match (this.bBox.intersect r).IsSome with //check bounding box for intersect
+        |true ->
+            let s1Hit = s1.hitFunction r //fire ray at both shapes
+            let s2Hit = s2.hitFunction r
+            match (not(s1Hit.DidHit) && not(s1Hit.DidHit)) with //check if any hit was found
+            |false ->
+                let s1Time = match s1Hit.DidHit with
+                             |true -> s1Hit.Time
+                             |false -> infinity
+                let s2Time = match s2Hit.DidHit with
+                             |true -> s2Hit.Time
+                             |false -> infinity
         
 
-        match (s1Time, s2Time) with
-        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
-        |(s1T, s2T) when s1T = infinity -> if s1.isInside (r.PointAtTime s2T) then s2Hit
-                                           else 
-                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
-                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when s2T = infinity -> if s2.isInside (r.PointAtTime s1T) then s1Hit
-                                           else 
-                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                           let PointAtTime = r.PointAtTime s1T
-                                           let newOrigin = (r.PointAtTime s1T).Move moveVector
-                                           this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> s1Hit
-        |(s1T, s2T) -> 
-                    //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
-                    if s1T > s2T then 
-                        if s2.isInside (r.PointAtTime s1T) then //might be able to condense this with next if
-                            if s1.isInside (r.PointAtTime s2T) then s2Hit
-                            else s1Hit
-                        else 
-                            if s1.isInside (r.PointAtTime s2T) then s2Hit
-                            else 
-                                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                let newOrigin = (r.PointAtTime s1T).Move moveVector
-                                this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
-                    else 
-                        if s1.isInside (r.PointAtTime s2T) then //might be able to condense this with next if
-                            if s2.isInside (r.PointAtTime s1T) then s1Hit
-                            else s2Hit
-                        else 
-                            if s2.isInside (r.PointAtTime s1T) then s1Hit
-                            else 
-                                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                let newOrigin = (r.PointAtTime s2T).Move moveVector
-                                this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                match (s1Time, s2Time) with
+                |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
+                |(s1T, s2T) when s1T = infinity -> match (s1.isInside (r.PointAtTime s2T)) with
+                                                   |true -> s2Hit
+                                                   |false -> 
+                                                       let newOrigin = (r.PointAtTime s2T).Move (r.GetDirection.MultScalar (this.epsilon))
+                                                       this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                |(s1T, s2T) when s2T = infinity -> match (s2.isInside (r.PointAtTime s1T)) with
+                                                   |true -> s1Hit
+                                                   |false -> 
+                                                       let newOrigin = (r.PointAtTime s1T).Move (r.GetDirection.MultScalar (this.epsilon))
+                                                       this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> s1Hit
+                |(s1T, s2T) -> 
+                            //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
+                            match (s1T > s2T) with
+                            |true -> 
+                                match (s2.isInside (r.PointAtTime s1T)) with //might be able to condense this with next match
+                                |true ->  
+                                    match (s1.isInside (r.PointAtTime s2T)) with
+                                    |true -> s2Hit
+                                    |false -> s1Hit
+                                |false -> 
+                                    match (s1.isInside (r.PointAtTime s2T)) with
+                                    |true -> s2Hit
+                                    |false ->
+                                        let newOrigin = (r.PointAtTime s1T).Move (r.GetDirection.MultScalar (this.epsilon))
+                                        this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+                            |false -> 
+                                match (s1.isInside (r.PointAtTime s2T)) with //might be able to condense this with next if
+                                |true ->
+                                    match (s2.isInside (r.PointAtTime s1T)) with
+                                    |true -> s1Hit
+                                    |false -> s2Hit
+                                |false ->
+                                    match (s2.isInside (r.PointAtTime s1T)) with
+                                    |true -> s1Hit
+                                    |false -> 
+                                        let newOrigin = (r.PointAtTime s2T).Move (r.GetDirection.MultScalar (this.epsilon))
+                                        this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection))
+            |true -> HitPoint(r)
+        |false -> HitPoint(r)
                     
                     
                     //old hit function, that fires new rays from the shortest time
@@ -783,24 +796,30 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         *)
 
     member this.subtractionHitFunction (r:Ray) =
-        let s1Hit = s1.hitFunction r //fire ray at first shape
+        match (this.bBox.intersect r).IsSome with //doesnt seem to make a big dfference...
+        |true ->
+            let s1Hit = s1.hitFunction r //fire ray at first shape
+   
+            match s1Hit.DidHit with 
+            |true -> 
+                match ( s2.isInside (r.PointAtTime (s1Hit.Time))) with //refire Ray
+                |true ->
+                    let newOrigin = (r.PointAtTime s1Hit.Time).Move (r.GetDirection.MultScalar (this.epsilon))
+                    let r2 = new Ray(newOrigin, r.GetDirection) //make new ray, so you dont repeat hits
+                    let s2Hit = s2.hitFunction r2 //fire new ray at second shape
 
-        if s1Hit.DidHit then 
-            if s2.isInside (r.PointAtTime (s1Hit.Time)) then //refire Ray
-                let newOrigin = (r.PointAtTime s1Hit.Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                let r2 = new Ray(newOrigin, r.GetDirection) //make new ray, so you dont repeat hits
-                let s2Hit = s2.hitFunction r2 //fire new ray at second shape
-
-                if s2Hit.DidHit then //can it even not hit s2, after i make a new ray with origin inside s2?
-                    if s1.isInside (r2.PointAtTime (s2Hit.Time)) then //IMPORTANT, this case is the one creating that damned yellow square!!! i might need more logic here
-                                                                      //might get a hit from the union that is too early...
-                        HitPoint(r, r.TimeAtPoint(r2.PointAtTime(s2Hit.Time)), (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                    else 
-                        let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
-                        this.subtractionHitFunction (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
-                else HitPoint(r)
-            else s1Hit
-        else HitPoint(r)
+                    match s2Hit.DidHit with //can it even not hit s2, after i make a new ray with origin inside s2?
+                    |true ->
+                        match s1.isInside (r2.PointAtTime (s2Hit.Time)) with 
+                        |true ->                                                                       
+                            HitPoint(r, r.TimeAtPoint(r2.PointAtTime(s2Hit.Time)), (s2Hit.Normal).Invert, s2Hit.Material, s2Hit.Shape, s2Hit.U, s2Hit.V, s2Hit.DidHit)
+                        |false -> 
+                            let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
+                            this.subtractionHitFunction (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
+                    |false -> HitPoint(r)
+                |false -> s1Hit
+            |false -> HitPoint(r)
+        |false -> HitPoint(r)
     
     (*
     member this.subtractionHitFunction (r:Ray) =
@@ -835,17 +854,26 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.groupingHitFunction (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
-        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
 
-        if s1Time <= (s2Time + this.epsilon) then s1Hit else s2Hit
+        match (not(s1Hit.DidHit) && not(s1Hit.DidHit)) with
+        |false ->
+            let s1Time = match s1Hit.DidHit with
+                         |true -> s1Hit.Time 
+                         |false -> infinity
+            let s2Time = match s2Hit.DidHit with 
+                         |true -> s2Hit.Time 
+                         |false -> infinity
+
+            match (s1Time <= (s2Time + this.epsilon)) with 
+            |true -> s1Hit 
+            |false -> s2Hit
+        |true -> HitPoint(r)
 
     
     ////GENERAL HIT-FUNCTION////
-    override this.hitFunction (r:Ray) = //if (this.bBox.intersect r).IsSome then
-                                            match op with
-                                            |Union -> this.unionHitFunction r
-                                            |Intersection -> this.intersectionHitFunction r
-                                            |Subtraction -> this.subtractionHitFunction r
-                                            |Grouping -> this.groupingHitFunction r
-                                        //else HitPoint(r)
+    override this.hitFunction (r:Ray) = match op with
+                                        |Union -> this.unionHitFunction r
+                                        |Intersection -> this.intersectionHitFunction r
+                                        |Subtraction -> this.subtractionHitFunction r
+                                        |Grouping -> this.groupingHitFunction r
+                                        
