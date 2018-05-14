@@ -209,7 +209,7 @@ let main _ =
 
     ////- CAMERA
     let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, regular 1)
-    ////let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0, regular 1, regular 1)
     ////                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     ////                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
     

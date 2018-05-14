@@ -255,6 +255,7 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.RenderParallel = 
         // Prepare image
+        timer.Start()
         let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
         use g = Graphics.FromImage(renderedImage)
         use brush = new SolidBrush(Color.Black)
@@ -262,36 +263,6 @@ type Render(scene : Scene, camera : Camera) =
         
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
-        
-        timer.Start()
-
-        let mutable processed = 0.0
-        let pos = [for y in 0 .. camera.ResY - 1 do
-                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
-        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
-        let mutex = new Mutex()
-
-        try
-          // Shoot rays and save the resulting colors, using parallel computations.
-          Parallel.ForEach (pos, fun (x,y) ->
-            let rays = camera.CreateRays x y
-            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
-              
-            // using mutex to deal with shared ressources in a thread-safe manner
-            if ppRendering then 
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              processed <- processed + 1.0
-              this.CalculateProgress processed total
-              mutex.ReleaseMutex() |> ignore
-            else 
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              mutex.ReleaseMutex() |> ignore
-          ) |> ignore
-        finally
-          mutex.Dispose() |> ignore
 
         //ref: http://csharpexamples.com/fast-image-processing-c/
         let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
@@ -303,17 +274,26 @@ type Render(scene : Scene, camera : Camera) =
         let heightInPixel = bitmapData.Height
         let widthInBytes = bitmapData.Width * bytesPrPixel
         
-        for y in 0..(heightInPixel-1) do 
+        Parallel.For(0, heightInPixel, fun y ->
+        //for y in 0..(heightInPixel-1) do 
             let currentLine = y * bitmapData.Stride
         
             let mutable x = 0
             while (x < widthInBytes) do
-                let color = bmColourArray.[y,x/bytesPrPixel].ToColor
+                let coordsX = x/bytesPrPixel
+                let rays = camera.CreateRays coordsX y
+                let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+                let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+
+                let color = colour.ToColor
 
                 pixel.[currentLine + x] <- (byte)color.B
                 pixel.[currentLine + x + 1] <- (byte)color.G
                 pixel.[currentLine + x + 2] <- (byte)color.R
+                //processed <- processed + 1.0
+                //this.CalculateProgress processed total
                 x <- x + bytesPrPixel
+            ) |> ignore
         Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
         renderedImage.UnlockBits(bitmapData)
 
