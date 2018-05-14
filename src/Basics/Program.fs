@@ -435,7 +435,7 @@ let main _ =
   //let render = Render(mkScene' testshape, testshapecam)
   //let render = Render(mkScene' linktorus, linktoruscam)
 
-  render.RenderToScreen render.RenderParallel |> ignore
+  render.RenderToScreen render.RenderParallelOld |> ignore
   Console.ReadKey () |> ignore
   
   0
