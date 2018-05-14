@@ -376,7 +376,7 @@ let main _ =
     let t1 = transform (bs.toShape linktorus1mat) (translate -1.5 0.0 0.0)
     let t2 = transform (bs.toShape linktorus2mat) (mergeTransformations [rotateX 90.0; translate 1.5 0.0 0.0])
     new CSG(t1, t2, CSGOperator.Grouping) :> shape
-  let linktoruscam = PinholeCamera (Point (0.0, 0.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, multiJittered 4 83)
+  let linktoruscam = PinholeCamera (Point (0.0, 0.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, regular 1)//multiJittered 4 83)
 
   let torus2 =
     let rs1 = "(1.5^2 + 0.5^2)"
@@ -438,7 +438,7 @@ let main _ =
   //let render = Render(mkScene' (chmutov 6), chmutovcam)
   //let render = Render(mkScene' torus2, torus2cam)
   //let render = Render(mkScene' testshape, testshapecam)
-  //let render = Render(mkScene' linktorus, linktoruscam)
+  let render = Render(mkScene' linktorus, linktoruscam)
 
   render.RenderToScreen render.RenderParallel |> ignore
   Console.ReadKey () |> ignore

@@ -161,8 +161,6 @@ type Render(scene : Scene, camera : Camera) =
                 Colour.Black
             else
                 let totalShadow = Array.fold (fun acc ray -> acc + isShadow ray) Colour.Black shadowRays
-                printfn "total shadow %A" totalShadow
-                printfn "t / sr length %A" (totalShadow / float(shadowRays.Length))
                 (totalShadow / float(shadowRays.Length))
 
     // Will cast a ray recursively
