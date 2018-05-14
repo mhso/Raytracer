@@ -31,7 +31,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -230,9 +230,10 @@ type Render(scene : Scene, camera : Camera) =
     member this.PostProcessing =
         timer.Stop()
         // Printing how much time was spent rendering
-        printfn ""
-        printfn ""
-        printfn "                                            Rendering Time: %f Seconds" timer.Elapsed.TotalSeconds
+        if ppRendering then
+          printfn ""
+          printfn ""
+          printfn "                                            Rendering Time: %f Seconds\n\n" timer.Elapsed.TotalSeconds
 
     member this.ShowImageOnScreen (renderedImage:Bitmap) =
         let window = new Form(ClientSize=Size(renderedImage.Width, renderedImage.Height), StartPosition=FormStartPosition.CenterScreen)
@@ -244,19 +245,19 @@ type Render(scene : Scene, camera : Camera) =
         renderedImage.Save(filepath)
         
         // Open image
-        Process.Start(filepath) |> ignore
+        //Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
-        // Prepare image
+        // Create our timer and Acceleration Structure
+        let accel = this.PreProcessing
         timer.Start()
+
+        // Prepare image
         let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
         use g = Graphics.FromImage(renderedImage)
         use brush = new SolidBrush(Color.Black)
         g.FillRectangle(brush, 0,0,camera.ResX,camera.ResY)
         
-        // Create our timer and Acceleration Structure
-        let accel = this.PreProcessing
-
         //ref: http://csharpexamples.com/fast-image-processing-c/
         let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
         let bytesPrPixel = Bitmap.GetPixelFormatSize(renderedImage.PixelFormat) / 8

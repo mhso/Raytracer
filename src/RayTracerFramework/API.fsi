@@ -1,6 +1,6 @@
 ﻿namespace Tracer
 
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open Tracer.Basics
 open Transformation
 open Tracer.Basics.Acceleration

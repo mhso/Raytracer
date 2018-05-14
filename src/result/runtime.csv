@@ -1,121 +1,15 @@
 test name, construction, rendering, total
-implicitSurfaces/heart, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/sphere1, crashed, System.NullReferenceException: Object reference not set to an instance of an object.
-   at Tracer.Sampling.Sampling.getJitteredValue(Int32 grid, Int32 max) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 92
-   at Tracer.Sampling.Sampling.placeDiag@219(Int32 n, Int32 ns, Tuple`2[] samples, Int32 _arg1) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 0
-   at Tracer.Sampling.Sampling.loop@216-3(Int32 n, Tuple`2[][] sets, Int32 k) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 224
-   at Tracer.Sampling.Sampling.multiJittered(Int32 n, Int32 sn) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 227
-   at TracerTestSuite.ImplicitSurfaces.sphere1(Double r, Int32 numSamples, Unit unitVar2) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\ImplicitSurfaces.fs:line 19
-   at TracerTestSuite.ImplicitSurfaces.render@123-117.Invoke(Unit arg20@) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\ImplicitSurfaces.fs:line 123
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 62
-implicitSurfaces/sphere2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/planeX, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/planeY, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/planeZ, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/torus, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/torus2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/linkTorus, crashed, System.NullReferenceException: Object reference not set to an instance of an object.
-   at Tracer.Sampling.Sampling.getJitteredValue(Int32 grid, Int32 max) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 92
-   at Tracer.Sampling.Sampling.placeDiag@219(Int32 n, Int32 ns, Tuple`2[] samples, Int32 _arg1) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 0
-   at Tracer.Sampling.Sampling.loop@216-3(Int32 n, Tuple`2[][] sets, Int32 k) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 224
-   at Tracer.Sampling.Sampling.multiJittered(Int32 n, Int32 sn) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Sampling\Sampling.fs:line 227
-   at TracerTestSuite.ImplicitSurfaces.linkTorus(Int32 numSamples, Unit unitVar1) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\ImplicitSurfaces.fs:line 62
-   at TracerTestSuite.ImplicitSurfaces.render@130-124.Invoke(Unit arg10@) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\ImplicitSurfaces.fs:line 130
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 62
-implicitSurfaces/testShape, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/chmutov2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/chmutov3, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/chmutov4, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/chmutov5, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
-implicitSurfaces/chmutov6, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 251
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
+implicitSurfaces/heart, 0,3906801, 11,1582478, 11,5489279
+implicitSurfaces/sphere1, 0,006147, 26,1430846, 26,1492316
+implicitSurfaces/sphere2, 0,0084993, 0,5050127, 0,513512
+implicitSurfaces/planeX, 0,0010383, 0,9845452, 0,9855835
+implicitSurfaces/planeY, 0,0006551, 1,0247632, 1,0254183
+implicitSurfaces/planeZ, 0,0005943, 1,4484013, 1,4489956
+implicitSurfaces/torus, 0,0042239, 4,0628233, 4,0670472
+implicitSurfaces/torus2, 0,0049368, 5,1355586, 5,1404954
+implicitSurfaces/testShape, 0,0078612, 4,1484821, 4,1563433
+implicitSurfaces/chmutov2, 0,0046336, 0,7597317, 0,7643653
+implicitSurfaces/chmutov3, 0,0011799, 10,2800652, 10,2812451
+implicitSurfaces/chmutov4, 0,00423, 4,2694741, 4,2737041
+implicitSurfaces/chmutov5, 0,0117314, 23,5958103, 23,6075417
+implicitSurfaces/chmutov6, 0,0593051, 7,7303982, 7,7897033
