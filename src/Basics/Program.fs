@@ -1,5 +1,5 @@
 ﻿open Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System
 open Tracer.Basics.Render
 open Tracer.Basics.Transform

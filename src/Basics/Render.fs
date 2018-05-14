@@ -8,7 +8,7 @@ open System.Windows.Forms
 open System.Diagnostics
 open System.Threading
 open System.Threading.Tasks
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System.Runtime.InteropServices
 open System.Drawing.Imaging
 open System.Resources
