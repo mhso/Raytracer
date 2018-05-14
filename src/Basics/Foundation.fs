@@ -34,7 +34,7 @@ and HitPoint(ray: Ray, time: float, normal: Vector, material: Material, shape: S
     member this.EscapedPoint: Point = this.Point + normal * 0.000001
     member this.InnerEscapedPoint: Point = this.Point - normal * 0.000001
     member this.DidHit = didHit
-    member this.Normal = normal
+    member this.Normal = if ray.GetDirection * normal > 0. then -normal else normal
     member this.Material = material
     member this.U = u
     member this.V = v
