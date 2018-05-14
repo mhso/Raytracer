@@ -159,7 +159,6 @@ type Render(scene : Scene, camera : Camera) =
             acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
         else
             let outRay = reflectionFunction hitPoint
-            if outRay.Length = 0 then printfn "No rays"
             let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
