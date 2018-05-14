@@ -6,6 +6,7 @@ module Acceleration =
     open RegularGrids
 
     let mutable acceleration = "KDTree"
+    let debug = false
 
     type IAcceleration = KDTree of KDTree
                        | BVHStructure of BVHStructure
@@ -25,7 +26,7 @@ module Acceleration =
             | "KDTree" -> 
                 let accel = KDTree(buildKDTree shapes)
                 listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
-                printfn "Number of kdtrees %A" shape.number
+                if debug then printfn "Number of kdtrees %A" shape.number
                 accel
             | "BVH"    ->
                 let accel = BVHStructure (BVH.build shapes)

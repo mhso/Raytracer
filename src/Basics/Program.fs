@@ -346,6 +346,10 @@ let main _ =
   // Helper functions
   let mkshape (bs:baseShape) t = bs.toShape t
 
+  let planeZmat = MatteMaterial (Colour (Color.Blue), 1.0, Colour (Color.Blue), 1.0)
+  let planeZ = mkshape (mkImplicit "z") (mkMatTexture planeZmat)
+  let planeZcam = PinholeCamera (Point (0.0, 0.0, 4.0), Point (0.0, 0.0, 0.0), Vector (0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
+
   // Shapes, cams, and colours
   let sphere1mat = PhongMaterial (aqua, 0.2, aqua, 0.8, white, 0.7, 100)
   let sphere1 = mkshape (mkImplicit "x^2 + y^2 + z^2 - 1.0") (mkMatTexture sphere1mat)
@@ -416,6 +420,7 @@ let main _ =
     s
   let chmutovcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
 
+  let render = Render(mkScene' planeZ, planeZcam)
   //let render = Render(mkScene' sphere1, sphere1cam)
   //let render = Render(mkScene' sphere2, sphere2cam)
   //let render = Render(mkScene' torus, toruscam)
@@ -424,7 +429,7 @@ let main _ =
   //let render = Render(mkScene' (chmutov 3), chmutovcam)
   //let render = Render(mkScene' (chmutov 4), chmutovcam)
   //let render = Render(mkScene' (chmutov 5), chmutovcam)
-  let render = Render(mkScene' (chmutov 6), chmutovcam)
+  //let render = Render(mkScene' (chmutov 6), chmutovcam)
   //let render = Render(mkScene' torus2, torus2cam)
   //let render = Render(mkScene' testshape, testshapecam)
   //let render = Render(mkScene' linktorus, linktoruscam)

@@ -1,17 +1,8 @@
 ﻿open Tracer.Basics
 open Tracer.Basics.Textures
 open Tracer.Basics.Sampling
-open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open System.Diagnostics
-open PLYParser
-open System
-open TriangleMes
 
 [<EntryPoint>]
 let main _ =
@@ -112,7 +103,7 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
     
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" true)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" true)
     //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
     let tex = matGreenTex
     let urn = i.toShape(tex)

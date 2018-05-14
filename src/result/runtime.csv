@@ -1,55 +1,12 @@
 test name, construction, rendering, total
-meshes/urn, crashed, System.AggregateException: One or more errors occurred. ---> System.IndexOutOfRangeException: Index was outside the bounds of the array.
-   at Tracer.Basics.RegularGrids.loop@145(Ray ray, Double dtx, Double dty, Double dtz, Int32 ixStop, Int32 ixStep, Int32 iyStop, Int32 iyStep, Int32 izStop, Int32 izStep, Shape[][,,] structure_0, Int32 ix, Int32 iy, Int32 iz, Double txNext, Double tyNext, Double tzNext) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 146
-   at Tracer.Basics.RegularGrids.search$cont@132(Ray ray, Double tz', Double tz, Double ty', Double ty, Double tx', Double tx, Double t, Point p, Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Unit unitVar) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 175
-   at Tracer.Basics.RegularGrids.search(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Shape[] shapes, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 132
-   at Tracer.Basics.RegularGrids.traverse(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 186
-   at Tracer.Basics.Acceleration.traverseIAcceleration(IAcceleration accel, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\Acceleration.fs:line 50
-   at TriangleMes.drawTriangles@59-2.hitFunction(Ray r) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TriangleMeshes\TriangleMes.fs:line 61
-   at Tracer.Basics.Transform.transform@347.hitFunction(Ray r) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Shapes.fs:line 350
-   at Tracer.Basics.RegularGrids.closestHit(Shape[] shapeList, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 113
-   at Tracer.Basics.RegularGrids.loop@145(Ray ray, Double dtx, Double dty, Double dtz, Int32 ixStop, Int32 ixStep, Int32 iyStop, Int32 iyStep, Int32 izStop, Int32 izStep, Shape[][,,] structure_0, Int32 ix, Int32 iy, Int32 iz, Double txNext, Double tyNext, Double tzNext) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 146
-   at Tracer.Basics.RegularGrids.search$cont@132(Ray ray, Double tz', Double tz, Double ty', Double ty, Double tx', Double tx, Double t, Point p, Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Unit unitVar) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 175
-   at Tracer.Basics.RegularGrids.search(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Shape[] shapes, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 132
-   at Tracer.Basics.RegularGrids.traverse(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 186
-   at Tracer.Basics.Acceleration.traverseIAcceleration(IAcceleration accel, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\Acceleration.fs:line 50
-   at Tracer.Basics.Render.Render.GetFirstHitPoint(IAcceleration accel, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 113
-   at Tracer.Basics.Render.Render.Cast(IAcceleration accel, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 61
-   at <StartupCode$Basics>.$Render.get_RenderParallel@270.Invoke(Int32 y) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 278
-   at System.Threading.Tasks.Parallel.<>c__DisplayClass17_0`1.<ForWorker>b__1()
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.InnerInvokeWithArg(Task childTask)
-   at System.Threading.Tasks.Task.<>c__DisplayClass176_0.<ExecuteSelfReplicating>b__0(Object )
-   --- End of inner exception stack trace ---
-   at System.Threading.Tasks.Task.ThrowIfExceptional(Boolean includeTaskCanceledExceptions)
-   at System.Threading.Tasks.Task.Wait(Int32 millisecondsTimeout, CancellationToken cancellationToken)
-   at System.Threading.Tasks.Task.Wait()
-   at System.Threading.Tasks.Parallel.ForWorker[TLocal](Int32 fromInclusive, Int32 toExclusive, ParallelOptions parallelOptions, Action`1 body, Action`2 bodyWithState, Func`4 bodyWithLocal, Func`1 localInit, Action`1 localFinally)
-   at System.Threading.Tasks.Parallel.For(Int32 fromInclusive, Int32 toExclusive, Action`1 body)
-   at Tracer.Basics.Render.Render.get_RenderParallel() in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 270
+meshes/urn, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
+   at System.Diagnostics.Process.Start()
+   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
+   at System.Diagnostics.Process.Start(String fileName)
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 248
+   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 320
    at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\RayTracerFramework\API.fs:line 217
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TracerTest\Util.fs:line 76
----> (Inner Exception #0) System.IndexOutOfRangeException: Index was outside the bounds of the array.
-   at Tracer.Basics.RegularGrids.loop@145(Ray ray, Double dtx, Double dty, Double dtz, Int32 ixStop, Int32 ixStep, Int32 iyStop, Int32 iyStep, Int32 izStop, Int32 izStep, Shape[][,,] structure_0, Int32 ix, Int32 iy, Int32 iz, Double txNext, Double tyNext, Double tzNext) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 146
-   at Tracer.Basics.RegularGrids.search$cont@132(Ray ray, Double tz', Double tz, Double ty', Double ty, Double tx', Double tx, Double t, Point p, Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Unit unitVar) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 175
-   at Tracer.Basics.RegularGrids.search(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Shape[] shapes, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 132
-   at Tracer.Basics.RegularGrids.traverse(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 186
-   at Tracer.Basics.Acceleration.traverseIAcceleration(IAcceleration accel, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\Acceleration.fs:line 50
-   at TriangleMes.drawTriangles@59-2.hitFunction(Ray r) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\TriangleMeshes\TriangleMes.fs:line 61
-   at Tracer.Basics.Transform.transform@347.hitFunction(Ray r) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Shapes.fs:line 350
-   at Tracer.Basics.RegularGrids.closestHit(Shape[] shapeList, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 113
-   at Tracer.Basics.RegularGrids.loop@145(Ray ray, Double dtx, Double dty, Double dtz, Int32 ixStop, Int32 ixStep, Int32 iyStop, Int32 iyStep, Int32 izStop, Int32 izStep, Shape[][,,] structure_0, Int32 ix, Int32 iy, Int32 iz, Double txNext, Double tyNext, Double tzNext) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 146
-   at Tracer.Basics.RegularGrids.search$cont@132(Ray ray, Double tz', Double tz, Double ty', Double ty, Double tx', Double tx, Double t, Point p, Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Unit unitVar) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 175
-   at Tracer.Basics.RegularGrids.search(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Shape[] shapes, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 132
-   at Tracer.Basics.RegularGrids.traverse(Shape[][,,] structure_0, Int32 structure_1, Int32 structure_2, Int32 structure_3, BBox structure_4, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\RegularGrids.fs:line 186
-   at Tracer.Basics.Acceleration.traverseIAcceleration(IAcceleration accel, Ray ray, Shape[] shapes) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Acceleration\Acceleration.fs:line 50
-   at Tracer.Basics.Render.Render.GetFirstHitPoint(IAcceleration accel, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 113
-   at Tracer.Basics.Render.Render.Cast(IAcceleration accel, Ray ray) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 61
-   at <StartupCode$Basics>.$Render.get_RenderParallel@270.Invoke(Int32 y) in C:\Users\Frank\Documents\Git ITU Projekter\SecondYearProject\raytracer\src\Basics\Render.fs:line 278
-   at System.Threading.Tasks.Parallel.<>c__DisplayClass17_0`1.<ForWorker>b__1()
-   at System.Threading.Tasks.Task.InnerInvoke()
-   at System.Threading.Tasks.Task.InnerInvokeWithArg(Task childTask)
-   at System.Threading.Tasks.Task.<>c__DisplayClass176_0.<ExecuteSelfReplicating>b__0(Object )<---
-
