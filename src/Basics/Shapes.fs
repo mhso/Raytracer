@@ -189,13 +189,17 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     
     member this.getTextureCoords (p:Point) =
         let n = this.NormalAtPoint p
-        (Math.Atan2(n.X, n.Z) / pimult2, 1. - (Math.Acos(n.Y) / Math.PI))
+        let u = Math.Atan2(n.X, n.Z) / pimult2
+        let v = 1. - (Math.Acos(n.Y) / Math.PI)
+
+        let uF = if u < 0. then 1. + u else u
+        let vF = if v < 0. then 1. + v else v
+        (uF, vF)
+
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        let uv = this.getTextureCoords (p)
-        let u = fst uv
-        let v = snd uv
+        let (u,v) = this.getTextureCoords (r.PointAtTime t)
         let func = Textures.getFunc tex
         let mat = func u v 
         HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
@@ -207,8 +211,9 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
             let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
             let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
             let D = (b**2.)-4.*a*c 
-            let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
-            let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+            let sqrtD = Math.Sqrt(D)
+            let t1 = (-b + sqrtD)/(2.0 * a)
+            let t2 = (-b - sqrtD)/(2.0 * a)
             match D with
             |(0.0) -> match t1 > 0.0 with
                       |true -> this.determineHitPoint r t1 
