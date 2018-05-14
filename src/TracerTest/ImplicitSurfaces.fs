@@ -127,7 +127,7 @@ module ImplicitSurfaces =
        (planeZ, "planeZ");
        (torus 1.5 0.5, "torus");
        (torus2 1.5 0.5, "torus2");
-       (linkTorus 4, "linkTorus");
+       //(linkTorus 4, "linkTorus");
        (testShape, "testShape");
        (chmutov 2, "chmutov2");
        (chmutov 3, "chmutov3");

@@ -247,16 +247,16 @@ type Render(scene : Scene, camera : Camera) =
         Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
-        // Prepare image
+        // Create our timer and Acceleration Structure
+        let accel = this.PreProcessing
         timer.Start()
+
+        // Prepare image
         let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
         use g = Graphics.FromImage(renderedImage)
         use brush = new SolidBrush(Color.Black)
         g.FillRectangle(brush, 0,0,camera.ResX,camera.ResY)
         
-        // Create our timer and Acceleration Structure
-        let accel = this.PreProcessing
-
         //ref: http://csharpexamples.com/fast-image-processing-c/
         let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
         let bytesPrPixel = Bitmap.GetPixelFormatSize(renderedImage.PixelFormat) / 8
@@ -292,56 +292,6 @@ type Render(scene : Scene, camera : Camera) =
 
         this.PostProcessing
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
-        renderedImage
-
-    member this.RenderParallelOld =
-        // Prepare image
-        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
-
-        // Create our timer and Acceleration Structure
-        let accel = this.PreProcessing
-        
-        timer.Start()
-
-        let mutable processed = 0.0
-        let pos = [for y in 0 .. camera.ResY - 1 do
-                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
-        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
-
-        if ppRendering then 
-          let mutex = new Mutex()
-          try
-            // Shoot rays and save the resulting colors, using parallel computations.
-            Parallel.ForEach (pos, fun (x,y) ->
-              let rays = camera.CreateRays x y
-              let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-              let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
-              
-              // using mutex to deal with shared ressources in a thread-safe manner
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              processed <- processed + 1.0
-              this.CalculateProgress processed total
-              mutex.ReleaseMutex() |> ignore
-            ) |> ignore
-          finally
-            mutex.Dispose() |> ignore
-
-        else 
-          Parallel.ForEach (pos, fun (x,y) ->
-              let rays = camera.CreateRays x y
-              let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-              let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
-              bmColourArray.[y,x] <- colour
-            ) |> ignore
-
-        // Apply the colors to the image.
-        for y in 0 .. camera.ResY - 1 do
-          for x in 0 .. camera.ResX - 1 do
-            let yrev = (camera.ResY - 1) - y
-            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
-
-        this.PostProcessing
         renderedImage
 
     member this.Render =

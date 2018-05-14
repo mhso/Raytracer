@@ -136,5 +136,5 @@ module Material =
   let renderHigh : Target list = 
     renderWithSampler "material high" (fun () -> mkMultiJitteredSampler 6 83)
   let renderRegular : Target list =   
-    renderWithSampler "material regular" (fun () -> mkRegularSampler 1)
+    renderWithSampler "material regular" (fun () -> mkRegularSampler 4)
     
