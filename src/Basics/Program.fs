@@ -5,8 +5,8 @@ open Tracer.Basics.Render
 open Tracer.Basics.Transform
 //open System.Net.Mime.MediaTypeNames
 
-[<EntryPoint>]
-let main _ = 
+    [<EntryPoint>]
+    let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
@@ -17,6 +17,19 @@ let main _ =
     let width = 2.
     let height = (float(resY) / float(resX)) * width
     let maxReflectionBounces = 3
+    //let matteGreen = MatteMaterial(Colour.Green, 1., Colour.Green, 1.)
+    //let matteYellow = MatteMaterial(Colour(1.,1.,0.), 1., Colour(1.,1.,0.), 1.)
+    //let matteWhite = MatteMaterial(Colour.White, 1., Colour.White, 1.)
+    //let matteBlue = MatteMaterial(Colour.Blue, 1., Colour.Blue, 1.)
+    //(*
+    //let phongShades = SpecularMaterial(0.15, Colour(1.,1.,1.), 1.5, Colour.White)
+    //let perfectWhite = PerfectReflectionMaterial(matteWhite, Colour.White, 1.)
+    //let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
+    //let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
+    //let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
+    //let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 100.)
+    //*)
+    //*)
     
     //- MATERIALS
     let matteRed = MatteMaterial(Colour.Red, 1., Colour.Red, 1.)
@@ -35,7 +48,26 @@ let main _ =
     *)
 
     let emissive = EmissiveMaterial(Colour.White, 10000.)
+    //let boxMaterial = new MatteMaterial(new Colour(0., 1., 1.), 1., Colour(0., 1., 1.), 1.)
+    //let boxMaterial2 = new MatteMaterial(new Colour(0., 0., 1.), 1., Colour(0., 0., 1.), 1.)
+    //let boxMaterial3 = new MatteMaterial(new Colour(1., 0., 1.), 1., Colour(1., 0., 1.), 1.)
+    //let boxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.), 1., Colour(1., 1., 0.), 1.)
+    //let boxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.), 1., Colour(0.5, 0.5, 1.), 1.)
+    //let boxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6), 1., Colour(0.3, 0., 0.6), 1.)
+    //let texbox = Textures.mkMatTexture(boxMaterial)
+    //let texbox2 = Textures.mkMatTexture(boxMaterial2)
+    //let texbox3 = Textures.mkMatTexture(boxMaterial3)
+    //let texbox4 = Textures.mkMatTexture(boxMaterial4)
+    //let texbox5 = Textures.mkMatTexture(boxMaterial5)
+    //let texbox6 = Textures.mkMatTexture(boxMaterial6)
+    //let box = new Box(low, high, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+    ////let box = new Box(low, high, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat)
 
+    //let vboxMaterial4 = new MatteMaterial(new Colour(1., 1., 0.), 1., Colour(1., 1., 0.), 1.)
+    //let vboxMaterial5 = new MatteMaterial(new Colour(0.5, 0.5, 1.), 1., Colour(0.5, 0.5, 1.), 1.)
+    //let vboxMaterial6 = new MatteMaterial(new Colour(0.3, 0., 0.6), 1., Colour(0.3, 0., 0.6), 1.)
+    ////let vbox = new Box(vlow, vhigh, vboxMaterial, vboxMaterial2, vboxMaterial3, vboxMaterial4, vboxMaterial5, vboxMaterial6)
+    ////let box = new Box(low, high, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat)
 
     (*
     //- SHAPES
@@ -59,6 +91,8 @@ let main _ =
     let sphereRadius = 1.
     let texSphere = Textures.mkMatTexture(matteGreen)
     let sphere = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    //let texTri = Textures.mkMatTexture(triangleMaterial)
+    //let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
 
     let low = new Point(0., 0., 0.)
     let high = new Point(1., 1., 1.)
@@ -90,6 +124,7 @@ let main _ =
 
     let texPlane = Textures.mkMatTexture(matteRed)
     let infinitePlane = InfinitePlane(texPlane)
+    //let csgShape3 = CSG(box, csgShape2, Intersection)
 
     let bLeft = new Point(0., 0., 0.)
     let tLeft = new Point(0., 1., 0.)
@@ -147,6 +182,8 @@ let main _ =
     let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
     let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidYellow, texSolidYellow, texSolidYellow)
 
+    //let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    //let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.65, Textures.mkMatTexture(matteBlue))
 
     let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidGreen, texSolidGreen, texSolidGreen)
     let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidBlue, texSolidBlue, texSolidBlue)
@@ -161,6 +198,8 @@ let main _ =
 
     let csgUnion1 = CSG(solid1, transSolid2, Union)
     let csgUnion2 = CSG(csgUnion1, transSolid3, Union)
+    //let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+    //let boxSubTest2 = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
 
     let boxTex = Textures.mkMatTexture(matteRed)
     let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
@@ -168,13 +207,14 @@ let main _ =
     let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.9, Textures.mkMatTexture(matteBlue))
 
     let csgInter = CSG(boxForcsg, sphereForcsg, Intersection)
+    //let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
 
     let fancyCSG = CSG(csgInter, csgUnion2, Subtraction)
 
     //Subtraction Test
 
     let csgSubTest = CSG(boxForcsg, csgUnion1, Subtraction)
-
+    
     let lowTest = new Point(-1., -2., -1.)
     let highTest = new Point(1., 2., 1.)
     let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
@@ -182,6 +222,14 @@ let main _ =
 
     let transBox = Transform.transform boxSubTest2 rotateX
     let transBox2 = Transform.transform boxSubTest2 rotateZ
+    ////- CAMERA
+    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, regular 1)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0, regular 1, regular 1)
+    ////                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    ////                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    
+    ////- LIGHTS
+    //let lightFront     = PointLight(Colour.White, 1.5, Point(2.,2.,7.))
 
     let csgBoxUnion = CSG(boxSubTest, transBox, Union)
     let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
@@ -268,7 +316,6 @@ let main _ =
     //let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
     //let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
     //let plane          = InfinitePlane(matteWhite)
-
     //- FINAL
     let lights: Light list      = [lightFront;]
     //let spheres: Shape list     = [sL;sC;sR;plane]

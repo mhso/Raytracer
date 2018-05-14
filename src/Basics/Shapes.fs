@@ -1,6 +1,7 @@
 namespace Tracer.Basics
 open System
 open Transformation
+open System.Diagnostics
 
 //exception BoundingBoxException
 
@@ -89,6 +90,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
                             let mat = func u v
                             HitPoint(r, t, this.normal, mat, this, u, v) 
                     else HitPoint(r)
+        
 
 
 ////TRIANGLE////
@@ -211,8 +213,9 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
             let b = 2. * ((r.GetOrigin.X * r.GetDirection.X) + (r.GetOrigin.Y * r.GetDirection.Y) + (r.GetOrigin.Z * r.GetDirection.Z))//Determines b in the quadratic equation
             let c = (r.GetOrigin.X**2.) + (r.GetOrigin.Y**2.) + (r.GetOrigin.Z**2.) - (radius**2.) //Determines c in the quadratic equation
             let D = (b**2.)-4.*a*c 
-            let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
-            let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
+            let sqrtD = Math.Sqrt(D)
+            let t1 = (-b + sqrtD)/(2.0 * a)
+            let t2 = (-b - sqrtD)/(2.0 * a)
             match D with
             |(0.0) -> match t1 > 0.0 with
                       |true -> this.determineHitPoint r t1 
