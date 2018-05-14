@@ -1,10 +1,10 @@
-namespace Tracer.ImplicitSurfaces
+namespace Tracer
 
-module Main =
+module ImplicitSurfaces =
 
-  open Tracer.ImplicitSurfaces.ExprParse
-  open Tracer.ImplicitSurfaces.ExprToPoly
-  open Tracer.ImplicitSurfaces.PolyToUnipoly
+  open Tracer.ExprParse
+  open Tracer.ExprToPoly
+  open Tracer.PolyToUnipoly
   open Tracer.Basics
 
   type hf = Ray -> (float * Vector) option
@@ -17,6 +17,7 @@ module Main =
   type unipoly = PolyToUnipoly.unipoly
   type Ray = Tracer.Basics.Ray
   type simpleIntExpr = PolyToUnipoly.simpleIntExpr
+  type simpleExpr = ExprToPoly.simpleExpr
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -151,12 +152,14 @@ module Main =
             inner g' (iter - 1)
     inner initial 15
 
+  let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
+
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
     let pdx = partialDerivative "x" e
     let pdy = partialDerivative "y" e
     let pdz = partialDerivative "z" e
-    let lis = List.foldBack (fun (n,c) acc -> (n,seToSIE c)::acc) p []
+    let lis = sepolyToSIEpoly p
     let hitFunction (r:Ray) =
       let valArray = getValArray r
       let up = toUnipoly lis valArray

@@ -1,11 +1,11 @@
 module ImplicitSurfacesTests
 
 open Assert
-open Tracer.ImplicitSurfaces.ExprParse
-open Tracer.ImplicitSurfaces.ExprToPoly
-open Tracer.ImplicitSurfaces.Main
+open Tracer.ExprParse
+open Tracer.ExprToPoly
+open Tracer.ImplicitSurfaces
 open Tracer.Basics
-open Tracer.ImplicitSurfaces.PolyToUnipoly
+open Tracer.PolyToUnipoly
 open Tracer.Basics
 
 let allTest =
@@ -123,13 +123,13 @@ let allTest =
  
   // simple tests on newton-raphson
   let test16 =
-    let input = polyToUnipoly (polyAsList ((exprToPoly << parseStr) "3x^2 - 3" "x")) 1. 1. 1. 1. 1. 1.
+    let input = toUnipoly (sepolyToSIEpoly (polyAsList ((exprToPoly << parseStr) "3x^2 - 3" "x"))) [|1.;1.;1.;1.;1.;1.|]
     let actual = newtonRaphson input (unipolyDerivative input) 0.1
     let expected = Some 1.0
     Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 - 3 = 0, x = 1")
 
   let test17 =
-    let input = polyToUnipoly (polyAsList ((exprToPoly << parseStr) "3x^2" "x")) 1. 1. 1. 1. 1. 1.
+    let input = toUnipoly (sepolyToSIEpoly (polyAsList ((exprToPoly << parseStr) "3x^2" "x"))) [|1.;1.;1.;1.;1.;1.|]
     let actual = newtonRaphson input (unipolyDerivative input) 0.1
     let expected = None
     Assert.Equal (expected, actual, "newtonraphsontest: 3 * x^2 = 0, no possible x")

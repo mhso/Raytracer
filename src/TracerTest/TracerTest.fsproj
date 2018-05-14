@@ -119,11 +119,6 @@
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ImplicitSurfaces\ImplicitSurfaces.fsproj">
-      <Name>ImplicitSurfaces</Name>
-      <Project>{940a3706-dae3-4f52-87b8-d71f44641b0d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\RayTracerFramework\Raytracer.fsproj">
       <Name>Raytracer</Name>
       <Project>{92ae911b-8e25-405a-a804-046e4d018f0d}</Project>

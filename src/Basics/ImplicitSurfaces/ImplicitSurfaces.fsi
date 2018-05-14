@@ -1,6 +1,6 @@
-namespace Tracer.ImplicitSurfaces
+namespace Tracer
 
-module Main =
+module ImplicitSurfaces =
 
   open Tracer.Basics
 
@@ -22,3 +22,7 @@ module Main =
   type unipoly = PolyToUnipoly.unipoly
 
   val newtonRaphson : unipoly -> unipoly -> float -> float option
+
+  type simpleExpr = ExprToPoly.simpleExpr
+  type simpleIntExpr = PolyToUnipoly.simpleIntExpr
+  val sepolyToSIEpoly : (int * simpleExpr) list -> (int * simpleIntExpr) list

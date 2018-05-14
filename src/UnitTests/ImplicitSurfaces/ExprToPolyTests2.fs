@@ -1,7 +1,7 @@
 module ExprToPolyTests2
 
-open Tracer.ImplicitSurfaces.ExprParse
-open Tracer.ImplicitSurfaces.ExprToPoly
+open Tracer.ExprParse
+open Tracer.ExprToPoly
 open Assert
 
 // All these tests are based on the rules listed on page 41 in the Lecture notes (updated 14 April) document
