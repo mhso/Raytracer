@@ -193,7 +193,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
 
     member this.determineHitPoint (r:Ray) (t:float) = 
         let p = r.PointAtTime t
-        let uv = this.getTextureCoords (r.PointAtTime t)
+        let uv = this.getTextureCoords (p)
         let u = fst uv
         let v = snd uv
         let func = Textures.getFunc tex
@@ -295,16 +295,16 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                                 |true ->
                                     match this.determineIfPointIsInsideHeight r t2 with
                                     |true -> this.determineHitPoint r t2 
-                                    |false -> match this.determineIfPointIsInsideHeight r t1 with
+                                    |false -> match (t1 > 0.0 && (this.determineIfPointIsInsideHeight r t1)) with
                                               |true -> this.determineHitPoint r t1
                                               |false -> HitPoint(r)
                                 |false -> match t1 > 0.0 with
                                           |true ->  match this.determineIfPointIsInsideHeight r t1 with
                                                     |true -> this.determineHitPoint r t1
                                                     |false -> HitPoint(r)
-                                          |false -> match this.determineIfPointIsInsideHeight r t2 with
+                                          |false -> match (t2 > 0.0 && (this.determineIfPointIsInsideHeight r t2)) with
                                                     |true -> this.determineHitPoint r t2
-                                                    |false -> HitPoint(r)                        
+                                                    |false -> HitPoint(r)                  
                         
                         
                                 (*if t2 < t1 && t2 > 0.0 then
@@ -401,20 +401,6 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
     //builds the hollow cylinder
     member this.hollowCylinder = HollowCylinder(center, radius, height, cylinder)
     member this.bBox = this.hollowCylinder.bBox
-        //should only need the BBox of the Hollow Cylinder
-
-        (*
-        let e = 0.000001
-        let lx = (center.X - radius) - e
-        let ly = (center.Y - (height/2.)) - e //height instead of radius for the Y coord
-        let lz = (center.Z - radius) - e
-
-        let hx = (center.X + radius) + e
-        let hy = (center.Y + (height/2.)) + e //height instead of radius for the Y coord
-        let hz = (center.Z + radius) + e
-
-        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
-        *)
 
     override this.isInside (p:Point) = 
         match ((p.X**2. + p.Z**2.) <= radius**2.) with //checks if the point lies within the bounds of the cylinders radius (similar to checking for discs)
