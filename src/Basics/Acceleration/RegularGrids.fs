@@ -143,22 +143,31 @@ module RegularGrids =
                                                         if txNext<tyNext && txNext<tzNext then
                                                             if debug2 then printfn "search->Not inside->txNext<tyNext && txNext<tzNext"
                                                             match checkForHit with
-                                                            | Some hitFound when hitFound.Time<txNext -> Some hitFound
-                                                            | _ ->  if ix+ixStep = ixStop then None
+                                                            | Some hitFound ->
+                                                                if hitFound.Time<txNext then Some hitFound
+                                                                else
+                                                                    if ix+ixStep = ixStop then None
                                                                     else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
+                                                            | _ -> None
                                                         else
                                                             if tyNext<tzNext then
                                                                 if debug2 then printfn "search->Not inside->tyNext<tzNext"
                                                                 match checkForHit with
-                                                                | Some hitFound when hitFound.Time<tyNext -> Some hitFound
-                                                                | _ -> if iy = iyStop then None
-                                                                       else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
+                                                                | Some hitFound ->
+                                                                    if hitFound.Time<tyNext then Some hitFound
+                                                                    else
+                                                                        if iy = iyStop then None
+                                                                        else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
+                                                                | _ -> None
                                                             else
                                                                 if debug2 then printfn "search->Not inside->else"
                                                                 match checkForHit with
-                                                                | Some hitFound when hitFound.Time<tzNext -> Some hitFound
-                                                                | _ ->  if iz = izStop then None
+                                                                | Some hitFound -> 
+                                                                    if hitFound.Time<tzNext then Some hitFound
+                                                                    else
+                                                                        if iz = izStop then None
                                                                         else loop iz iy (iz+izStep) txNext tyNext (tzNext+dtz)
+                                                                | _ ->  None
                                                     loop ix iy iz txNext tyNext tzNext
                                                 else
                                                     if debug2 then printfn "search->Inside"

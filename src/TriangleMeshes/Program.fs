@@ -157,6 +157,6 @@ let main _ =
     //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "image.bmp")
+    ignore (render.RenderToFile render.RenderParallelOld "image.bmp")
 
     0
