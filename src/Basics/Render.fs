@@ -63,43 +63,54 @@ type Render(scene : Scene, camera : Camera) =
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let ambientColour = hitPoint.Material.AmbientColour(hitPoint, this.Scene.Ambient)
+            let ambientColour = this.CastAmbientColour accel hitPoint
             let totalLightColour = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
                     let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
-                    let occlusion = this.Occlude accel light hitPoint
-                    let total = colour + occlusion
-                    acc + total) Colour.Black
+                    acc + colour) Colour.Black
             ambientColour + totalLightColour
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
 
-    member this.Occlude accel (light: Light) (hitPoint: HitPoint) = 
-        if light :? AmbientOccluder then
-            let o = light :?> AmbientOccluder
-            let samples = [for i=1 to o.Sampler.SampleCount do yield mapToHemisphere (o.Sampler.Next()) 1.]
-            [for (x,y,z) in samples 
-                do 
-                    let w = hitPoint.Normal.Normalise
-                    let v = (up % w).Normalise
-                    let u = w % v
-                    let spV = Tracer.Basics.Point(x,z,y).OrthonormalTransform(u, v, w)
-                    let sp = Tracer.Basics.Point(spV)
-                    yield this.CastAmbientOcclusion accel sp o hitPoint ] |> List.average
-        else 
-            Colour.Black
+    member this.CastAmbientColour accel hitPoint = 
+        hitPoint.Material.AmbientColour(hitPoint, this.Scene.Ambient) *
+            match this.Scene.Ambient with
+                | :? AmbientOccluder as occluder -> this.Occlude accel occluder hitPoint
+                | _ -> Colour.White
 
-    member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
-        let direction = (hitPoint.Point - sp).Normalise
-        let origin = hitPoint.EscapedPoint
-        let ray = Ray(origin, direction)
-        let (hp:HitPoint) = this.GetFirstShadowHitPoint accel ray
-        if hp.DidHit then
-            o.MinIntensity * o.Intensity * o.Colour
+    member this.Occlude accel (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
+        let sampler = occluder.Sampler
+        let transOrthoCoord (x,y,z) = 
+            
+            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
+
+            // Reflected ray direction
+            let m = hitPoint.Normal
+
+            // Transform orthonormal frame of sample point
+            let up = new Vector(0., 1., 0.)
+            let w = hitPoint.Normal
+            let v = (up % w).Normalise
+            let u = w % v
+            sp.OrthonormalTransform(u, v, w)
+
+        let total = [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
+                    |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
+
+        total / sampler.SampleCount
+        
+
+    member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
+        let ray = Ray(hitPoint.EscapedPoint, sp)
+        let rayHit = this.GetFirstHitPoint accel ray
+        if rayHit.DidHit then
+            occluder.MinIntensityColour
         else
-            o.Intensity * o.Colour
+            occluder.Colour
+            
+            
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
