@@ -1,9 +1,7 @@
 ﻿namespace Tracer
 
-open Tracer.Sampling.Sampling
 open Tracer.Basics
 open Transformation
-open Tracer.Basics.Acceleration
 
 module API =
   type dummy = unit

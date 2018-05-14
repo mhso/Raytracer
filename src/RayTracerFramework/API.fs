@@ -1,12 +1,11 @@
 ﻿namespace Tracer
 
-open Tracer.Sampling.Sampling
 open Tracer.Basics
+open Tracer.Basics.Sampling
 open Tracer.Basics.Render
 open Tracer.BaseShape
 open Tracer.ImplicitSurfaces
 open Transformation
-open Tracer.Basics.Acceleration
 
 module API = 
 

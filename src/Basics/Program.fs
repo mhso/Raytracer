@@ -1,18 +1,12 @@
-﻿open Tracer.Basics
-open Tracer.Basics.Sampling
-open System
+﻿open System
 open Tracer.Basics.Render
 open Tracer.Basics.Transform
 open System.Drawing
 open Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open Tracer.ImplicitSurfaces
-open Tracer.Basics.Render
-open Tracer.Basics.Acceleration
 open Tracer.Basics.Textures
-open Tracer.Basics.Transform
 open Tracer.Basics.Transformation
-open System
 //open System.Net.Mime.MediaTypeNames
 
 [<EntryPoint>]
