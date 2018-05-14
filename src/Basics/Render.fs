@@ -32,7 +32,24 @@ type Render(scene : Scene, camera : Camera) =
     let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
+    let randomStrings = [|"                                                      Traversing..."; 
+                          "                                                     Shooting Rays..."; 
+                          "                                              Applying Ambient Occlusion..."; 
+                          "                                                       Sampling..."; 
+                          "                                                 Transforming Bunnies..."; 
+                          "                                                 Stretching Triangles..."; 
+                          "                                                   Spawning Spheres..."; 
+                          "                                              Initializing Stackoverflow..."; 
+                          "                                                Creating Infinity Loops..."; 
+                          "                                               Making Surfaces Implicit..."; 
+                          "                                       Making Infinite Planes infinity + 1 long...";
+                          "                                             Deleting Random System File...";
+                          "                                          RayTracer.exe Has Stopped Working..."|]
+    let getRandomString () =  
+      let random = System.Random()  
+      randomStrings.[random.Next(randomStrings.Length)]
 
+    let idOfScene = Acceleration.listOfKDTree.Length + 1
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
@@ -44,15 +61,15 @@ type Render(scene : Scene, camera : Camera) =
         // Check if we hit
         if hitPoint.DidHit then
             // Sum the light colors for that hitpoint
-            let ambientLight = this.Scene.Ambient.GetColour hitPoint * hitPoint.Material.AmbientColour
-            let totalLight = 
+            let ambientColour = hitPoint.Material.AmbientColour(hitPoint, this.Scene.Ambient)
+            let totalLightColour = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
-                    let colour = this.CastRecursively ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
+                    let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                     let occlusion = this.Occlude accel light hitPoint
-                    let shadowColour = this.CastShadow accel hitPoint light
-                    acc + (colour + occlusion - shadowColour)) Colour.Black
-            ambientLight + totalLight
+                    let total = colour + occlusion
+                    acc + total) Colour.Black
+            ambientColour + totalLightColour
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
@@ -71,8 +88,6 @@ type Render(scene : Scene, camera : Camera) =
                     yield this.CastAmbientOcclusion accel sp o hitPoint ] |> List.average
         else 
             Colour.Black
-
-        
 
     member this.CastAmbientOcclusion accel (sp: Tracer.Basics.Point) (o: AmbientOccluder) (hitPoint: HitPoint) = 
         let direction = (hitPoint.Point - sp).Normalise
@@ -118,14 +133,20 @@ type Render(scene : Scene, camera : Camera) =
 
     // Returns the average shadow for a hitpoint and a light source
     member this.CastShadow accel (hitPoint: HitPoint) (light: Light) : Colour = 
-        if light :? AmbientLight 
+        if light :? AmbientLight || hitPoint.Material :? TransparentMaterial
             then Colour.Black
         else
             let shadowRays = light.GetShadowRay hitPoint
+            
+            let maxTime =
+                match light with
+                | :? PointLight as p -> p.Position.Distance(hitPoint.Point).Magnitude
+                | _ -> 2147483647.
+
             let isShadow ray = 
-                let (hp) = (this.GetFirstShadowHitPoint accel ray)
-                if hp.DidHit then
-                        Colour.White - this.Scene.Ambient.GetColour hitPoint
+                let hp = (this.GetFirstShadowHitPoint accel ray)
+                if hp.DidHit && hp.Time < maxTime then
+                        Colour.White
                     else 
                         Colour.Black
             
@@ -137,22 +158,24 @@ type Render(scene : Scene, camera : Camera) =
 
     // Will cast a ray recursively
     member this.CastRecursively 
-        (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
+        (accel: IAcceleration) (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
+
+        let shadowColour = this.CastShadow accel hitPoint light
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
+            acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + hitPoint.Material.PreBounce(shape, hitPoint, light)
+            let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                 outColour <- outColour + 
                     let outHitPoint = this.GetFirstHitPointExcept outRay.[i] shape
                     if outHitPoint.DidHit then
-                        let recursiveColour = this.CastRecursively outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
-                        hitPoint.Material.ReflectionFactor * recursiveColour
+                        let recursiveColour = this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        hitPoint.Material.ReflectionFactor(hitPoint, outRay.[i]) * recursiveColour
                     else
-                        Colour.Black
+                        this.Scene.BackgroundColour
             baseColour + (outColour / float(outRay.Length))
 
     member this.CalculateProgress current total =
@@ -179,11 +202,10 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
+        let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
         if ppRendering then
           Console.WriteLine(" 
         
-
-
                              ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
                              ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
                              ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
@@ -195,17 +217,17 @@ type Render(scene : Scene, camera : Camera) =
                                  ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
                                                          ░                                        
                                                                                                   ")
-          Console.WriteLine("                                                   Building Acceleration Structure..")
+          printfn "%s" (getRandomString())
+          //Console.WriteLine("                                                   Building Acceleration Structure..")
         else ()
         
-        let kdTimer = Stopwatch.StartNew()
-        let accel = Acceleration.createAcceleration bbshapes
-        kdTimer.Stop()
+        //let kdTimer = Stopwatch.StartNew()
+        //kdTimer.Stop()
         
-        if ppRendering then
-          Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
-          Console.WriteLine()
-        else ()
+        //if ppRendering then
+         // Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
+          //Console.WriteLine()
+        //else ()
 
         accel
 
@@ -228,8 +250,6 @@ type Render(scene : Scene, camera : Camera) =
         // Open image
         Process.Start(filepath) |> ignore
 
-        Console.ReadKey () |> ignore
-
     member this.RenderParallel = 
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
@@ -247,7 +267,7 @@ type Render(scene : Scene, camera : Camera) =
 
         try
           // Shoot rays and save the resulting colors, using parallel computations.
-          Parallel.ForEach (pos, fun (x,y) -> 
+          Parallel.ForEach (pos, fun (x,y) ->
             let rays = camera.CreateRays x y
             let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
             let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
@@ -270,7 +290,8 @@ type Render(scene : Scene, camera : Camera) =
         // Apply the colors to the image.
         for y in 0 .. camera.ResY - 1 do
           for x in 0 .. camera.ResX - 1 do
-            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
+            let yrev = (camera.ResY - 1) - y
+            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
 
         this.PostProcessing
         renderedImage
@@ -289,8 +310,9 @@ type Render(scene : Scene, camera : Camera) =
                 let rays = camera.CreateRays x y
                 let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
-
-                renderedImage.SetPixel(x, y, colour.ToColor)
+                
+                let yrev = (camera.ResY - 1) - y
+                renderedImage.SetPixel(x, yrev, colour.ToColor)
 
         this.PostProcessing
         renderedImage

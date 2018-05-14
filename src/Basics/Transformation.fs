@@ -99,9 +99,9 @@ open System
         sum (l.Head,l.Tail)
 
     let mergeTransformations (l: Transformation List) : Transformation = 
-        let matrixList = l |> List.map (fun a -> getMatrix a)
+        let matrixList = (List.rev l) |> List.map (fun a -> getMatrix a)
         let NewMatrix = mergeMatrix matrixList
-        let reverseMatrixList = (List.rev l) |> List.map (fun a -> getInvMatrix a)
+        let reverseMatrixList = l |> List.map (fun a -> getInvMatrix a)
         let newInverseMatrix = mergeMatrix reverseMatrixList
         mkTransformation (NewMatrix, newInverseMatrix)
 

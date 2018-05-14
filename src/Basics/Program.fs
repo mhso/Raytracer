@@ -174,7 +174,23 @@ let main _ =
 
     let csgSubTest = CSG(boxForcsg, csgUnion1, Subtraction)
 
-    let shapes : Shape List = [csgUnion1]
+    let lowTest = new Point(-1., -2., -1.)
+    let highTest = new Point(1., 2., 1.)
+    let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+    let boxSubTest2 = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+
+    let transBox = Transform.transform boxSubTest2 rotateX
+    let transBox2 = Transform.transform boxSubTest2 rotateZ
+
+    let csgBoxUnion = CSG(boxSubTest, transBox, Union)
+    let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
+
+    let sphereRadiusTest = 0.7
+    let sphereSubTest = new SphereShape(sphereOrigin, sphereRadiusTest, texSphere)
+
+    let CSGSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
+
+    let shapes : Shape List = [transBox]
     //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
                                 //solidCylinder8;solidCylinder9;solidCylinder10]
     
@@ -185,7 +201,7 @@ let main _ =
     let LENS_SAMPLES = 8
 
     //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 1 1)
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 2 127)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -212,4 +228,3 @@ let main _ =
     ignore (render.RenderToFile render.RenderParallel "TracedRays.bmp")
 
     0
-

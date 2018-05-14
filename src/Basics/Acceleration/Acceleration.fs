@@ -5,7 +5,7 @@ module Acceleration =
     open BVH
     open RegularGrids
 
-    let mutable acceleration = ""
+    let mutable acceleration = "KDTree"
 
     type IAcceleration = KDTree of KDTree
                        | BVHStructure of BVHStructure
@@ -14,8 +14,8 @@ module Acceleration =
     let createAcceleration (shapes:array<Shape>) = 
         match acceleration with
         | "KDTree" -> KDTree(buildKDTree shapes)
-        | "BVH"    -> BVHStructure (BVH.build shapes)
-        | "RG"     -> RGStructure (RegularGrids.build shapes)
+        | "BVH"    -> BVHStructure (build shapes)
+        | "RG"     -> failwith "Not Implemented"
         | _        -> KDTree(buildKDTree shapes) //Default...
 
     let getAccelBoundingBox (accel:IAcceleration) = 

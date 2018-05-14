@@ -8,21 +8,20 @@ exception LightException
 //- MATERIAL
 [<AbstractClass>]
 type Material() = 
-    abstract member Bounce: Shape * HitPoint * Light -> Colour
+    abstract member Bounce: Shape * HitPoint * Light * AmbientLight -> Colour
     abstract member BounceMethod: HitPoint -> Ray[]
     abstract member IsRecursive : bool
-    abstract member ReflectionFactor : Colour
-    abstract member AmbientColour: Colour
-    member this.PreBounce (shape: Shape, hitPoint: HitPoint, light: Light) = 
-        if light :? AmbientLight then Colour.Black
-        else this.Bounce(shape,hitPoint,light)
+    abstract member ReflectionFactor : HitPoint * Ray -> Colour
+    abstract member AmbientColour : HitPoint * AmbientLight -> Colour
+    member this.PreBounce (shape: Shape, hitPoint: HitPoint, light: Light, ambientLight: AmbientLight) =
+        this.Bounce(shape,hitPoint,light, ambientLight)
     static member None = BlankMaterial()
 
 and BlankMaterial() = 
     inherit Material()
-    default this.AmbientColour = Colour.Black
-    default this.ReflectionFactor = Colour.White
-    default this.Bounce(shape, hitPoint, light) = Colour.Black
+    default this.AmbientColour(hitPoint, ambientLight) = Colour.Black
+    default this.ReflectionFactor(hitPoint,rayOut) = Colour.White
+    default this.Bounce(shape, hitPoint, light, ambientLight) = Colour.Black
     default this.BounceMethod hitPoint = [| hitPoint.Ray |]
     default this.IsRecursive = false
       
@@ -83,9 +82,9 @@ and AmbientLight(colour: Colour, intensity: float) =
     default this.GetColour hitPoint = 
         new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
     override this.GetDirectionFromPoint hitPoint = 
-        raise LightException
+        hitPoint.Normal
     override this.GetShadowRay hitPoint = 
-        raise LightException
+        [||]
     override this.GetGeometricFactor hitPoint = 
         1.
     override this.GetProbabilityDensity hitPoint = 

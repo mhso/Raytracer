@@ -16,6 +16,7 @@ module Main =
   type poly = ExprToPoly.poly
   type unipoly = PolyToUnipoly.unipoly
   type Ray = Tracer.Basics.Ray
+  type simpleIntExpr = PolyToUnipoly.simpleIntExpr
 
   let substWithRayVars (e:expr) = 
       let ex = FAdd(FVar "ox", FMult(FVar "t",FVar "dx"))
@@ -23,14 +24,15 @@ module Main =
       let ez = FAdd(FVar "oz", FMult(FVar "t",FVar "dz"))
       List.fold subst e [("x",ex);("y",ey);("z",ez)]
 
-  let rec containsVar var = function
-    | FVar x        -> x = var
-    | FNum _        -> false
-    | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
-    | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
-    | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
-    | FExponent(e,_)-> containsVar var e
-    | FRoot(e,_)    -> containsVar var e
+  //let rec containsVar var = function
+  //  | FVar x        -> x = var
+  //  | FNum _        -> false
+  //  | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FSub(e1,e2)   -> containsVar var e1 || containsVar var e2
+  //  | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
+  //  | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
+  //  | FExponent(e,_)-> containsVar var e
+  //  | FRoot(e,_)    -> containsVar var e
 
   // returns a partial derivative with respect to var
   let rec partialDerivative var e =
@@ -62,74 +64,75 @@ module Main =
     Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
-    b**2.0 - 4.0 * a * c
+    (pown b 2) - 4.0 * a * c
 
-  let getDistances a b c = 
-    let sres = sqrt((b**2.0) - 4.0 * a * c)
-    let ares = 2.0 * a
-    let res f = (f (-b) (sres)) / ares
+  let getDistances a b d = 
+    let res f = (f (-b) (sqrt(d))) / 2.0 * a
     [res (+); res (-)]
 
-  let getVarMap (r:Ray) = 
-    Map.empty 
-      .Add("ox", r.GetOrigin.X)
-      .Add("oy", r.GetOrigin.Y)
-      .Add("oz", r.GetOrigin.Z)
-      .Add("dx", r.GetDirection.X)
-      .Add("dy", r.GetDirection.Y)
-      .Add("dz", r.GetDirection.Z)
+  let getValArray (r:Ray) = 
+    let arr = Array.zeroCreate 6
+    arr.[0] <- r.GetOrigin.X // ox
+    arr.[1] <- r.GetOrigin.Y // oy
+    arr.[2] <- r.GetOrigin.Z // oz
+    arr.[3] <- r.GetDirection.X // dz
+    arr.[4] <- r.GetDirection.Y // dy
+    arr.[5] <- r.GetDirection.Z // dz
+    arr
 
   let getFirstDegreeHF (P m) e : hf =
-    let aSimple = match Map.tryFind 1 m with
-                  | Some v -> v
-                  | None   -> SE []
-    let bSimple = match Map.tryFind 0 m with
-                  | Some v -> v
-                  | None   -> SE []
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
+    let aSIE = seToSIE (match Map.tryFind 1 m with
+                        | Some v -> v
+                        | None   -> SE [])
+    let bSIE = seToSIE (match Map.tryFind 0 m with
+                        | Some v -> v
+                        | None   -> SE [])
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
     let hitFunction (r:Ray) =
-      let m = getVarMap r
-      let a = solveSE m 0.0 aSimple
-      let b = solveSE m 0.0 bSimple
+      let valArray = getValArray r
+      let a = solveSIE aSIE valArray
+      let b = solveSIE bSIE valArray
       let t = (-b) / a
       if t < 0.0 then None
       else 
         let c = new Colour(1.,1.,1.)
-        Some (t, normalVector (r.PointAtTime t) dx dy dz)
+        Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
     hitFunction
 
   let getSecondDegreeHF (P m) e :hf = 
-    let aSimple = match Map.tryFind 2 m with
-                  | Some v -> v
-                  | None   -> SE []
-    let bSimple = match Map.tryFind 1 m with
-                  | Some v -> v
-                  | None   -> SE []
-    let cSimple = match Map.tryFind 0 m with
-                  | Some v -> v
-                  | None   -> SE []
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
+    let aSIE = seToSIE (match Map.tryFind 2 m with
+                        | Some v -> v
+                        | None   -> SE [])
+    let bSIE = seToSIE (match Map.tryFind 1 m with
+                        | Some v -> v
+                        | None   -> SE [])
+    let cSIE = seToSIE (match Map.tryFind 0 m with
+                        | Some v -> v
+                        | None   -> SE [])
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
+
     let hitFunction (r:Ray) =
-      let m = getVarMap r
-      let a = solveSE m 0.0 aSimple
-      let b = solveSE m 0.0 bSimple
-      let c = solveSE m 0.0 cSimple
-      if discriminant a b c < 0.0 then None
+      let valArray = getValArray r
+      let a = solveSIE aSIE valArray
+      let b = solveSIE bSIE valArray
+      let c = solveSIE cSIE valArray
+      let d = discriminant a b c
+      if d < 0.0 then None
       else
-        let ts = getDistances a b c |> List.filter (fun x -> x >= 0.0)
+        let ts = getDistances a b d |> List.filter (fun x -> x >= 0.0)
         if List.isEmpty ts then None
         else
           let t' = List.min ts
           let hp = r.PointAtTime t'
-          Some (t', normalVector hp dx dy dz)
+          Some (t', normalVector hp pdx pdy pdz)
     hitFunction
 
-  let nrtolerance = 10.**(-4.)
-  let nrepsilon = 10.**(-6.)
+  let nrtolerance = 10.**(-7.)
+  let nrepsilon = 10.**(-14.)
   
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
   // but adapted to a functional, immutable, approach
@@ -146,16 +149,17 @@ module Main =
             then Some g'
           else
             inner g' (iter - 1)
-    inner initial 20
+    inner initial 15
 
   let getHigherDegreeHF p e =
     // pre-processing parts of the normalVector
-    let dx = partialDerivative "x" e
-    let dy = partialDerivative "y" e
-    let dz = partialDerivative "z" e
-    let hitFunction r =
-      let m = getVarMap r
-      let up = polyToUnipoly p m
+    let pdx = partialDerivative "x" e
+    let pdy = partialDerivative "y" e
+    let pdz = partialDerivative "z" e
+    let lis = List.foldBack (fun (n,c) acc -> (n,seToSIE c)::acc) p []
+    let hitFunction (r:Ray) =
+      let valArray = getValArray r
+      let up = toUnipoly lis valArray
       let up' = unipolyDerivative up
       let ss = sturmSeq up up'
       let rec findx l h max itcount =
@@ -172,8 +176,8 @@ module Main =
                     if t > hi then findx lo mid 5 (itcount + 1)
                     else
                       let hp = r.PointAtTime t
-                      Some (t, normalVector hp dx dy dz)
-      findx 0.0 100.0 11 0
+                      Some (t, normalVector hp pdx pdy pdz)
+      findx 0.0 100.0 15 0
     hitFunction
 
   let mkImplicit (s:string) : baseShape =
@@ -183,7 +187,7 @@ module Main =
       match getOrder m with
       | 1 -> getFirstDegreeHF (P m) exp
       | 2 -> getSecondDegreeHF (P m) exp
-      | _ -> getHigherDegreeHF (P m) exp
+      | _ -> getHigherDegreeHF (polyAsList (P m)) exp
     let bsh = 
         { new baseShape() with
             member this.toShape tex =
@@ -198,10 +202,3 @@ module Main =
               }
           }
     bsh
-
-(*
-  [<EntryPoint>]
-  let main argv =
-    printfn "we are running this shit!"
-    0 // return a beautiful integer exit code
-*)
