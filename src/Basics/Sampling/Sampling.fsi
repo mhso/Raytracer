@@ -3,6 +3,7 @@ module Tracer.Basics.Sampling
 type Sampler =
     new: samples:(float*float)[][] -> Sampler
     member Current: float * float
+    member NextSet: unit -> (float * float) []
     member Next: unit -> float * float
     member SampleCount: int
     member SetCount : int

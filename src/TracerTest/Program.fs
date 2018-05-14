@@ -7,7 +7,7 @@ let allTargets : Target list =
      //Material.renderRegular;
      //Material.renderMulti;
      //Material.renderHigh;
-     //ThinLens.render;
+     ThinLens.render;
      //AreaLights.render;
      //Shapes.render;
      //Texture.render;
@@ -15,7 +15,7 @@ let allTargets : Target list =
      //Shapes.render;
      //AffineTransformations.render true;
      //AffineTransformations.render false;
-     ImplicitSurfaces.render;
+     //ImplicitSurfaces.render;
      //Meshes.render Tracer.API.Acceleration.KDTree;
      //Texture.render;
      //Light.render;

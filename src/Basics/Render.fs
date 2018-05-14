@@ -79,9 +79,10 @@ type Render(scene : Scene, camera : Camera) =
     member this.Occlude accel (light: Light) (hitPoint: HitPoint) = 
         if light :? AmbientOccluder then
             let o = light :?> AmbientOccluder
-            let samples = [for i=1 to o.Sampler.SampleCount do yield mapToHemisphere (o.Sampler.Next()) 1.]
-            [for (x,y,z) in samples 
+            let samples = o.Sampler.NextSet()
+            [for (x,y) in samples 
                 do 
+                    let x, y, z = mapToHemisphere (x, y) 1.
                     let w = hitPoint.Normal.Normalise
                     let v = (up % w).Normalise
                     let u = w % v
@@ -247,51 +248,48 @@ type Render(scene : Scene, camera : Camera) =
         Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
-        // Prepare image
-        timer.Start()
-        let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
-        use g = Graphics.FromImage(renderedImage)
-        use brush = new SolidBrush(Color.Black)
-        g.FillRectangle(brush, 0,0,camera.ResX,camera.ResY)
-        
+         // Prepare image
+        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
+
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
-
-        //ref: http://csharpexamples.com/fast-image-processing-c/
-        let bitmapData = renderedImage.LockBits(new Rectangle(0, 0, renderedImage.Width, renderedImage.Height), ImageLockMode.ReadWrite, renderedImage.PixelFormat)
-        let bytesPrPixel = Bitmap.GetPixelFormatSize(renderedImage.PixelFormat) / 8
-        let byteCount = bitmapData.Stride * renderedImage.Height
-        let pixel : byte[] = Array.zeroCreate(byteCount)
-        let firstPixel = bitmapData.Scan0
-        Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
-        let heightInPixel = bitmapData.Height
-        let widthInBytes = bitmapData.Width * bytesPrPixel
         
-        Parallel.For(0, heightInPixel, fun y ->
-        //for y in 0..(heightInPixel-1) do 
-            let currentLine = y * bitmapData.Stride
-        
-            let mutable x = 0
-            while (x < widthInBytes) do
-                let coordsX = x/bytesPrPixel
-                let rays = camera.CreateRays coordsX y
-                let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+        timer.Start()
 
-                let color = colour.ToColor
+        let mutable processed = 0.0
+        let pos = [for y in 0 .. camera.ResY - 1 do
+                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
+        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
+        let mutex = new Mutex()
 
-                pixel.[currentLine + x] <- (byte)color.B
-                pixel.[currentLine + x + 1] <- (byte)color.G
-                pixel.[currentLine + x + 2] <- (byte)color.R
-                //processed <- processed + 1.0
-                //this.CalculateProgress processed total
-                x <- x + bytesPrPixel
-            ) |> ignore
-        Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
-        renderedImage.UnlockBits(bitmapData)
+        try
+          // Shoot rays and save the resulting colors, using parallel computations.
+          Parallel.ForEach (pos, fun (x,y) -> 
+            let rays = camera.CreateRays x y
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+              
+            // using mutex to deal with shared ressources in a thread-safe manner
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              mutex.ReleaseMutex() |> ignore
+          ) |> ignore
+        finally
+          mutex.Dispose() |> ignore
+
+        // Apply the colors to the image.
+        for y in 0 .. camera.ResY - 1 do
+          for x in 0 .. camera.ResX - 1 do
+            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor)
 
         this.PostProcessing
-        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
         renderedImage
 
     member this.Render =

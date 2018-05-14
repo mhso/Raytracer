@@ -5,8 +5,8 @@ open Tracer.Basics.Render
 open Tracer.Basics.Transform
 //open System.Net.Mime.MediaTypeNames
 
-    [<EntryPoint>]
-    let main _ = 
+[<EntryPoint>]
+let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
@@ -27,7 +27,7 @@ open Tracer.Basics.Transform
     //let perfectGreen = PerfectReflectionMaterial(matteGreen, Colour.White, 1.)
     //let perfectRed = PerfectReflectionMaterial(matteRed, Colour.White, 1.)
     //let perfectYellow = PerfectReflectionMaterial(matteYellow, Colour.White, 1.)
-    //let glossyWhite = GlossyMaterial(5., Colour.White, matteWhite, 10, 1, 100.)
+    //let glossyWhite = MatteGlossyReflectiveMaterial(5., Colour.White, matteWhite, 10, 1, 100.)
     //*)
     //*)
     

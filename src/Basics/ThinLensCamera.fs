@@ -14,22 +14,25 @@ type ThinLensCamera
         resY: int,
         r: float,
         f: float,
-        viewSamples : Sampler,
-        lensSamples : Sampler
+        viewSampler : Sampler,
+        lensSampler : Sampler
     ) = 
     inherit Camera(position, lookat, up, zoom, width, height, resX, resY)   
     
     default this.CreateRays x y =
-        let rays = Array.zeroCreate lensSamples.SampleCount
-        for i in 0..lensSamples.SampleCount-1 do
+        let rays = Array.zeroCreate lensSampler.SampleCount
+        let lensSamples = lensSampler.NextSet()
+        let viewSamples = viewSampler.NextSet()
+
+        for i in 0..lensSampler.SampleCount-1 do
             // Create Ray, setup direction and origin.
-            let qx, qy = viewSamples.Next() // Sample unit square for center ray.
+            let qx, qy = viewSamples.[i] // Sample unit square for center ray.
             let qx = base.Pw * ((float x - float resX/2.0) + qx)
             let qy = base.Ph * ((float y - float resY/2.0) + qy)
             
             let px, py = (f * qx)/zoom, (f * qy)/zoom
 
-            let lx, ly = lensSamples.Next() // Sample unit disc with respect to r.
+            let lx, ly = lensSamples.[i] // Sample unit disc with respect to r.
             let lx = lx * r
             let ly = ly * r
 

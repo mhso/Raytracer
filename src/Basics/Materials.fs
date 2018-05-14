@@ -143,12 +143,13 @@ type MatteGlossyReflectiveMaterial
         let direction = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
         let rays = Array.create sampler.SampleCount Ray.None
+        let samples = sampler.NextSet()
 
         // Sample the outgoing rays
         for i=0 to sampler.SampleCount-1 do
             
             // Get a sample point from the sampler, and map it to a hemisphere
-            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) (float(glossyExponent)))
+            let sp = Tracer.Basics.Point(mapToHemisphere (samples.[i]) (float(glossyExponent)))
 
             // Reflected ray direction
             let m = direction + 2. * (normal * -direction) * normal
