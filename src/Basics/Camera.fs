@@ -8,7 +8,7 @@ open Tracer.Sampling
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
-    let v = (up % w).Normalise
+    let v = (up % w)
     let u = w % v
     let pw = width/float resX
     let ph = height/float resY

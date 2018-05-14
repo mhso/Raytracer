@@ -290,10 +290,10 @@ type Render(scene : Scene, camera : Camera) =
         // Apply the colors to the image.
         for y in 0 .. camera.ResY - 1 do
           for x in 0 .. camera.ResX - 1 do
-            let yrev = (camera.ResY - 1) - y
-            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
+            renderedImage.SetPixel(x, y, bmColourArray.[y,x].ToColor) 
 
         this.PostProcessing
+        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
         renderedImage
 
     member this.Render =
@@ -311,8 +311,7 @@ type Render(scene : Scene, camera : Camera) =
                 let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
                 
-                let yrev = (camera.ResY - 1) - y
-                renderedImage.SetPixel(x, yrev, colour.ToColor)
+                renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.PostProcessing
         renderedImage
