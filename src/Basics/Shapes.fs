@@ -618,7 +618,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
-    member this.epsilon = 0.000001
+    member this.epsilon = 10.**(-14.)//0.000001
     member this.bBox = match op with
                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                             let bBox1 = s1.getBoundingBox ()

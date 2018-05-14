@@ -1,177 +1,73 @@
 test name, construction, rendering, total
-csg/union, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/heart, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/union2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/sphere1, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/union3, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/sphere2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/intersection, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/planeX, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/subtraction, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/planeY, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/cross, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/planeZ, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/2dCross, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/torus, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/cylinderX, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/torus2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/cylinderY, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
+implicitSurfaces/testShape, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
    at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
    at System.Diagnostics.Process.Start()
    at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/cylinderZ, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/box, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/sphere, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/intersection2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/lantern, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/lantern2, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
-   at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
-   at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
-   at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76
-csg/unionTorus, crashed, System.ComponentModel.Win32Exception (0x80004005): The system cannot find the file specified
-   at System.Diagnostics.Process.StartWithShellExecuteEx(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start()
-   at System.Diagnostics.Process.Start(ProcessStartInfo startInfo)
-   at System.Diagnostics.Process.Start(String fileName)
-   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 247
-   at Tracer.Basics.Render.Render.RenderToFile(Bitmap renderMethod, String filename) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 319
-   at Tracer.API.renderToFile(Scene sc, Camera c, String filepath) in C:\Users\faenor\git\raytracer\src\RayTracerFramework\API.fs:line 217
+   at Tracer.Basics.Render.Render.SaveImage(Bitmap renderedImage, String filepath) in C:\Users\faenor\git\raytracer\src\Basics\Render.fs:line 248
    at TracerTestSuite.Util.renderTarget@77.Invoke(Unit unitVar0) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 77
    at TracerTestSuite.Util.runWithTimout(FSharpFunc`2 work, FSharpFunc`2 failure, FSharpFunc`2 success) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 51
    at TracerTestSuite.Util.renderTarget(Boolean toScreen, Target tgt) in C:\Users\faenor\git\raytracer\src\TracerTest\Util.fs:line 76

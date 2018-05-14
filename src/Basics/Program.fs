@@ -5,7 +5,7 @@ open Tracer.Basics.Render
 open Tracer.Basics.Transform
 open System.Drawing
 open Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open Tracer.ImplicitSurfaces
 open Tracer.Basics.Render
 open Tracer.Basics.Acceleration
@@ -17,7 +17,6 @@ open System
 
 [<EntryPoint>]
 let main _ = 
-<<<<<<< HEAD
     //Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-2.2,2.2,5.2)
     //let lookat = Point(0.,0.,0.)
@@ -44,18 +43,6 @@ let main _ =
     
     ////- MATERIALS
     //let matteRed = MatteMaterial(Colour.Red, 1., Colour.Red, 1.)
-=======
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.2,2.2,5.2)
-    let lookat = Point(0.,0.,0.)
-    let up = Vector(0.,1.,0.)
-    let zoom = 1.
-    let resX = 1920
-    let resY = 1080
-    let width = 2.
-    let height = (float(resY) / float(resX)) * width
-    let maxReflectionBounces = 3
->>>>>>> 529b03a01a5b94b4eb6afcbc14215868a4d8306f
     //let matteGreen = MatteMaterial(Colour.Green, 1., Colour.Green, 1.)
     //let matteYellow = MatteMaterial(Colour(1.,1.,0.), 1., Colour(1.,1.,0.), 1.)
     //let matteWhite = MatteMaterial(Colour.White, 1., Colour.White, 1.)
@@ -330,7 +317,6 @@ let main _ =
     
     ////- LIGHTS
     //let lightFront     = PointLight(Colour.White, 1.5, Point(2.,2.,7.))
-<<<<<<< HEAD
     //let lightTop       = DirectionalLight(Colour.White, 1., Vector(1.,3.,0.))
     //let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
     //let lightRight     = PointLight(Colour.White, 1., Point(-30., 0., 0.))
@@ -362,82 +348,6 @@ let main _ =
   // Colours
   let aqua = Colour (Color.Aqua)
   let white = Colour (Color.White)
-=======
-
-    let csgBoxUnion = CSG(boxSubTest, transBox, Union)
-    let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
-
-    let sphereRadiusTest = 0.8
-    let sphereSubTest = new SphereShape(sphereOrigin, sphereRadiusTest, texSphere)
-
-    let csgSubTest = CSG(boxForcsg2, csgBoxUnion2, Subtraction)
-
-    let csgSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
-
-
-    //optimization
-    let rect1 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect2 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect3 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect4 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect5 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect6 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect7 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect8 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect9 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-    let rect10 = Rectangle(bLeft, tLeft, bRight, texRectangle)
-
-    let sphere1 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere2 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere3 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere4 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere5 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere6 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere7 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere8 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere9 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-    let sphere10 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
-
-    let cylinder1 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder2 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder3 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder4 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder5 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder6 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder7 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder8 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder9 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-    let cylinder10 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
-
-    let texRectangle1 = Textures.mkMatTexture(matteRed)
-    let texRectangle2 = Textures.mkMatTexture(matteBlue)
-    let rectangleTest1 = Rectangle(Point(-1., -1., -1.), Point(-1., 0., -1.), Point(0., -1., -1.), texRectangle1) 
-    let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
-
-
-    let shapes : Shape List = [rectangleTest1]
-    //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
-    //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
-    //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
-    //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
-                                //solidCylinder8;solidCylinder9;solidCylinder10]
-    //let shapes : Shape List = [csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;]
-    //let shapes : Shape List = [csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;]
-    //let shapes : Shape List = [csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;]
-
-
-
-    //- THIN LENS SAMPLE SETTINGS
-    let CAM_SETS = 129
-    let VIEW_SAMPLES = 8
-    let LENS_SAMPLES = 8
-
-    //- CAMERA
-    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 1 1)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
-    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
->>>>>>> 529b03a01a5b94b4eb6afcbc14215868a4d8306f
     
   // Helper functions
   let mkshape (bs:baseShape) t = bs.toShape t
