@@ -245,7 +245,7 @@ type Render(scene : Scene, camera : Camera) =
         renderedImage.Save(filepath)
         
         // Open image
-        Process.Start(filepath) |> ignore
+        //Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
         // Create our timer and Acceleration Structure
