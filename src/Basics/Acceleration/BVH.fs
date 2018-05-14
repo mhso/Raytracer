@@ -4,10 +4,6 @@ module BVH =
     
     // Used for debug, will print to console etc. 
     let debug = false
-    let debug2 = false
-    let debug3 = false
-    let debug4 = false
-    let debug5 = true
 
     // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
@@ -176,7 +172,7 @@ module BVH =
 
     // Functions finds closest hit of a ray in structure.
     let closestHit (structure:BVHStructure) (ray:Ray) (shapes:array<Shape>)  =
-        if debug3 then printfn "Call to closestHit..."
+        if debug then printfn "Call to closestHit..."
         match structure with
         |   Leaf (shapesRef, _) ->  let mutable closestHit = None
                                     let mutable closestDist = infinity
@@ -197,15 +193,15 @@ module BVH =
         if debug then printfn "Value of ray GetOrigin: %A GetDirection: %A" ray.GetOrigin ray.GetDirection
         //if debug then printfn "Value of structure: %A" structure
         let nodeBBox = getBbox structure
-        if debug2 then printfn "Value of nodeBBox: \n %A" nodeBBox
+        if debug then printfn "Value of nodeBBox: \n %A" nodeBBox
         let value = nodeBBox.intersect ray
-        if debug3 then printfn "Value of intersect: \n %A" value.IsSome
+        if debug then printfn "Value of intersect: \n %A" value.IsSome
         match value with  
-        | Some (t, t')  ->  if debug3 then printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
+        | Some (t, t')  ->  if debug then printfn "match value -> Some (t, t') : t = %f  t' = %f" t t'       
                             if (t<tmax) then 
-                                if debug3 then printfn "Value -> Some -> (t<tmax)... Structure: %A" structure 
+                                if debug then printfn "Value -> Some -> (t<tmax)... Structure: %A" structure 
                                 if isLeaf structure then
-                                    if debug4 then printfn "(t<tmax) and isLeaf..."
+                                    if debug then printfn "(t<tmax) and isLeaf..."
                                     let checkForHit = (closestHit structure ray shapes)
                                     match checkForHit with
                                     | Some hitFound -> 
@@ -213,11 +209,11 @@ module BVH =
                                         else None
                                     | _ -> None
                                 else 
-                                    if debug4 then printfn "Value -> Some -> and NOT isLeaf..."
+                                    if debug then printfn "Value -> Some -> and NOT isLeaf..."
                                     match structure with
                                     | Node (left, right, _, _) ->
-                                        if debug4 then printfn "Value -> Some -> Left structure: %A" left
-                                        if debug4 then printfn "Value -> Some -> Right structure: %A" right 
+                                        if debug then printfn "Value -> Some -> Left structure: %A" left
+                                        if debug then printfn "Value -> Some -> Right structure: %A" right 
                                         let first = search left ray shapes tmax
                                         let second = search right ray shapes tmax
                                         match first with

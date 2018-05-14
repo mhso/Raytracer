@@ -9,7 +9,7 @@ module RegularGrids =
     // Type of the BVHTree, with Nodes and Leafs.
     type RGStructure = Shape array[,,]*int*int*int*BBox  
 
-    let clamp (x:float,b:int) =
+    let clamp (x:float,b:int) : float =
         match x with
         | x when x<0. -> 0.
         | x when x>float(b) -> float(b)
@@ -66,7 +66,7 @@ module RegularGrids =
         let bby = calcBbox ny w.Y
         let bbz = calcBbox nz w.Z
 
-        let mutable grid = Array3D.zeroCreate<Shape array> nx ny nz
+        let grid = Array3D.zeroCreate<Shape array> nx ny nz
 
         for shape in shapes do 
             let bb = shape.getBoundingBox()
@@ -178,6 +178,9 @@ module RegularGrids =
 
     //Function for traversal of the structure.
     let traverse (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) = 
+        if debug then printfn "¤¤¤¤¤¤¤¤¤¤¤ structure BEGIN ¤¤¤¤¤¤¤¤¤¤¤"
+        if debug then printfn "structure %A" structure
+        if debug then printfn "¤¤¤¤¤¤¤¤¤¤¤ structure END ¤¤¤¤¤¤¤¤¤¤¤"
         match search structure ray shapes with
         | Some r -> r
         | None -> HitPoint ray
