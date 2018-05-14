@@ -28,7 +28,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -110,15 +110,17 @@ let main _ =
         then matteRed :> Material
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
-
+    
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\porsche.ply" true)
     //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
-    //let urn = i.toShape(tex)
-    //let t = Transformation.mergeTransformations
-    //            [Transformation.rotateY (System.Math.PI/4.0);
-    //            Transformation.scale 6.0 6.0 6.0;
-    //            Transformation.translate 0. 3. 0.]
-    //let bunnyShape = Transform.transform urn t
+    let tex = matGreenTex
+    let urn = i.toShape(tex)
+    let t = Transformation.mergeTransformations
+                [Transformation.rotateY (System.Math.PI/4.0);
+                Transformation.scale 6.0 6.0 6.0;
+                Transformation.translate 0. 3. 0.]
+    let bunnyShape = Transform.transform urn t
     //let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
 
     //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
@@ -133,13 +135,13 @@ let main _ =
     let lightTop = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
 
     //- AREA LIGHTS
-    let sampler        = multiJittered 5 1
-    let baseSphere = BaseSphere(Point.Zero, 1.)
-    let baseRect = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
-    let baseDisc = BaseDisc(Point.Zero, 1.)
-    let lightSphere    = SphereAreaLight(emissive, baseSphere, sampler)
-    let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
-    let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
+    let sampler         = multiJittered 5 1
+    let baseSphere      = BaseSphere(Point.Zero, 1.)
+    let baseRect        = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
+    let baseDisc        = BaseDisc(Point.Zero, 1.)
+    let lightSphere     = SphereAreaLight(emissive, baseSphere, sampler)
+    let lightRect       = RectangleAreaLight(emissive, baseRect, sampler)
+    let lightDisc       = DiscAreaLight(emissive, baseDisc, sampler)
 
     let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
     let mkPoint a b c = Point(a,b,c)
@@ -148,7 +150,9 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    let shapes: Shape list      = [sR]
+    let shapes: Shape list      = [bunnyShape]
+    //let shapes: Shape list      = [thinBoxL; thinBoxR]
+    //let shapes: Shape list      = [sL; thinBoxL; sphereGreen]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.0)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
@@ -157,6 +161,6 @@ let main _ =
     //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
 
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallelOld "image.bmp")
+    ignore (render.RenderToFile render.RenderParallel "image.bmp")
 
     0

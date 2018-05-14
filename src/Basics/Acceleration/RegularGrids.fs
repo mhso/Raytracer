@@ -102,19 +102,23 @@ module RegularGrids =
 
     // Functions finds closest hit of a ray in structure.
     let closestHit (shapeList:Shape array) (ray:Ray) : HitPoint option =
-        match shapeList with
-        |  shapes ->    let mutable closestHit = None
-                        let mutable closestDist = infinity
-                        for shape in shapes do
-                            let hit = shape.hitFunction ray
-                            let dist = hit.Time
-                            if hit.DidHit && dist < closestDist then
-                                closestDist <- dist
-                                closestHit <- Some hit
-                        if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
-                        closestHit
-        | _ ->  if debug then printfn "closestHit -> None..."
-                None
+        if  isNull(shapeList) then None
+        else 
+            match shapeList with
+            | [||] -> None
+            |  shapes when shapes.Length > 0 ->
+                                        let mutable closestHit = None
+                                        let mutable closestDist = infinity
+                                        for shape in shapes do
+                                            let hit = shape.hitFunction ray
+                                            let dist = hit.Time
+                                            if hit.DidHit && dist < closestDist then
+                                                closestDist <- dist
+                                                closestHit <- Some hit
+                                        if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
+                                        closestHit
+            | _ ->  if debug then printfn "closestHit -> None..."
+                    None
 
     //Function for search of the grid.
     let search (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =

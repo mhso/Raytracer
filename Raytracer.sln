@@ -15,9 +15,6 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriangleMeshes", "src\TriangleMeshes\TriangleMeshes.fsproj", "{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -34,6 +31,7 @@ Global
 		{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}.Release|x64.ActiveCfg = Release|x64
 		{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}.Release|x64.Build.0 = Release|x64
 		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|x64.ActiveCfg = Debug|x64
 		{92AE911B-8E25-405A-A804-046E4D018F0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92AE911B-8E25-405A-A804-046E4D018F0D}.Release|Any CPU.Build.0 = Release|Any CPU
@@ -47,13 +45,13 @@ Global
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|x64.ActiveCfg = Release|x64
 		{42998C38-7E25-4225-A77E-CB5CA1DC0414}.Release|x64.Build.0 = Release|x64
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|x64.ActiveCfg = Debug|x64
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|x64.ActiveCfg = Release|x64
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Release|x64.Build.0 = Release|x64
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|x64.ActiveCfg = Debug|x64
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Debug|x64.Build.0 = Debug|x64
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -74,6 +72,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADAD7441-AE01-41F1-8A38-D422343C5DD2}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
