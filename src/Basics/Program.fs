@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(0.,0.,5.2)
+    let position = Point(-2.2,2.2,5.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -228,7 +228,13 @@ let main _ =
     let cylinder9 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
     let cylinder10 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
 
-    let shapes : Shape List = [csgSubTest]
+    let texRectangle1 = Textures.mkMatTexture(matteRed)
+    let texRectangle2 = Textures.mkMatTexture(matteBlue)
+    let rectangleTest1 = Rectangle(Point(-1., -1., -1.), Point(-1., 0., -1.), Point(0., -1., -1.), texRectangle1) 
+    let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
+
+
+    let shapes : Shape List = [rectangleTest2]
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
     //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]

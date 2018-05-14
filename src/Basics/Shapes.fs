@@ -11,12 +11,12 @@ open Transformation
 ////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
-    member this.bottomLeft = bottomLeft
+    member this.bottomLeft = bottomLeft // must be 0,0,0
     member this.topLeft = topLeft
     member this.bottomRight = bottomRight
     member this.tex = tex
-    member this.width = bottomRight.X - bottomLeft.X
-    member this.height = topLeft.Y - bottomLeft.Y
+    member this.width = bottomRight.X
+    member this.height = topLeft.Y
     member this.normal:Vector = new Vector(0.0, 0.0, 1.0)
     member this.bBox = 
         let e = 0.000001
@@ -41,7 +41,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
         |(r) -> let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
                 let py = (r.GetOrigin.Y)+t*(r.GetDirection.Y)
-                if (px > 0.0 && px < this.width) && (py > 0.0 && py < this.height) then 
+                if (px >= 0.0 && px <= this.width) && (py >= 0.0 && py <= this.height) then 
                     let func = Textures.getFunc tex
                     let u = (px / this.width)
                     let v = (py / this.height)
