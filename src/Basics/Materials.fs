@@ -53,6 +53,7 @@ type PhongMaterial
     ) = 
     inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
     
+    let pidivided = 1. / Math.PI
     member this.Super = (this :> MatteMaterial)
     member this.SpecularCoefficient = specularCoefficient
     member this.SpecularColour = specularColour
