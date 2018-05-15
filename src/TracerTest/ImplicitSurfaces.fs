@@ -59,7 +59,7 @@ module ImplicitSurfaces =
     let t2 = transform 
                 (mkShape bs (mkMatTexture (mkPhongReflectiveMaterial violet 0.2 violet 0.8 white 0.3 white 1.0 100)))
                 (mergeTransformations [rotateX 90.0; translate 1.5 0.0 0.0])
-    { camera = mkPinholeCamera (mkPoint 0.0 0.0 6.0) (mkPoint 0.0 0.0 0.0) (mkVector 0.0 1.0 0.0) 2.0 4.0 3.0 1024 768 (mkMultiJitteredSampler numSamples 83)
+    { camera = mkPinholeCamera (mkPoint 0.0 0.0 6.0) (mkPoint 0.0 0.0 0.0) (mkVector 0.0 1.0 0.0) 2.0 4.0 3.0 1024 768 (mkRegularSampler 1)//(mkMultiJitteredSampler numSamples 83)
       scene = mkScene' (group t1 t2)}
 
   let torus2 (R : float) (r : float) () =
