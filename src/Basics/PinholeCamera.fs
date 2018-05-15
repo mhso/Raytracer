@@ -10,8 +10,7 @@ type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point,
     default this.CreateRays x y =
         let samples = sampler.NextSet()
         [|for (sx, sy) in samples do
-            let px = this.Pw * (float(x - (resX/2)) + sx)
-            let py = this.Ph * (float(y - (resY/2)) + sy)
-            let pz = -zoom
-            let direction = (px * this.V) + (py * this.U) + (pz * this.W)
-            yield (new Ray(position, direction.Normalise))|]
+            let px = this.Pw * (float(x - (this.ResX/2)) + sx)
+            let py = this.Ph * (float(y - (this.ResY/2)) + sy)
+            let direction = (px * this.V) + (py * this.U) - (zoom * this.W)
+            yield (new Ray(this.Position, direction.Normalise))|]
