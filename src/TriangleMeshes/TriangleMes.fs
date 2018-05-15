@@ -49,7 +49,7 @@ type PLYTriangle (a: Point, b: Point, c: Point, t: Texture, smoothen, hasNormalW
             else 0.,0.
         if(oldHit.DidHit) then
             let material = (Textures.getFunc t) u v
-            let hitpoint = HitPoint(r, oldHit.Time, getNormal, material, oldHit.Shape)
+            let hitpoint = HitPoint(r, oldHit.Time, getNormal, material, this, u, v)
             hitpoint
         else HitPoint(r)
 
