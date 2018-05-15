@@ -46,22 +46,7 @@ open System.Diagnostics
     let mkTransformation (a,b) = T(a,b)
 
     let multAr ((a:float array),(b:float array)) = a.[0]*b.[0]+a.[1]*b.[1]+a.[2]*b.[2]+a.[3]*b.[3]
-    let mutable counter = 0
     type QuickMatrix with
-        member this.getRow i = 
-            match i with
-            | 0 -> [|this.Pos1x1; this.Pos1x2; this.Pos1x3; this.Pos1x4|]
-            | 1 -> [|this.Pos2x1; this.Pos2x2; this.Pos2x3; this.Pos2x4|]
-            | 2 -> [|this.Pos3x1; this.Pos3x2; this.Pos3x3; this.Pos3x4|]
-            | 3 -> [|this.Pos4x1; this.Pos4x2; this.Pos4x3; this.Pos4x4|]
-            | _ -> [||]
-        member this.getCol i = 
-            match i with
-            | 0 -> [|this.Pos1x1; this.Pos2x1; this.Pos3x1; this.Pos4x1|]
-            | 1 -> [|this.Pos1x2; this.Pos2x2; this.Pos3x2; this.Pos4x2|]
-            | 2 -> [|this.Pos1x3; this.Pos2x3; this.Pos3x3; this.Pos4x3|]
-            | 3 -> [|this.Pos1x4; this.Pos2x4; this.Pos3x4; this.Pos4x4|]
-            | _ -> [||]
         member this.transpose = 
             {this with 
                         Pos1x2 = this.Pos2x1; 
@@ -77,27 +62,24 @@ open System.Diagnostics
                         Pos4x2 = this.Pos2x4;
                         Pos4x3 = this.Pos3x4;}
         static member multi (Q1 : QuickMatrix, Q2 : QuickMatrix) = 
-            let rows = [|Q1.getRow 0; Q1.getRow 1; Q1.getRow 2; Q1.getRow 3|]
-            let cols = [|Q2.getCol 0; Q2.getCol 1; Q2.getCol 2; Q2.getCol 3|]
-            let matrix = {defaultQuickMatrix with 
-                                        Pos1x1 = multAr(rows.[0],cols.[0]);
-                                        Pos1x2 = multAr(rows.[0],cols.[1]);
-                                        Pos1x3 = multAr(rows.[0],cols.[2]);
-                                        Pos1x4 = multAr(rows.[0],cols.[3]);
-                                        Pos2x1 = multAr(rows.[1],cols.[0]);
-                                        Pos2x2 = multAr(rows.[1],cols.[1]);
-                                        Pos2x3 = multAr(rows.[1],cols.[2]);
-                                        Pos2x4 = multAr(rows.[1],cols.[3]);
-                                        Pos3x1 = multAr(rows.[2],cols.[0]);
-                                        Pos3x2 = multAr(rows.[2],cols.[1]);
-                                        Pos3x3 = multAr(rows.[2],cols.[2]);
-                                        Pos3x4 = multAr(rows.[2],cols.[3]);
-                                        Pos4x1 = multAr(rows.[3],cols.[0]);
-                                        Pos4x2 = multAr(rows.[3],cols.[1]);
-                                        Pos4x3 = multAr(rows.[3],cols.[2]);
-                                        Pos4x4 = multAr(rows.[3],cols.[3])}
-            counter <- counter + 1
-            matrix
+            {defaultQuickMatrix with 
+                Pos1x1 = (Q1.Pos1x1*Q2.Pos1x1)+(Q1.Pos1x2*Q2.Pos2x1)+(Q1.Pos1x3*Q2.Pos3x1)+(Q1.Pos1x4*Q2.Pos4x1);
+                Pos1x2 = (Q1.Pos1x1*Q2.Pos1x2)+(Q1.Pos1x2*Q2.Pos2x2)+(Q1.Pos1x3*Q2.Pos3x2)+(Q1.Pos1x4*Q2.Pos4x2);
+                Pos1x3 = (Q1.Pos1x1*Q2.Pos1x3)+(Q1.Pos1x2*Q2.Pos2x3)+(Q1.Pos1x3*Q2.Pos3x3)+(Q1.Pos1x4*Q2.Pos4x3);
+                Pos1x4 = (Q1.Pos1x1*Q2.Pos1x4)+(Q1.Pos1x2*Q2.Pos2x4)+(Q1.Pos1x3*Q2.Pos3x4)+(Q1.Pos1x4*Q2.Pos4x4);
+                Pos2x1 = (Q1.Pos2x1*Q2.Pos1x1)+(Q1.Pos2x2*Q2.Pos2x1)+(Q1.Pos2x3*Q2.Pos3x1)+(Q1.Pos2x4*Q2.Pos4x1);
+                Pos2x2 = (Q1.Pos2x1*Q2.Pos1x2)+(Q1.Pos2x2*Q2.Pos2x2)+(Q1.Pos2x3*Q2.Pos3x2)+(Q1.Pos2x4*Q2.Pos4x2);
+                Pos2x3 = (Q1.Pos2x1*Q2.Pos1x3)+(Q1.Pos2x2*Q2.Pos2x3)+(Q1.Pos2x3*Q2.Pos3x3)+(Q1.Pos2x4*Q2.Pos4x3);
+                Pos2x4 = (Q1.Pos2x1*Q2.Pos1x4)+(Q1.Pos2x2*Q2.Pos2x4)+(Q1.Pos2x3*Q2.Pos3x4)+(Q1.Pos2x4*Q2.Pos4x4);
+                Pos3x1 = (Q1.Pos3x1*Q2.Pos1x1)+(Q1.Pos3x2*Q2.Pos2x1)+(Q1.Pos3x3*Q2.Pos3x1)+(Q1.Pos3x4*Q2.Pos4x1);
+                Pos3x2 = (Q1.Pos3x1*Q2.Pos1x2)+(Q1.Pos3x2*Q2.Pos2x2)+(Q1.Pos3x3*Q2.Pos3x2)+(Q1.Pos3x4*Q2.Pos4x2);
+                Pos3x3 = (Q1.Pos3x1*Q2.Pos1x3)+(Q1.Pos3x2*Q2.Pos2x3)+(Q1.Pos3x3*Q2.Pos3x3)+(Q1.Pos3x4*Q2.Pos4x3);
+                Pos3x4 = (Q1.Pos3x1*Q2.Pos1x4)+(Q1.Pos3x2*Q2.Pos2x4)+(Q1.Pos3x3*Q2.Pos3x4)+(Q1.Pos3x4*Q2.Pos4x4);
+                Pos4x1 = (Q1.Pos4x1*Q2.Pos1x1)+(Q1.Pos4x2*Q2.Pos2x1)+(Q1.Pos4x3*Q2.Pos3x1)+(Q1.Pos4x4*Q2.Pos4x1);
+                Pos4x2 = (Q1.Pos4x1*Q2.Pos1x2)+(Q1.Pos4x2*Q2.Pos2x2)+(Q1.Pos4x3*Q2.Pos3x2)+(Q1.Pos4x4*Q2.Pos4x2);
+                Pos4x3 = (Q1.Pos4x1*Q2.Pos1x3)+(Q1.Pos4x2*Q2.Pos2x3)+(Q1.Pos4x3*Q2.Pos3x3)+(Q1.Pos4x4*Q2.Pos4x3);
+                Pos4x4 = (Q1.Pos4x1*Q2.Pos1x4)+(Q1.Pos4x2*Q2.Pos2x4)+(Q1.Pos4x3*Q2.Pos3x4)+(Q1.Pos4x4*Q2.Pos4x4)
+            }
     end
 
     let identityMatrixWithPos (x,y,z) = {defaultQuickMatrix with Pos1x4 = x; Pos2x4 = y; Pos3x4 = z } //CREATES AN IDENTITY MATRIX

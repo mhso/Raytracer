@@ -8,7 +8,6 @@ type QuickMatrix =
 type Transformation
   
 val translate : x : float -> y : float -> z : float -> Transformation
-val mutable counter : int
 val getMatrix : Transformation -> QuickMatrix
 val getInvMatrix : Transformation -> QuickMatrix
 val scale : width : float -> height : float -> depth : float -> Transformation
