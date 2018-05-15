@@ -1,7 +1,8 @@
 namespace Tracer
 
 module ExprParse =
-     
+  open Tracer.Basics
+  
   type terminal = | Add | Mul | Div | Pwr | Root | Lpar | Rpar | Int of int | Float of float | Var of string
   exception ScanErrorException
   val scan : char seq -> terminal list
@@ -22,4 +23,4 @@ module ExprParse =
   val dotAST : expr -> string
 
   val reduceExpr : expr -> expr
-  val solveExpr : Map<string, float> -> expr -> float
+  val solveExpr : Point -> expr -> float
