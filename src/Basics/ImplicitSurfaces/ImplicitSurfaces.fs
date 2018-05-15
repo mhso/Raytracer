@@ -88,9 +88,14 @@ module ImplicitSurfaces =
   let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
 
   let getFirstDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz : hf =
-    let aSIE = snd plst.[0] // we know it is degree 1, so a exists
-    let bSIE = if not plst.Tail.IsEmpty && fst plst.Tail.[1] = 1 then
-                  snd plst.[1]
+    let mutable plst = plst
+    let aSIE = if not plst.IsEmpty && fst plst.[0] = 1 then
+                  let res = snd plst.[0]
+                  plst <- plst.Tail
+                  res
+               else SIE [[]]
+    let bSIE = if not plst.IsEmpty && fst plst.[0] = 0 then
+                  snd plst.[0]
                else SIE [[]]
     let hitFunction (r:Ray) =
       let valArray = getValArray r
@@ -103,15 +108,17 @@ module ImplicitSurfaces =
         Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
     hitFunction
 
-  let getSecondDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz :hf = 
-    let aSIE = snd plst.[0] // we know it is degree 2, so a exists
-    let rest = plst.Tail
-    let bSIE = if not rest.IsEmpty && fst rest.[0] = 1 then
-                  snd rest.[0]
+  let getSecondDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz :hf =
+    let mutable plst = plst
+    let aSIE = snd plst.[0] // we know it is degree 2, otherwise we douldn't be here
+    plst <- plst.Tail
+    let bSIE = if not plst.IsEmpty && fst plst.[0] = 1 then
+                  let res = snd plst.[0]
+                  plst <- plst.Tail
+                  res
                else SIE [[]]
-    let rest = rest.Tail
-    let cSIE = if not rest.IsEmpty && fst rest.[0] = 0 then
-                  snd rest.[0]
+    let cSIE = if not plst.IsEmpty && fst plst.[0] = 0 then
+                  snd plst.[0]
                else SIE [[]]
     let hitFunction (r:Ray) =
       let valArray = getValArray r
