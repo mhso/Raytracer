@@ -90,8 +90,10 @@ open System.Diagnostics
 
     let translate x y z = mkTransformation (identityMatrixWithPos (x,y,z), identityMatrixWithPos (-x,-y,-z))
 
-    let scale width height depth = mkTransformation ((identityMatrixWithPos(width,height,depth)),
-                                                    (identityMatrixWithPos(Math.Pow(width,-1.),Math.Pow(height,-1.),Math.Pow(depth,-1.))))
+    let scale width height depth = 
+        let scaleMatrix (x,y,z) = {defaultQuickMatrix with Pos1x1 = x; Pos2x2 = y; Pos3x3 = z}
+
+        mkTransformation (scaleMatrix(width,height,depth),scaleMatrix(1./width,1./height,1./depth))
     let sheare (xy:float,xz:float,yx:float,yz:float,zx:float,zy:float) = 
         let matrix = {defaultQuickMatrix with Pos1x2 = yx; Pos1x3 = zx; Pos2x1 = xy; Pos2x3 = zy; Pos3x1 = xz; Pos3x2 = yz}
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
