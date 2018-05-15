@@ -2,7 +2,6 @@ namespace Tracer.Basics
 open System
 open Transformation
 
-//exception BoundingBoxException
 
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
@@ -191,7 +190,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         Vector((p.X/radius),(p.Y/radius),(p.Z/radius)).Normalise
     
     member this.getTextureCoords (p:Point) =
-        let n = this.NormalAtPoint p
+        let n = this.NormalAtPoint p //might be able to remove one of these calls to normal
         let u = Math.Atan2(n.X, n.Z) / pimult2
         let v = 1. - (Math.Acos(n.Y) / Math.PI)
 
@@ -205,7 +204,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
-        HitPoint(r, t, p.ToVector.Normalise, mat, this, u, v)
+        HitPoint(r, t, this.NormalAtPoint p, mat, this, u, v) //might be able to remove one of these calls to normal
 
     override this.hitFunction (r:Ray) = 
         match (this.bBox.intersect r).IsSome with
@@ -258,7 +257,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         new Vector(p.X/radius, 0.0, p.Z/radius)
     
     member this.getTextureCoords (p:Point) =
-        let n = (this.NormalAtPoint p)
+        let n = this.NormalAtPoint p //might be able to remove one of these calls to normal
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = match phiNot < 0. with
                   |true -> (phiNot + 2.)*Math.PI 
@@ -267,15 +266,13 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let v = (p.Y / height) + (1. / 2.)
         (u, v)
 
-    member this.determineHitPoint (r:Ray) (t:float) = 
-        let p = r.PointAtTime t
+    member this.determineHitPoint (r:Ray) (p:Point) = 
         let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
-        HitPoint(r, t, Vector(p.X/radius, 0.0, p.Z/radius), mat, this, u, v) 
+        HitPoint(r, r.TimeAtPoint p, this.NormalAtPoint p, mat, this, u, v) //might be able to remove one of these calls to normal
 
-    member this.determineIfPointIsInsideHeight (r:Ray) (t:float) =
-        let p = r.PointAtTime t
+    member this.determineIfPointIsInsideHeight (p:Point) =
         (p.Y > -(height/2.0) && p.Y < (height/2.0))
 
     override this.hitFunction (r:Ray) = 
@@ -291,44 +288,30 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             |(0.0) -> match t1 <= 0.0 with //if D=0 then t1 = t2
                       |true -> HitPoint(r) 
                       |false -> let p = r.PointAtTime t1
-                                match this.determineIfPointIsInsideHeight r t1 with
-                                |true -> this.determineHitPoint r t1 
+                                match this.determineIfPointIsInsideHeight p with
+                                |true -> this.determineHitPoint r p 
                                 |false -> HitPoint(r)
             |(D) when D < 0.0 -> HitPoint(r)
             |(_) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                     |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r) //if both t's are a miss
-                    |(t1,t2) -> match t2 < t1 && t2 > 0.0 with
-                                |true ->
-                                    match this.determineIfPointIsInsideHeight r t2 with
-                                    |true -> this.determineHitPoint r t2 
-                                    |false -> match (t1 > 0.0 && (this.determineIfPointIsInsideHeight r t1)) with
-                                              |true -> this.determineHitPoint r t1
-                                              |false -> HitPoint(r)
-                                |false -> match t1 > 0.0 with
-                                          |true ->  match this.determineIfPointIsInsideHeight r t1 with
-                                                    |true -> this.determineHitPoint r t1
-                                                    |false -> HitPoint(r)
-                                          |false -> match (t2 > 0.0 && (this.determineIfPointIsInsideHeight r t2)) with
-                                                    |true -> this.determineHitPoint r t2
-                                                    |false -> HitPoint(r)                  
-                        
-                        
-                                (*if t2 < t1 && t2 > 0.0 then
-                                    let p2 = r.PointAtTime t2
-                                    if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
-                                    else let p1 = r.PointAtTime t1
-                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                         else HitPoint(r)
-                                else if t1 > 0.0 then
-                                         let p1 = r.PointAtTime t1
-                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                         else HitPoint(r)
-                                     else 
-                                         let p2 = r.PointAtTime t2
-                                         if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                         else HitPoint(r)*)
-                                         
+                    |(t1,t2) -> 
+                        let p1 = r.PointAtTime t1
+                        let p2 = r.PointAtTime t2
+                        match t2 < t1 && t2 > 0.0 with
+                        |true ->  match this.determineIfPointIsInsideHeight p2 with
+                                  |true -> this.determineHitPoint r p2
+                                  |false -> match (t1 > 0.0 && (this.determineIfPointIsInsideHeight p1)) with
+                                            |true -> this.determineHitPoint r p1
+                                            |false -> HitPoint(r)
+                        |false -> match t1 > 0.0 with
+                                  |true ->  match this.determineIfPointIsInsideHeight p1 with
+                                            |true -> this.determineHitPoint r p1
+                                            |false -> HitPoint(r)
+                                  |false -> match (t2 > 0.0 && (this.determineIfPointIsInsideHeight p2)) with
+                                            |true -> this.determineHitPoint r p2
+                                            |false -> HitPoint(r)                                                           
         |false -> HitPoint(r)
+
 
 ////TRANSFORM////                                                                                     
 module Transform =
@@ -504,8 +487,6 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
 
         let t' = min tx' (min ty' tz')
 
-        let d = false //someones debug stuff???
-
         match (t < t' && t' > 0.0) with
         |true ->
             match t > 0.0 with
@@ -513,34 +494,28 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                 match (tx, ty, tz) with
                 |(tx,ty,tz) when tx >= ty && tx >= tz -> match r.GetDirection.X > 0.0 with
                                                          |true -> 
-                                                            if d then printfn "1"
                                                             let u = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(-1.0, 0.0, 0.0), (this.getMatFromTex left u v), this, u, v) //when tx is the biggest and t > 0.0
                                                          |false -> 
-                                                            if d then printfn "2"
                                                             let u = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(1.0,0.0,0.0), (this.getMatFromTex right u v), this, u, v)
                 |(tx,ty,tz) when ty >= tx && ty >= tz -> match r.GetDirection.Y > 0.0 with
                                                          |true ->
-                                                            if d then printfn "3"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(0.0, -1.0, 0.0), (this.getMatFromTex bottom u v), this, u, v) //when ty is the biggest and t > 0.0
                                                          |false -> 
-                                                            if d then printfn "4"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(0.0, 1.0, 0.0), (this.getMatFromTex top u v), this, u, v)
                 |(tx,ty,tz) when tz >= tx && tz >= ty -> match r.GetDirection.Z > 0.0 with
                                                          |true ->
-                                                            if d then printfn "5"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             HitPoint(r, t, Vector(0.0, 0.0, -1.0), (this.getMatFromTex back u v), this, u, v) //when tz is the biggest and t > 0.0
                                                          |false ->
-                                                            if d then printfn "6"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             HitPoint(r, t, Vector(0.0, 0.0, 1.0), (this.getMatFromTex front u v), this, u, v)
@@ -549,34 +524,28 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                 match (tx', ty', tz') with
                 |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> match r.GetDirection.X > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "7"
                                                                     let u = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(-1.0, 0.0, 0.0), (this.getMatFromTex right u v), this, u, v) //when tx' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "8"
                                                                     let u = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(1.0, 0.0, 0.0), (this.getMatFromTex left u v), this, u, v)
                 |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> match r.GetDirection.Y > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "9"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(0.0, -1.0, 0.0), (this.getMatFromTex top u v), this, u, v) //when ty' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "10"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(0.0, 1.0, 0.0), (this.getMatFromTex bottom u v), this, u, v)
                 |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> match r.GetDirection.Z > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "11"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     HitPoint(r, t', Vector(0.0, 0.0, -1.0), (this.getMatFromTex front u v), this, u, v) //when tz' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "12"
                                                                     //printfn "width: %A, height: %A, depth: %A" this.width this.height this.depth
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height 
@@ -601,286 +570,3 @@ type InfinitePlane(tex:Texture) =
             let mat = func u v
             HitPoint(r, t, Vector(0.0, 0.0, -1.0), mat, this, u, v)
         |false -> HitPoint(r)
-
-
-
-
-
-
-///////////////////////////////////
-////CONSTRUCTIVE SOLID GEOMETRY////
-///////////////////////////////////
-
-type CSGOperator = Union | Intersection | Subtraction | Grouping
-
-type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
-    inherit Shape()
-    member this.s1 = s1
-    member this.s2 = s2
-    member this.op = op
-    member this.epsilon = 0.000001
-    member this.bBox = match op with
-                       |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
-                            let bBox1 = s1.getBoundingBox ()
-                            let bBox2 = s2.getBoundingBox ()
-                            let newLow = Point((min bBox1.lowPoint.X bBox2.lowPoint.X), (min bBox1.lowPoint.Y bBox2.lowPoint.Y), (min bBox1.lowPoint.Z bBox2.lowPoint.Z))
-                            let newHigh = Point((max bBox1.highPoint.X bBox2.highPoint.X), (max bBox1.highPoint.Y bBox2.highPoint.Y), (max bBox1.highPoint.Z bBox2.highPoint.Z))
-                            BBox(newLow, newHigh)
-                       |Intersection -> //chooses the highest of the low point coords, and the lowest of the highpoint coords, to approximate the intersection
-                            let bBox1 = s1.getBoundingBox ()
-                            let bBox2 = s2.getBoundingBox ()
-                            let newLow = Point((max bBox1.lowPoint.X bBox2.lowPoint.X), (max bBox1.lowPoint.Y bBox2.lowPoint.Y), (max bBox1.lowPoint.Z bBox2.lowPoint.Z))
-                            let newHigh = Point((min bBox1.highPoint.X bBox2.highPoint.X), (min bBox1.highPoint.Y bBox2.highPoint.Y), (min bBox1.highPoint.Z bBox2.highPoint.Z))
-                            BBox(newLow, newHigh)
-                       |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
-
-    override this.isInside (p:Point) = match op with
-                                        |Union|Grouping -> (s1.isInside p || s2.isInside p)
-                                        |Intersection -> (s1.isInside p && s2.isInside p)
-                                        |Subtraction -> (s1.isInside p && (not (s2.isInside p)))
-
-    override this.getBoundingBox () = this.bBox
-
-    member this.checkForBoundingBox () =
-        let test = try 
-                      this.getBoundingBox() |> ignore
-                      false
-                    with 
-                      |_ -> true 
-        test
-    
-    member this.checkIntersectForBoundingBox (b:bool) (r:Ray) = 
-        match b with
-        |true -> (this.bBox.intersect r).IsSome
-        |false -> true
-
-                                        
-
-    ////UNION////
-    member this.unionHitFunctionInside (originalRay:Ray) (r:Ray) =
-        let s1Hit = s1.hitFunction r //fire ray at both shapes
-        let s2Hit = s2.hitFunction r
-        let s1Time = match s1Hit.DidHit with
-                     |true -> s1Hit.Time 
-                     |false -> infinity
-        let s2Time = match s2Hit.DidHit with
-                     |true -> s2Hit.Time 
-                     |false -> infinity
-
-        //i continue no matter what 
-
-        //compare the two times, and continue to work with the closest one (shouldnt be possible for both to miss)
-        match (s1Time <= (s2Time + this.epsilon)) with 
-        |true -> 
-            match (s2.isInside (r.PointAtTime s1Time)) with
-            |true ->  
-                let newOrigin = (r.PointAtTime s1Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-            |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s1Hit.Time)), s1Hit.Normal, s1Hit.Material, this) //if the hit, is not inside s2, we have found the hitpoint
-        |false -> 
-            match (s1.isInside (r.PointAtTime s2Time)) with
-            |true ->
-                let newnewOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-            |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, this) //if the hit, is not inside s1, we have found the hitpoint
-
-    member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
-                                           |false -> 
-                                                let s1Hit = s1.hitFunction r
-                                                let s2Hit = s2.hitFunction r
-                                                match ((s1Hit.DidHit) || (s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
-                                                |true ->
-                                                    let s1Time = match s1Hit.DidHit with
-                                                                 |true -> s1Hit.Time 
-                                                                 |false -> infinity
-                                                    let s2Time = match s2Hit.DidHit with
-                                                                 |true -> s2Hit.Time 
-                                                                 |false -> infinity
-                                                    match (s1Time <= (s2Time + this.epsilon)) with
-                                                    |true -> HitPoint(r, s1Hit.Time, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                                                    |false -> HitPoint(r, s2Hit.Time, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                                                |false -> HitPoint(r)
-                                           |true -> this.unionHitFunctionInside r r
-                                               
-    ////INTERSECTION////
-    member this.intersectionHitFunction (originalRay:Ray) (r:Ray) = 
-        
-        match this.checkIntersectForBoundingBox (this.checkForBoundingBox()) r with //check bounding box for intersect (if a bounding box exists)
-        |true ->
-            let s1Hit = s1.hitFunction r //fire ray at both shapes
-            let s2Hit = s2.hitFunction r
-            match (not(s1Hit.DidHit) && not(s1Hit.DidHit)) with //check if any hit was found
-            |false ->
-                let s1Time = match s1Hit.DidHit with
-                             |true -> s1Hit.Time
-                             |false -> infinity
-                let s2Time = match s2Hit.DidHit with
-                             |true -> s2Hit.Time
-                             |false -> infinity
-        
-
-                match (s1Time, s2Time) with
-                |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
-                |(s1T, s2T) when s1T = infinity -> match (s1.isInside (r.PointAtTime s2T)) with
-                                                   |true -> 
-                                                        HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s2Hit.Time), s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                                                   |false -> 
-                                                       let newOrigin = (r.PointAtTime s2T).Move (r.GetDirection.MultScalar (this.epsilon))
-                                                       this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
-                |(s1T, s2T) when s2T = infinity -> match (s2.isInside (r.PointAtTime s1T)) with
-                                                   |true -> 
-                                                        HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s1Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                                                   |false -> 
-                                                       let newOrigin = (r.PointAtTime s1T).Move (r.GetDirection.MultScalar (this.epsilon))
-                                                       this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
-                |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> 
-                    HitPoint(originalRay, s1Hit.Time, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                |(s1T, s2T) -> 
-                            //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
-                            match (s1T > s2T) with
-                            |true -> 
-                                match (s2.isInside (r.PointAtTime s1T)) with //might be able to condense this with next match
-                                |true ->  
-                                    match (s1.isInside (r.PointAtTime s2T)) with
-                                    |true -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s2Hit.Time), s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                                    |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s1Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                                |false -> 
-                                    match (s1.isInside (r.PointAtTime s2T)) with
-                                    |true -> s2Hit
-                                    |false ->
-                                        let newOrigin = (r.PointAtTime s1T).Move (r.GetDirection.MultScalar (this.epsilon))
-                                        this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
-                            |false -> 
-                                match (s1.isInside (r.PointAtTime s2T)) with //might be able to condense this with next if
-                                |true ->
-                                    match (s2.isInside (r.PointAtTime s1T)) with
-                                    |true -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s1Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                                    |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s2Hit.Time), s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                                |false ->
-                                    match (s2.isInside (r.PointAtTime s1T)) with
-                                    |true -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s2Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-                                    |false -> 
-                                        let newOrigin = (r.PointAtTime s2T).Move (r.GetDirection.MultScalar (this.epsilon))
-                                        this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
-            |true -> HitPoint(r)
-        |false -> HitPoint(r)
-                    
-                    
-                    //old hit function, that fires new rays from the shortest time
-                    (*
-                    if s1T <= s2T then if s2.isInside (r.PointAtTime s1T) then s1Hit
-                                       else 
-                                       let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                       let newOrigin = (r.PointAtTime s1T).Move moveVector
-                                       this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
-                    else if s1.isInside (r.PointAtTime s2T) then s2Hit
-                         else 
-                            let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                            let newOrigin = (r.PointAtTime s2T).Move moveVector
-                            this.intersectionHitFunction (new Ray(newOrigin, r.GetDirection)) //fire new ray, (might have to move point furthe forward)
-                    *)
-
-    ////SUBTRACTION////
-    (*
-    member this.subtractionHitFunction (r:Ray) =
-        let s2Hit = s2.hitFunction r //fire ray at second shapes
-        if s2Hit.DidHit then 
-            if s1.isInside (r.PointAtTime (s2Hit.Time)) then s2Hit
-            else 
-                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                let newOrigin = (r.PointAtTime s2Hit.Time).Move moveVector
-                this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
-        else HitPoint(r)
-    
-    
-    member this.subtractionHitFunction (r:Ray) =
-        let s1Hit = s1.hitFunction r //fire ray at first shapes
-        if s1Hit.DidHit then 
-            if s2.isInside (r.PointAtTime (s1Hit.Time)) then //refire Ray
-                let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                let newOrigin = (r.PointAtTime s1Hit.Time).Move moveVector
-                this.subtractionHitFunctionHelper (new Ray(newOrigin, r.GetDirection))
-            else s1Hit
-        else HitPoint(r)
-        *)
-
-    member this.subtractionHitFunction (originalRay:Ray) (r:Ray) =
-        match this.checkIntersectForBoundingBox (this.checkForBoundingBox()) r with //doesnt seem to make a big dfference...
-        |true ->
-            let s1Hit = s1.hitFunction r //fire ray at first shape
-   
-            match s1Hit.DidHit with 
-            |true -> 
-                match ( s2.isInside (r.PointAtTime (s1Hit.Time))) with
-                |true -> //refire Ray
-                    let newOrigin = (r.PointAtTime s1Hit.Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                    let r2 = new Ray(newOrigin, r.GetDirection) //make new ray, so you dont repeat hits
-                    let s2Hit = s2.hitFunction r2 //fire new ray at second shape
-
-                    match s2Hit.DidHit with //can it even not hit s2, after i make a new ray with origin inside s2?
-                    |true ->
-                        match s1.isInside (r2.PointAtTime (s2Hit.Time)) with 
-                        |true ->                                                                       
-                            HitPoint(originalRay, originalRay.TimeAtPoint(r2.PointAtTime s2Hit.Time), s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                        |false -> 
-                            let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
-                            this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
-                    |false -> HitPoint(r)
-                |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s1Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-            |false -> HitPoint(r)
-        |false -> HitPoint(r)
-    
-    (*
-    member this.subtractionHitFunction (r:Ray) =
-        let s1Hit = s1.hitFunction r //fire ray at both shapes
-        let s2Hit = s2.hitFunction r
-        let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
-        let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-        match (s1Time, s2Time) with 
-        |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
-        |(s1T, s2T) when s2T = infinity -> if s2.isInside then //refire 
-                                           else s1Hit //hit on the s1 shape (the subtractee)
-        |(s1T, s2T) when s1T = infinity -> if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
-                                           else 
-                                           let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                                           let newOrigin = (r.PointAtTime s2T).Move moveVector
-                                           this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
-        |(s1T, s2T) when s1T = s2T -> s1Hit
-        |(s1T, s2T) -> if s1T < s2T then s1Hit
-                       else
-                           if (s1.isInside (r.PointAtTime s2T)) && (not (s2.isInside (r.PointAtTime s2T))) then s2Hit
-                           else 
-                               let moveVector = Vector(r.GetDirection.X/1000., r.GetDirection.Y/1000., r.GetDirection.Z/1000.)
-                               let newOrigin = (r.PointAtTime s2T).Move moveVector
-                               this.subtractionHitFunction (new Ray(newOrigin, r.GetDirection))
-                               *)
-
-
-
-
-    ////GROUPING////
-    member this.groupingHitFunction (r:Ray) =
-        let s1Hit = s1.hitFunction r //fire ray at both shapes
-        let s2Hit = s2.hitFunction r
-
-        match (s1Hit.DidHit || s2Hit.DidHit) with
-        |true ->
-            let s1Time = match s1Hit.DidHit with
-                         |true -> s1Hit.Time 
-                         |false -> infinity
-            let s2Time = match s2Hit.DidHit with 
-                         |true -> s2Hit.Time 
-                         |false -> infinity
-
-            match (s1Time <= (s2Time + this.epsilon)) with 
-            |true -> HitPoint(r, s1Hit.Time, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
-            |false -> HitPoint(r, s2Hit.Time, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-        |false -> HitPoint(r)
-
-    
-    ////GENERAL HIT-FUNCTION////
-    override this.hitFunction (r:Ray) = match op with
-                                        |Union -> this.unionHitFunction r
-                                        |Intersection -> this.intersectionHitFunction r r //because they need the original ray, to calculate correct t-value
-                                        |Subtraction -> this.subtractionHitFunction r r //because they need the original ray, to calculate correct t-value
-                                        |Grouping -> this.groupingHitFunction r
