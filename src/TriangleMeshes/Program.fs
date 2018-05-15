@@ -12,6 +12,7 @@ open System.Diagnostics
 open PLYParser
 open System
 open TriangleMes
+open System
 
 [<EntryPoint>]
 let main _ =
@@ -28,7 +29,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -77,7 +78,7 @@ let main _ =
     
 
     //- SHAPES
-    let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
+    let sphereRed        = SphereShape(Point(-5.,0.,2.), 5.5, mkMatTexture matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
     let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
     
@@ -148,9 +149,11 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    let shapes: Shape list      = [sR]
+    let triangle = Rectangle((mkPoint 0.0 0.0 0.0), (mkPoint 0.0 1.0 0.0), (mkPoint 1.0 0.0 0.0), matBlueTex)
+    let bigTriangle = Transform.transform triangle (Transformation.scale 5.0 5.0 5.0)
+    let shapes: Shape list      = [sphereRed]
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.0)
+    let lightAmbient   = AmbientLight(Colour.Green, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
@@ -158,5 +161,5 @@ let main _ =
 
     let render = new Render(scene, camera)
     ignore (render.RenderToFile render.RenderParallel "image.bmp")
-
+    Console.ReadKey() |> ignore
     0

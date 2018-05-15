@@ -1,17 +1,14 @@
-﻿namespace Tracer.Basics.Render
+namespace Tracer.Basics.Render
 
 open Tracer.Basics
 open Tracer.Basics.Acceleration
 open System
 open System.Drawing
 open System.Windows.Forms
-open System.Diagnostics
-open System.Threading
 open System.Threading.Tasks
 open Tracer.Basics.Sampling
 open System.Runtime.InteropServices
 open System.Drawing.Imaging
-open System.Resources
 
 type Render(scene : Scene, camera : Camera) =
 
@@ -25,16 +22,13 @@ type Render(scene : Scene, camera : Camera) =
           with 
             | _ -> filtershapes (c::nobb) bb cr                   
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
-    let p = printfn "nobbshapes: %i" nobbshapes.Length
-            printfn "bbshapes: %i" bbshapes.Length
-
 
     // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -111,9 +105,7 @@ type Render(scene : Scene, camera : Camera) =
         if rayHit.DidHit then
             occluder.MinIntensityColour
         else
-            occluder.Colour
-            
-            
+            occluder.Colour       
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
@@ -135,7 +127,6 @@ type Render(scene : Scene, camera : Camera) =
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun hp -> hp.Time)
 
-
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
         let hit = this.GetFirstHitPoint accel ray
         if hit.Material :? EmissiveMaterial then HitPoint(ray) // no shadow if we have direct rout to emissive material
@@ -147,7 +138,7 @@ type Render(scene : Scene, camera : Camera) =
             then Colour.Black
         else
             let shadowRays = light.GetShadowRay hitPoint
-
+            
             let maxTime =
                 match light with
                 | :? PointLight as p -> p.Position.Distance(hitPoint.Point).Magnitude
@@ -327,7 +318,7 @@ type Render(scene : Scene, camera : Camera) =
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.PostProcessing
-        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
+        renderedImage
 
     member this.RenderToFile renderMethod filename =
         let image = renderMethod
@@ -335,4 +326,4 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.RenderToScreen renderMethod =
         let image = renderMethod
-        this.ShowImageOnScreen(image)
+this.ShowImageOnScreen(image)

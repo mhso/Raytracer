@@ -4,96 +4,131 @@ open System.Windows
 open System
 open Tracer.Basics
 open System
+open System.Diagnostics
+    
 
-    type Matrix = 
-        | M of float array array
+    type QuickMatrix = {
+        Pos1x1 : float
+        Pos1x2 : float
+        Pos1x3 : float
+        Pos1x4 : float
+        Pos2x1 : float
+        Pos2x2 : float
+        Pos2x3 : float
+        Pos2x4 : float
+        Pos3x1 : float
+        Pos3x2 : float
+        Pos3x3 : float
+        Pos3x4 : float
+        Pos4x1 : float
+        Pos4x2 : float
+        Pos4x3 : float
+        Pos4x4 : float}
+    let defaultQuickMatrix = {
+        Pos1x1 = 1.
+        Pos1x2 = 0.
+        Pos1x3 = 0.
+        Pos1x4 = 0.
+        Pos2x1 = 0.
+        Pos2x2 = 1.
+        Pos2x3 = 0.
+        Pos2x4 = 0.
+        Pos3x1 = 0.
+        Pos3x2 = 0.
+        Pos3x3 = 1.
+        Pos3x4 = 0.
+        Pos4x1 = 0.
+        Pos4x2 = 0.
+        Pos4x3 = 0.
+        Pos4x4 = 1.}
     type Transformation = 
-        | T of Matrix * Matrix
-    let mkMatrix (a: float array array) = 
-        match a.Length,a.[0].Length with
-        | 4,4 -> M(a)
-        | _ -> failwith ("not correct size matrix")
+        | T of QuickMatrix * QuickMatrix
     let mkTransformation (a,b) = T(a,b)
-    let getRowLength (M(a)) = a.Length //Gets the number of rows
-    let getColLength (M(a)) = a.[0].Length //Get the number of columns in a matrix
 
-    let transpose (M(a)) = //Transpose a given matrix7
-        let c = Array.zeroCreate(4)
-        for i in 0..3 do
-            let b = Array.zeroCreate(4)
-            for j in 0..3 do
-                b.[j] <- a.[j].[i]
-            c.[i] <- b
-        mkMatrix (c) 
-
-    type Matrix with
-        static member multi ((M(a)),(M(b))) = 
-            let outer = Array.zeroCreate(4)
-            for i in 0..3 do
-                let inner = Array.zeroCreate(4)
-                for j in 0..3 do
-                    let mutable value = 0.
-                    for k in 0..3 do 
-                        value <- a.[i].[k] * b.[k].[j] + value
-                    inner.[j] <- value
-                outer.[i] <- inner
-            mkMatrix (outer)
+    let multAr ((a:float array),(b:float array)) = a.[0]*b.[0]+a.[1]*b.[1]+a.[2]*b.[2]+a.[3]*b.[3]
+    type QuickMatrix with
+        member this.transpose = 
+            {this with 
+                        Pos1x2 = this.Pos2x1; 
+                        Pos1x3 = this.Pos3x1;
+                        Pos1x4 = this.Pos4x1;
+                        Pos2x1 = this.Pos1x2; 
+                        Pos2x3 = this.Pos3x2;
+                        Pos2x4 = this.Pos4x2;
+                        Pos3x1 = this.Pos1x3; 
+                        Pos3x2 = this.Pos2x3;
+                        Pos3x4 = this.Pos4x3;
+                        Pos4x1 = this.Pos1x4; 
+                        Pos4x2 = this.Pos2x4;
+                        Pos4x3 = this.Pos3x4;}
+        static member multi (Q1 : QuickMatrix, Q2 : QuickMatrix) = 
+            {defaultQuickMatrix with 
+                Pos1x1 = (Q1.Pos1x1*Q2.Pos1x1)+(Q1.Pos1x2*Q2.Pos2x1)+(Q1.Pos1x3*Q2.Pos3x1)+(Q1.Pos1x4*Q2.Pos4x1);
+                Pos1x2 = (Q1.Pos1x1*Q2.Pos1x2)+(Q1.Pos1x2*Q2.Pos2x2)+(Q1.Pos1x3*Q2.Pos3x2)+(Q1.Pos1x4*Q2.Pos4x2);
+                Pos1x3 = (Q1.Pos1x1*Q2.Pos1x3)+(Q1.Pos1x2*Q2.Pos2x3)+(Q1.Pos1x3*Q2.Pos3x3)+(Q1.Pos1x4*Q2.Pos4x3);
+                Pos1x4 = (Q1.Pos1x1*Q2.Pos1x4)+(Q1.Pos1x2*Q2.Pos2x4)+(Q1.Pos1x3*Q2.Pos3x4)+(Q1.Pos1x4*Q2.Pos4x4);
+                Pos2x1 = (Q1.Pos2x1*Q2.Pos1x1)+(Q1.Pos2x2*Q2.Pos2x1)+(Q1.Pos2x3*Q2.Pos3x1)+(Q1.Pos2x4*Q2.Pos4x1);
+                Pos2x2 = (Q1.Pos2x1*Q2.Pos1x2)+(Q1.Pos2x2*Q2.Pos2x2)+(Q1.Pos2x3*Q2.Pos3x2)+(Q1.Pos2x4*Q2.Pos4x2);
+                Pos2x3 = (Q1.Pos2x1*Q2.Pos1x3)+(Q1.Pos2x2*Q2.Pos2x3)+(Q1.Pos2x3*Q2.Pos3x3)+(Q1.Pos2x4*Q2.Pos4x3);
+                Pos2x4 = (Q1.Pos2x1*Q2.Pos1x4)+(Q1.Pos2x2*Q2.Pos2x4)+(Q1.Pos2x3*Q2.Pos3x4)+(Q1.Pos2x4*Q2.Pos4x4);
+                Pos3x1 = (Q1.Pos3x1*Q2.Pos1x1)+(Q1.Pos3x2*Q2.Pos2x1)+(Q1.Pos3x3*Q2.Pos3x1)+(Q1.Pos3x4*Q2.Pos4x1);
+                Pos3x2 = (Q1.Pos3x1*Q2.Pos1x2)+(Q1.Pos3x2*Q2.Pos2x2)+(Q1.Pos3x3*Q2.Pos3x2)+(Q1.Pos3x4*Q2.Pos4x2);
+                Pos3x3 = (Q1.Pos3x1*Q2.Pos1x3)+(Q1.Pos3x2*Q2.Pos2x3)+(Q1.Pos3x3*Q2.Pos3x3)+(Q1.Pos3x4*Q2.Pos4x3);
+                Pos3x4 = (Q1.Pos3x1*Q2.Pos1x4)+(Q1.Pos3x2*Q2.Pos2x4)+(Q1.Pos3x3*Q2.Pos3x4)+(Q1.Pos3x4*Q2.Pos4x4);
+                Pos4x1 = (Q1.Pos4x1*Q2.Pos1x1)+(Q1.Pos4x2*Q2.Pos2x1)+(Q1.Pos4x3*Q2.Pos3x1)+(Q1.Pos4x4*Q2.Pos4x1);
+                Pos4x2 = (Q1.Pos4x1*Q2.Pos1x2)+(Q1.Pos4x2*Q2.Pos2x2)+(Q1.Pos4x3*Q2.Pos3x2)+(Q1.Pos4x4*Q2.Pos4x2);
+                Pos4x3 = (Q1.Pos4x1*Q2.Pos1x3)+(Q1.Pos4x2*Q2.Pos2x3)+(Q1.Pos4x3*Q2.Pos3x3)+(Q1.Pos4x4*Q2.Pos4x3);
+                Pos4x4 = (Q1.Pos4x1*Q2.Pos1x4)+(Q1.Pos4x2*Q2.Pos2x4)+(Q1.Pos4x3*Q2.Pos3x4)+(Q1.Pos4x4*Q2.Pos4x4)
+            }
     end
 
-    let identityMatrixWithPos x y z = mkMatrix ([|[|1.0;0.0;0.;x|];[|0.;1.;0.;y|];[|0.;0.;1.;z|];[|0.;0.;0.;1.|]|]) //CREATES AN IDENTITY MATRIX
-    let getList (M(a)) = a
+    let identityMatrixWithPos (x,y,z) = {defaultQuickMatrix with Pos1x4 = x; Pos2x4 = y; Pos3x4 = z } //CREATES AN IDENTITY MATRIX
     let getMatrix (T(a,_)) = a
     let getInvMatrix (T(_,b)) = b
-    let vectorToMatrix (v:Vector) = mkMatrix ([|[|1.0;0.0;0.;v.X|];[|0.;1.;0.;v.Y|];[|0.;0.;1.;v.Z|];[|0.;0.;0.;0.|]|])
-    let pointToMatrix (p:Point) = identityMatrixWithPos p.X p.Y p.Z
+    let vectorToMatrix (v:Vector) = {identityMatrixWithPos(v.X,v.Y,v.Z) with Pos4x4 = 0.}
+    let pointToMatrix (p:Point) = identityMatrixWithPos (p.X,p.Y,p.Z)
 
-    let translate x y z = mkTransformation (identityMatrixWithPos x y z, identityMatrixWithPos -x -y -z)
+    let translate x y z = mkTransformation (identityMatrixWithPos (x,y,z), identityMatrixWithPos (-x,-y,-z))
 
-    let scale width height depth = mkTransformation (mkMatrix ([|[|width;0.0;0.;0.|];[|0.;height;0.;0.|];[|0.;0.;depth;0.|];[|0.;0.;0.;1.|]|]),
-                                                     mkMatrix ([|[|Math.Pow(width,-1.);0.0;0.;0.|];[|0.;Math.Pow(height,-1.);0.;0.|];[|0.;0.;Math.Pow(depth,-1.);0.|];[|0.;0.;0.;1.|]|]))
-    let sheare (xy,xz,yx,yz,zx,zy) = 
-        let matrix = mkMatrix([|[|1.;yx;zx;0.|];[|xy;1.;zy;0.|];[|xz;yz;1.;0.|];[|0.;0.;0.;1.|]|])
+    let scale width height depth = 
+        let scaleMatrix (x,y,z) = {defaultQuickMatrix with Pos1x1 = x; Pos2x2 = y; Pos3x3 = z}
+
+        mkTransformation (scaleMatrix(width,height,depth),scaleMatrix(1./width,1./height,1./depth))
+    let sheare (xy:float,xz:float,yx:float,yz:float,zx:float,zy:float) = 
+        let matrix = {defaultQuickMatrix with Pos1x2 = yx; Pos1x3 = zx; Pos2x1 = xy; Pos2x3 = zy; Pos3x1 = xz; Pos3x2 = yz}
         let det = (1.-(xy*yx)+(xz*zx)-(yz*zy)+(xy*yz*zx)+(xz*yz*zy))
         let mult = 1./det
-        //TODO: Ask what is wrong with the inverse
-        let inv = 
-            mkMatrix (
-                [|[|mult*(1.-(yz*zy));mult*(-yx+yz*zx);mult*(-zx+yx*zy);0.|];
-                [|mult*(-xy+xz*zy);mult*(1.-xz*zx);mult*(-zy+xy*zx);0.|];
-                [|mult*(-xz+xy*yz);mult*(-yz+xz*yx);mult*(1.-xy*yx);0.|];
-                [|0.;0.;0.;mult*det|]|])
+
+        let inv = {defaultQuickMatrix with 
+                                            Pos1x1 = mult*(1.-(yz*zy)); Pos1x2 = mult*(-yx+yz*zx); Pos1x3 = mult*(-zx+yx*zy);
+                                            Pos2x1 = mult*(-xy+xz*zy); Pos2x2 = mult*(1.-xz*zx); Pos2x3 = mult*(-zy+xy*zx);
+                                            Pos3x1 = mult*(-xz+xy*yz); Pos3x2 = mult*(-yz+xz*yx); Pos3x3 = mult*(1.-xy*yx);
+                                            Pos4x4 = mult*det}
         mkTransformation(matrix,inv)
 
     let rotateX angle = 
         let cos = Math.Cos(angle)
         let sin = Math.Sin(angle) 
-        mkTransformation(mkMatrix(
-                                    [|[|1.;0.;0.;0.|];
-                                    [|0.;cos;-(sin);0.|];
-                                    [|0.;sin;(cos);0.|];
-                                    [|0.;0.;0.;1.|]|]),
-                        mkMatrix ([|[|1.;0.;0.;0.|];
-                                    [|0.;cos;(sin);0.|];
-                                    [|0.;-(sin);(cos);0.|];
-                                    [|0.;0.;0.;1.|]|]))
+        mkTransformation(
+            {defaultQuickMatrix with Pos2x2 = cos; Pos2x3 = -sin; Pos3x2 = sin; Pos3x3 = cos},
+            {defaultQuickMatrix with Pos2x2 = cos; Pos2x3 = sin; Pos3x2 = -sin; Pos3x3 = cos})
     let rotateY angle = 
         let cos = Math.Cos(angle)
         let sin = Math.Sin(angle) 
-        mkTransformation(mkMatrix ([|[|cos;0.;sin;0.|];[|0.;1.;0.;0.|];[|-(sin);0.;cos;0.|];[|0.;0.;0.;1.|]|]),
-                                         mkMatrix ([|[|cos;0.;-(sin);0.|];[|0.;1.;0.;0.|];[|(sin);0.;cos;0.|];[|0.;0.;0.;1.|]|]))
+        mkTransformation(
+            {defaultQuickMatrix with Pos1x1 = cos; Pos1x3 = sin; Pos3x1 = -sin; Pos3x3 = cos},
+            {defaultQuickMatrix with Pos1x1 = cos; Pos1x3 = -sin; Pos3x1 = sin; Pos3x3 = cos})
     let rotateZ angle =
         let cos = Math.Cos(angle)
         let sin = Math.Sin(angle) 
-        mkTransformation(mkMatrix ([|[|cos;-(sin);0.;0.|];[|sin;cos;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]),
-                                          mkMatrix ([|[|cos;sin;0.;0.|];[|-(sin); cos;0.;0.|];[|0.;0.;1.;0.|];[|0.;0.;0.;1.|]|]))
-                                          
-
-
-    let mergeMatrix (l : Matrix List) = 
+        mkTransformation(
+            {defaultQuickMatrix with Pos1x1 = cos; Pos1x2 = -sin; Pos2x1 = sin; Pos2x2 = cos},
+            {defaultQuickMatrix with Pos1x1 = cos; Pos1x2 = sin; Pos2x1 = -sin; Pos2x2 = cos})
+    let mergeMatrix (l : QuickMatrix List) = 
         let rec sum (value,l2)= 
             match l2 with
             | first::rest ->
-                let v = Matrix.multi(value,first)
+                let v = QuickMatrix.multi(value,first)
                 sum(v,rest)
             | _ -> value
         sum (l.Head,l.Tail)
@@ -105,17 +140,21 @@ open System
         let newInverseMatrix = mergeMatrix reverseMatrixList
         mkTransformation (NewMatrix, newInverseMatrix)
 
-    let matrixToVector (M(a)) = 
-        let x = a.[0].[3]
-        let y = a.[1].[3]
-        let z = a.[2].[3]
+    let matrixToVector (q:QuickMatrix) = 
+        let x = q.Pos1x4
+        let y = q.Pos2x4
+        let z = q.Pos3x4
         new Vector(x, y, z)
 
-    let matrixToPoint (M(a)) = 
-        let x = a.[0].[3]
-        let y = a.[1].[3]
-        let z = a.[2].[3]
+    let matrixToPoint (q:QuickMatrix) = 
+        let x = q.Pos1x4
+        let y = q.Pos2x4
+        let z = q.Pos3x4
         new Point(x, y, z)
+
+    let transformPoint (p,m) = (matrixToPoint (QuickMatrix.multi (m, (pointToMatrix p))))
+    let transformVector (v,m) = (matrixToVector (QuickMatrix.multi (m, (vectorToMatrix v))))
+
 
 
     

@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿open System.Drawing
 open Tracer.Basics
+=======
+﻿open Tracer.Basics
+>>>>>>> fb1e741db121278451fbf5d56428ecba89c5d652
 open Tracer.Basics.Sampling
 open System
 open Tracer.Basics.Render
@@ -13,6 +17,7 @@ open Tracer.Basics.Transformation
 
 [<EntryPoint>]
 let main _ = 
+<<<<<<< HEAD
     //Acceleration.setAcceleration Acceleration.Acceleration.KDTree
     //let position = Point(-0.2,0.2,-0.2)
     //let lookat = Point(0.,0.,0.)
@@ -39,6 +44,18 @@ let main _ =
     
     ////- MATERIALS
     //let matteRed = MatteMaterial(Colour.Red, 1., Colour.Red, 1.)
+=======
+    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    let position = Point(-3.,3.,3.2)
+    let lookat = Point(0.,0.,0.)
+    let up = Vector(0.,1.,0.)
+    let zoom = 1.
+    let resX = 1920
+    let resY = 1080
+    let width = 2.
+    let height = (float(resY) / float(resX)) * width
+    let maxReflectionBounces = 3
+>>>>>>> fb1e741db121278451fbf5d56428ecba89c5d652
     //let matteGreen = MatteMaterial(Colour.Green, 1., Colour.Green, 1.)
     //let matteYellow = MatteMaterial(Colour(1.,1.,0.), 1., Colour(1.,1.,0.), 1.)
     //let matteWhite = MatteMaterial(Colour.White, 1., Colour.White, 1.)
@@ -128,6 +145,7 @@ let main _ =
     ////let vbox = new Box(vlow, vhigh, vboxMaterial, vboxMaterial2, vboxMaterial3, vboxMaterial4, vboxMaterial5, vboxMaterial6)
     ////let box = new Box(low, high, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat, GlossyBoxMat)
 
+<<<<<<< HEAD
     //let texPlane = Textures.mkMatTexture(matteRed)
     //let infinitePlane = InfinitePlane(texPlane)
     ////let csgShape3 = CSG(box, csgShape2, Intersection)
@@ -147,6 +165,30 @@ let main _ =
     //let b = new Point(0., 1., 0.)
     //let c = new Point(1., 0., 0.)
     //let triangleMaterial = new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.)
+=======
+    (*
+    //- SHAPES
+    let sphereRed        = SphereShape(Point(-5.,0.,2.), 0.5, matteRed)
+    let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, matteYellow)
+    let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, matteGreen)
+    
+    let sL = SphereShape(Point(0., 0., 0.), 1., matteRed)
+    let sC = SphereShape(Point(-4., 0., 0.), 1., glossyWhite)
+    let sR = SphereShape(Point(-8., 0., -3.), 1., matteGreen)
+    let plane = InfinitePlane(glossyWhite)
+    *)
+
+    let cylinderOrigin = new Point(0., 0., 0.)
+    let radius = 0.5
+    let cylinderHeight = 2.
+    let texCylinder = Textures.mkMatTexture(matteBlue)
+    let cylinder = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+
+    let sphereOrigin = new Point(0., 0., 0.)
+    let sphereRadius = 1.
+    let texSphere = Textures.mkMatTexture(matteBlue)
+    let sphere = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+>>>>>>> fb1e741db121278451fbf5d56428ecba89c5d652
     //let texTri = Textures.mkMatTexture(triangleMaterial)
     //let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
 
@@ -191,6 +233,7 @@ let main _ =
     ////let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
     ////let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.65, Textures.mkMatTexture(matteBlue))
 
+<<<<<<< HEAD
     ////let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidGreen, texSolidGreen, texSolidGreen)
     ////let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidBlue, texSolidBlue, texSolidBlue)
 
@@ -198,6 +241,121 @@ let main _ =
 
     //let rotateX = Transformation.rotateX (pi/2.)
     //let rotateZ = Transformation.rotateZ (pi/2.)
+=======
+    let csgSubTest = CSG(boxForcsg, csgUnion1, Subtraction)
+    
+    let lowTest = new Point(-1., -2., -1.)
+    let highTest = new Point(1., 2., 1.)
+    let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+    let boxSubTest2 = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
+
+    let transBox = Transform.transform boxSubTest2 rotateX
+    let transBox2 = Transform.transform boxSubTest2 rotateZ
+
+    let csgBoxUnion = CSG(boxSubTest, transBox, Union)
+    let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
+
+    let sphereRadiusTest = 0.8
+    let sphereSubTest = new SphereShape(sphereOrigin, sphereRadiusTest, texSphere)
+
+    let csgSubTest = CSG(boxForcsg2, csgBoxUnion2, Subtraction)
+
+    let csgSubTestUltra = CSG(sphereSubTest, csgUnion2, Subtraction)
+
+
+    //optimization
+    let rect1 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect2 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect3 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect4 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect5 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect6 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect7 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect8 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect9 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+    let rect10 = Rectangle(bLeft, tLeft, bRight, texRectangle)
+
+    let sphere1 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere2 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere3 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere4 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere5 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere6 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere7 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere8 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere9 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+    let sphere10 = new SphereShape(sphereOrigin, sphereRadius, texSphere)
+
+    let cylinder1 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder2 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder3 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder4 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder5 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder6 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder7 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder8 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder9 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+    let cylinder10 = new HollowCylinder(cylinderOrigin, radius, cylinderHeight, texCylinder)
+
+    let texRectangle1 = Textures.mkMatTexture(matteRed)
+    let texRectangle2 = Textures.mkMatTexture(matteBlue)
+    let rectangleTest1 = Rectangle(Point(-1., -1., -1.), Point(-1., 0., -1.), Point(0., -1., -1.), texRectangle1) 
+    let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
+
+
+    let groupTest1 = CSG(solid1, transSolid2, Grouping)
+    let groupTest2 = CSG(groupTest1, transSolid3, Grouping)
+
+    let texSphere = Textures.mkMatTexture(matteBlue)
+    let sphereBlue = new SphereShape(sphereOrigin, sphereRadius, Textures.mkMatTexture(matteBlue))
+    let sphereRed = new SphereShape(sphereOrigin, sphereRadius, Textures.mkMatTexture(matteRed))
+
+    let transSphere1 = Transform.transform sphereBlue (Transformation.translate 0.5 0. 0.)
+    let transSphere2 = Transform.transform sphereRed (Transformation.translate -0.5 0. 0.)
+    let csgInterTest = CSG(transSphere1, transSphere2, Intersection)
+    let csgUnionTest = CSG(transSphere1, transSphere2, Union)
+
+    let shapes : Shape List = [fancyCSG]
+    //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
+    //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
+    //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
+    //let shapes : Shape List = [solidCylinder;solidCylinder2;solidCylinder3;solidCylinder4;solidCylinder5;solidCylinder6;solidCylinder7;
+                                //solidCylinder8;solidCylinder9;solidCylinder10]
+    //let shapes : Shape List = [csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;csgUnion2;]
+    //let shapes : Shape List = [csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;csgInter;]
+    //let shapes : Shape List = [csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;csgSubTestUltra;]
+
+
+
+    //- THIN LENS SAMPLE SETTINGS
+    let CAM_SETS = 129
+    let VIEW_SAMPLES = 8
+    let LENS_SAMPLES = 8
+
+    //- CAMERA
+    let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, multiJittered 1 1)
+    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0,
+    //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
+    //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
+    
+    //- LIGHTS
+    let lightFront     = PointLight(Colour.White, 1.5, Point(2.,2.,7.))
+    let lightTop       = DirectionalLight(Colour.White, 1., Vector(1.,3.,0.))
+    let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
+    let lightRight     = PointLight(Colour.White, 1., Point(-30., 0., 0.))
+    let l1 = new PointLight((Colour.White), 1.0, Point(4.0, 0.0, 4.0))
+    let l2 = new PointLight((Colour.White), 1.0, Point(-4.0, 0.0, 4.0))
+
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
+    //let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
+    //let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
+    //let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
+    //let plane          = InfinitePlane(matteWhite)
+    //- FINAL
+    let lights: Light list      = [l1;l2]
+    //let spheres: Shape list     = [sL;sC;sR;plane]
+    let scene                   = Scene(shapes, lights, lightAmbient, 0)
+>>>>>>> fb1e741db121278451fbf5d56428ecba89c5d652
 
     //let transSolid2 = Transform.transform solid2 rotateX
     //let transSolid3 = Transform.transform solid3 rotateZ
