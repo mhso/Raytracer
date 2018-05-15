@@ -3,8 +3,6 @@ open Tracer.Basics.Textures
 open Tracer.Basics.Sampling
 open Tracer.BaseShape
 open Tracer.Basics.Render
-open Tracer.Basics
-open System.Security.Cryptography
 
 [<EntryPoint>]
 let main _ =
