@@ -1,7 +1,5 @@
 namespace Tracer.Basics
 
-open Tracer.Sampling
-
 type Point(x:float, y:float, z:float) = 
     //- PRIVATE FIELDS
     let x = x
@@ -52,7 +50,7 @@ type Point(x:float, y:float, z:float) =
         let newX = u * x
         let newY = v * y
         let newZ = w * z
-        x * newX + y * newY + z * newZ
+        newX + newY + newZ
 
     static member Zero = Point(0.,0.,0.)
     static member ( - ) (p1: Point, p2: Point) = new Vector(p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z)

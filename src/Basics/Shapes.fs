@@ -618,7 +618,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
-    member this.epsilon = 0.000001
+    member this.epsilon = 10.**(-14.)//0.000001
     member this.bBox = match op with
                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                             let bBox1 = s1.getBoundingBox ()
@@ -778,7 +778,6 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         else HitPoint(r)
     
     
-
     member this.subtractionHitFunction (r:Ray) =
         let s1Hit = s1.hitFunction r //fire ray at first shapes
         if s1Hit.DidHit then 
@@ -822,7 +821,6 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s2Hit = s2.hitFunction r
         let s1Time = if s1Hit.DidHit then s1Hit.Time else infinity
         let s2Time = if s2Hit.DidHit then s2Hit.Time else infinity
-
         match (s1Time, s2Time) with 
         |(s1T, s2T) when s1T = infinity && s2T = infinity -> HitPoint(r) //if the ray misses
         |(s1T, s2T) when s2T = infinity -> if s2.isInside then //refire 
@@ -871,4 +869,3 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                         |Intersection -> this.intersectionHitFunction r r //because they need the original ray, to calculate correct t-value
                                         |Subtraction -> this.subtractionHitFunction r r //because they need the original ray, to calculate correct t-value
                                         |Grouping -> this.groupingHitFunction r
-                                        

@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 open System
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System.Drawing
 
 
@@ -53,6 +53,7 @@ type PhongMaterial
     ) = 
     inherit MatteMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient)
     
+    let pidivided = 1. / Math.PI
     member this.Super = (this :> MatteMaterial)
     member this.SpecularCoefficient = specularCoefficient
     member this.SpecularColour = specularColour
@@ -75,7 +76,7 @@ type PhongMaterial
         if n * ld > 0. then
 
             // The standard diffuse colour
-            let matte = base.Bounce(shape, hitPoint, light, ambientLight) 
+            let matte = (matteCoefficient * matteColour) * pidivided
             
             // The specular colour
             let specular = 

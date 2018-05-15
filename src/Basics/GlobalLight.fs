@@ -1,5 +1,5 @@
 ﻿namespace Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 
 //- ENVIRONMENT LIGHT
 type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) = 
@@ -39,5 +39,6 @@ type AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Samp
     inherit AmbientLight(c, intensity)
     member this.Intensity = intensity
     member this.MinIntensity = min_intensity
-    member this.Colour = c
+    member this.MinIntensityColour = min_intensity * c * intensity
+    member this.Colour = c * intensity
     member this.Sampler = s

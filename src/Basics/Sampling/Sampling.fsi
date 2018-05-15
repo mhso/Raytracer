@@ -1,4 +1,4 @@
-module Tracer.Sampling.Sampling
+module Tracer.Basics.Sampling
 
 type Sampler =
     new: samples:(float*float)[][] -> Sampler

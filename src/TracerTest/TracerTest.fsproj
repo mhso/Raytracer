@@ -90,8 +90,8 @@
     <Compile Include="AffineTransformations.fs" />
     <Compile Include="AmbientOcclusion.fs" />
     <Compile Include="AreaLight.fs" />
-    <Compile Include="CSG.fs" />
     <Compile Include="ImplicitSurfaces.fs" />
+    <Compile Include="CSG.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="GeneralTest.fs" />
@@ -122,11 +122,6 @@
     <ProjectReference Include="..\RayTracerFramework\Raytracer.fsproj">
       <Name>Raytracer</Name>
       <Project>{92ae911b-8e25-405a-a804-046e4d018f0d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Sampling\Sampling.fsproj">
-      <Name>Sampling</Name>
-      <Project>{42998c38-7e25-4225-a77e-cb5ca1dc0414}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\TriangleMeshes\TriangleMeshes.fsproj">
