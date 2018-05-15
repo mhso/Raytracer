@@ -35,15 +35,15 @@ module KD_tree =
             | [] -> leftX,rightX,leftY,rightY,leftZ,rightZ
             | c::cr -> 
 
-                let lX = if c.box.lowPoint.X < splitX then c::leftX
+                let lX = if c.box.lowPoint.X <= splitX then c::leftX
                          else leftX
                 let rX = if c.box.highPoint.X > splitX then c::rightX
                          else rightX
-                let lY = if c.box.lowPoint.Y < splitY then c::leftY
+                let lY = if c.box.lowPoint.Y <= splitY then c::leftY
                          else leftY
                 let rY = if c.box.highPoint.Y > splitY then c::rightY
                          else rightY
-                let lZ = if c.box.lowPoint.Z < splitZ then c::leftZ
+                let lZ = if c.box.lowPoint.Z <= splitZ then c::leftZ
                          else leftZ
                 let rZ = if c.box.highPoint.Z > splitZ then c::rightZ
                          else rightZ
@@ -58,10 +58,30 @@ module KD_tree =
             match boxes with
             | [] -> (accX/boxesLength), (accY/boxesLength), (accZ/boxesLength)
             | x::xs -> 
-                inner (accX+((x.box.highPoint.X+x.box.lowPoint.X)/2.))
-                      (accY+((x.box.highPoint.Y+x.box.lowPoint.Y)/2.))
-                      (accZ+((x.box.highPoint.Z+x.box.lowPoint.Z)/2.)) xs
+                inner (accX+x.box.lowPoint.X)
+                      (accY+x.box.lowPoint.Y)
+                      (accZ+x.box.lowPoint.Z) xs
         inner 0. 0. 0. boxes
+
+    let rec findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect (max:Point) (min:Point) runX runY runZ =
+        if (max.X-min.X >= max.Y-min.Y || runY = false) && (max.X-min.X >= max.Z-min.Z || runZ = false) && runX = true then
+            if fxIntersect < 1.6 && sxIntersect < 1.6 then
+                0
+            else
+                findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect max min false runY runZ
+        else if (max.Y-min.Y > max.X-min.X || runX = false) && (max.Y-min.Y >= max.Z-min.Z || runZ = false) && runY = true then
+            if fyIntersect < 1.6 && syIntersect < 1.6 then
+                1
+            else
+                findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect max min runX false runZ
+        else if (max.Z-min.Z > max.X-min.X || runX = false) && (max.Z-min.Z > max.Y-min.Y || runY = false) && runZ = true then
+            if fzIntersect < 1.6 && szIntersect < 1.6 then
+                2
+            else
+                findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect max min runX runY false
+        else if runX = false && runY = false && runZ = false then
+            3
+        else 3
 
     let mutable avgLeafSize = 0.
 
@@ -88,15 +108,28 @@ module KD_tree =
 
             let (firstX, secondX, firstY, secondY, firstZ, secondZ) = partitionAfterSelect boxes splitX splitY splitZ
 
-            let (xIntersect, yIntersect, zIntersect) = ((((float firstX.Length)+(float secondX.Length))/(float boxes.Length)),
-                                                        (((float firstY.Length)+(float secondY.Length))/(float boxes.Length)),
-                                                        (((float firstZ.Length)+(float secondZ.Length))/(float boxes.Length)))
+            let (fxIntersect, sxIntersect, fyIntersect, syIntersect, fzIntersect, szIntersect) = 
+                (float firstX.Length)/((float boxesLength)/2.), (float secondX.Length)/((float boxesLength)/2.),
+                (float firstY.Length)/((float boxesLength)/2.), (float secondY.Length)/((float boxesLength)/2.),
+                (float firstZ.Length)/((float boxesLength)/2.), (float secondZ.Length)/((float boxesLength)/2.)
 
-            let (first, second, splitValue, axis) = if xIntersect <= yIntersect && xIntersect <= zIntersect then
-                                                        (firstX, secondX, splitX, 0)
-                                                    else if yIntersect < xIntersect && yIntersect <= zIntersect then
-                                                        (firstY, secondY, splitY, 1)
-                                                    else (firstZ, secondZ, splitZ, 2)
+            let axis = findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect KDMaxXYZ KDMinXYZ true true true
+            if axis = 3 then
+                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
+                totalLeafs <- totalLeafs+1
+                totalLeafSize <- totalLeafSize+boxesLength
+                Leaf(BBox(KDMinXYZ, KDMaxXYZ), boxes)
+            else
+
+            let (first, second, splitValue) = if axis = 0 then 
+                                                  firstX, secondX, splitX
+                                              else if axis = 1 then
+                                                  firstY, secondY, splitY
+                                              else if axis = 2 then
+                                                  firstZ, secondZ, splitZ
+                                              else
+                                                  [], [], 0.
+            
             let firstLength = first.Length
             let secondLength = second.Length
 
@@ -109,12 +142,12 @@ module KD_tree =
             //printfn "partition"
             //printfn "splitvalue"
             //printfn "list filter"
-            if  float((firstLength+secondLength))/(float(boxesLength)) > 1.3  then 
-                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
-                totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+boxesLength
-                Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
-            else if firstLength = boxesLength && secondLength = boxesLength then 
+            //if  float((firstLength+secondLength))/(float(boxesLength)) > 1.3  then 
+            //    if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
+            //    totalLeafs <- totalLeafs+1
+            //    totalLeafSize <- totalLeafSize+boxesLength
+            //    Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
+            if firstLength = boxesLength && secondLength = boxesLength then 
                 if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
                 totalLeafs <- totalLeafs+1
                 totalLeafSize <- totalLeafSize+boxesLength
@@ -177,6 +210,9 @@ module KD_tree =
         | 1 -> r.GetOrigin.Y
         | 2 -> r.GetOrigin.Z
 
+    let mutable leafsHitReturnEmpty = 0
+    let mutable leafsHitReturnSome = 0
+
     let closestHit (shapeBoxes:list<ShapeBBox>) (ray:Ray) (shapes:array<Shape>) =
         // Get closest hitpoint
         let rec findClosestHit (h:HitPoint) t' (shapeBoxes:list<ShapeBBox>) (shapes:array<Shape>) = 
@@ -190,9 +226,11 @@ module KD_tree =
         // Check if the ray hit
         if hit.DidHit then
             // If the ray hit, then return the first hit point
+            leafsHitReturnSome <- leafsHitReturnSome+1
             Some (hit)
         else
             // If not, return none
+            leafsHitReturnEmpty <- leafsHitReturnEmpty+1
             None
     
     let order (d:float, left:KDTree, right:KDTree) =
