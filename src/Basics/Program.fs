@@ -427,7 +427,7 @@ let main _ =
   let chmutovcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
 
   //let render = Render(mkScene' planeZ, planeZcam)
-  let render = Render(mkScene' sphere1, sphere1cam)
+  //let render = Render(mkScene' sphere1, sphere1cam)
   //let render = Render(mkScene' sphere2, sphere2cam)
   //let render = Render(mkScene' torus, toruscam)
   //let render = Render(mkScene' heart, heartcam)
@@ -438,7 +438,7 @@ let main _ =
   //let render = Render(mkScene' (chmutov 6), chmutovcam)
   //let render = Render(mkScene' torus2, torus2cam)
   //let render = Render(mkScene' testshape, testshapecam)
-  //let render = Render(mkScene' linktorus, linktoruscam)
+  let render = Render(mkScene' linktorus, linktoruscam)
 
   render.RenderToScreen render.RenderParallel |> ignore
   Console.ReadKey () |> ignore
