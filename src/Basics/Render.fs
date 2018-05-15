@@ -11,7 +11,7 @@ open System.Runtime.InteropServices
 open System.Drawing.Imaging
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = true
+    let accelTiming = false
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
@@ -31,7 +31,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
 
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -96,11 +96,11 @@ type Render(scene : Scene, camera : Camera) =
             let u = w % v
             sp.OrthonormalTransform(u, v, w)
 
-        let total = [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
+        let samples = sampler.NextSet()
+        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 0.)]
                     |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
 
         total / sampler.SampleCount
-        
 
     member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
         let ray = Ray(hitPoint.EscapedPoint, sp)
@@ -360,6 +360,7 @@ type Render(scene : Scene, camera : Camera) =
             renderTimer.Stop()
             printfn "## Render in %f seconds" renderTimer.Elapsed.TotalSeconds
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
+        renderedImage
 
     member this.RenderToFile renderMethod filename =
         let image = renderMethod
