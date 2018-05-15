@@ -335,14 +335,14 @@ module Transform =
         let o = pointToMatrix r.GetOrigin
         let d = vectorToMatrix r.GetDirection
         let invT = getInvMatrix t
-        let originMatrix = Matrix.multi (invT, o)
-        let directionMatrix = Matrix.multi (invT, d)
+        let originMatrix = QuickMatrix.multi (invT, o)
+        let directionMatrix = QuickMatrix.multi (invT, d)
         let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
         new Ray(origin, direction)
 
     let transformNormal (v:Vector) (t: Transformation.Transformation)= 
-        let tVector = matrixToVector (Matrix.multi ((transpose (getInvMatrix (t))),(vectorToMatrix v)))
+        let tVector = matrixToVector (QuickMatrix.multi ((getInvMatrix (t)).transpose,(vectorToMatrix v)))
         tVector
 
     let transform (s : Shape) (t:Transformation) =
@@ -368,17 +368,17 @@ module Transform =
                     bbL;
                     Point(bbH.X, bbL.Y, bbL.Z)|]
                 let newPos = Array.zeroCreate(2)
-                let firstPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[0]))
+                let firstPoint = matrixToPoint (QuickMatrix.multi ((getMatrix t),pointToMatrix vertex.[0]))
                 newPos.[0] <- firstPoint
                 newPos.[1] <- firstPoint
                 for i in 1..7 do 
-                    let newPoint = matrixToPoint (Matrix.multi ((getMatrix t),pointToMatrix vertex.[i]))
+                    let newPoint = matrixToPoint (QuickMatrix.multi ((getMatrix t),pointToMatrix vertex.[i]))
                     newPos.[0] <- (newPos.[0]).Lowest newPoint
                     let pos1 = newPos.[1]
                     newPos.[1] <- pos1.Highest newPoint
                 BBox(newPos.[0],newPos.[1])
             member this.isInside p = 
-                let oldP = matrixToPoint (Matrix.multi(getInvMatrix t, pointToMatrix p))
+                let oldP = matrixToPoint (QuickMatrix.multi(getInvMatrix t, pointToMatrix p))
                 s.isInside(oldP)
         }
         
