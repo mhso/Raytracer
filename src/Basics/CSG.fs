@@ -71,7 +71,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             |true ->
                 let newnewOrigin = (r.PointAtTime s2Time).Move (r.GetDirection.MultScalar (this.epsilon))
                 this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
-            |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, this) //if the hit, is not inside s1, we have found the hitpoint
+            |false ->
+                HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, this) //if the hit, is not inside s1, we have found the hitpoint
 
     member this.unionHitFunction (r:Ray) = match this.isInside r.GetOrigin with
                                            |false -> 

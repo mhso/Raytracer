@@ -309,25 +309,9 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
                                             |false -> HitPoint(r)
                                   |false -> match (t2 > 0.0 && (this.determineIfPointIsInsideHeight p2)) with
                                             |true -> this.determineHitPoint r p2
-                                            |false -> HitPoint(r)                  
-                        
-                        
-                                (*if t2 < t1 && t2 > 0.0 then
-                                    let p2 = r.PointAtTime t2
-                                    if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2 
-                                    else let p1 = r.PointAtTime t1
-                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                         else HitPoint(r)
-                                else if t1 > 0.0 then
-                                         let p1 = r.PointAtTime t1
-                                         if p1.Y > -(height/2.0) && p1.Y < (height/2.0) then this.determineHitPoint r t1
-                                         else HitPoint(r)
-                                     else 
-                                         let p2 = r.PointAtTime t2
-                                         if p2.Y > -(height/2.0) && p2.Y < (height/2.0) then this.determineHitPoint r t2
-                                         else HitPoint(r)*)
-                                         
+                                            |false -> HitPoint(r)                                                           
         |false -> HitPoint(r)
+
 
 ////TRANSFORM////                                                                                     
 module Transform =
@@ -503,8 +487,6 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
 
         let t' = min tx' (min ty' tz')
 
-        let d = false //someones debug stuff???
-
         match (t < t' && t' > 0.0) with
         |true ->
             match t > 0.0 with
@@ -512,34 +494,28 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                 match (tx, ty, tz) with
                 |(tx,ty,tz) when tx >= ty && tx >= tz -> match r.GetDirection.X > 0.0 with
                                                          |true -> 
-                                                            if d then printfn "1"
                                                             let u = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(-1.0, 0.0, 0.0), (this.getMatFromTex left u v), this, u, v) //when tx is the biggest and t > 0.0
                                                          |false -> 
-                                                            if d then printfn "2"
                                                             let u = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(1.0,0.0,0.0), (this.getMatFromTex right u v), this, u, v)
                 |(tx,ty,tz) when ty >= tx && ty >= tz -> match r.GetDirection.Y > 0.0 with
                                                          |true ->
-                                                            if d then printfn "3"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(0.0, -1.0, 0.0), (this.getMatFromTex bottom u v), this, u, v) //when ty is the biggest and t > 0.0
                                                          |false -> 
-                                                            if d then printfn "4"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Z - low.Z) / this.depth
                                                             HitPoint(r, t, Vector(0.0, 1.0, 0.0), (this.getMatFromTex top u v), this, u, v)
                 |(tx,ty,tz) when tz >= tx && tz >= ty -> match r.GetDirection.Z > 0.0 with
                                                          |true ->
-                                                            if d then printfn "5"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             HitPoint(r, t, Vector(0.0, 0.0, -1.0), (this.getMatFromTex back u v), this, u, v) //when tz is the biggest and t > 0.0
                                                          |false ->
-                                                            if d then printfn "6"
                                                             let u = (r.PointAtTime(t).X - low.X) / this.width
                                                             let v = (r.PointAtTime(t).Y - low.Y) / this.height
                                                             HitPoint(r, t, Vector(0.0, 0.0, 1.0), (this.getMatFromTex front u v), this, u, v)
@@ -548,34 +524,28 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                 match (tx', ty', tz') with
                 |(tx',ty',tz') when tx' <= ty' && tx' <= tz' -> match r.GetDirection.X > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "7"
                                                                     let u = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(-1.0, 0.0, 0.0), (this.getMatFromTex right u v), this, u, v) //when tx' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "8"
                                                                     let u = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(1.0, 0.0, 0.0), (this.getMatFromTex left u v), this, u, v)
                 |(tx',ty',tz') when ty' <= tx' && ty' <= tz' -> match r.GetDirection.Y > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "9"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(0.0, -1.0, 0.0), (this.getMatFromTex top u v), this, u, v) //when ty' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "10"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Z - low.Z) / this.depth
                                                                     HitPoint(r, t', Vector(0.0, 1.0, 0.0), (this.getMatFromTex bottom u v), this, u, v)
                 |(tx',ty',tz') when tz' <= tx' && tz' <= ty' -> match r.GetDirection.Z > 0.0 with
                                                                 |true ->
-                                                                    if d then printfn "11"
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     HitPoint(r, t', Vector(0.0, 0.0, -1.0), (this.getMatFromTex front u v), this, u, v) //when tz' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    if d then printfn "12"
                                                                     //printfn "width: %A, height: %A, depth: %A" this.width this.height this.depth
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height 
