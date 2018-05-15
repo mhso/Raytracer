@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-2.2,2.2,5.2)
+    let position = Point(-0.2,0.2,-0.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -145,8 +145,8 @@ let main _ =
     let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
 
     let solidOrigin = new Point(0., 0., 0.)
-    let solidRadius = 0.1
-    let solidHeight = 100.
+    let solidRadius = 0.5
+    let solidHeight = 2.
     let texSolid = Textures.mkMatTexture(matteGreen)
     let texSolid2 = Textures.mkMatTexture(matteBlue)
     let texSolid3 = Textures.mkMatTexture(matteRed)
@@ -185,8 +185,8 @@ let main _ =
     //let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
     //let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.65, Textures.mkMatTexture(matteBlue))
 
-    let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidGreen, texSolidGreen, texSolidGreen)
-    let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidBlue, texSolidBlue, texSolidBlue)
+    //let solid2 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidGreen, texSolidGreen, texSolidGreen)
+    //let solid3 = SolidCylinder(solidOrigin, solidRadius, solidHeight, texSolidBlue, texSolidBlue, texSolidBlue)
 
     let pi = Math.PI
 
@@ -196,13 +196,13 @@ let main _ =
     let transSolid2 = Transform.transform solid2 rotateX
     let transSolid3 = Transform.transform solid3 rotateZ
 
-    let csgUnion1 = CSG(solid1, transSolid2, Grouping)
-    let csgUnion2 = CSG(csgUnion1, transSolid3, Grouping)
+    let csgUnion1 = CSG(solid1, transSolid2, Union)
+    let csgUnion2 = CSG(csgUnion1, transSolid3, Union)
     //let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
     //let boxSubTest2 = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
 
     let boxTex = Textures.mkMatTexture(matteRed)
-    let boxForcsg = Box(Point(-0.5,-0.5,-0.5), Point(0.5,0.5,0.5), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
+    let boxForcsg = Box(Point(-0.7,-0.7,-0.7), Point(0.7,0.7,0.7), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
     let boxForcsg2 = Box(Point(-1.2,-1.2,-1.2), Point(1.2,1.2,1.2), boxTex, boxTex, boxTex, boxTex, boxTex, boxTex)
     let sphereForcsg = SphereShape(Point(0.,0.,0.), 0.9, Textures.mkMatTexture(matteBlue))
 
@@ -222,14 +222,6 @@ let main _ =
 
     let transBox = Transform.transform boxSubTest2 rotateX
     let transBox2 = Transform.transform boxSubTest2 rotateZ
-    ////- CAMERA
-    //let camera        = PinholeCamera(position, lookat, up, zoom, width, height, resX, resY, regular 1)
-    //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 4.0, 3.0, regular 1, regular 1)
-    ////                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
-    ////                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
-    
-    ////- LIGHTS
-    //let lightFront     = PointLight(Colour.White, 1.5, Point(2.,2.,7.))
 
     let csgBoxUnion = CSG(boxSubTest, transBox, Union)
     let csgBoxUnion2 = CSG(csgBoxUnion, transBox2, Union)
@@ -281,10 +273,10 @@ let main _ =
     let rectangleTest1 = Rectangle(Point(-1., -1., -1.), Point(-1., 0., -1.), Point(0., -1., -1.), texRectangle1) 
     let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
 
-    let groupTest1 = CSG(solid1, solid2, Grouping)
-    let groupTest2 = CSG(groupTest1, solid3, Grouping)
+    let groupTest1 = CSG(solid1, transSolid2, Grouping)
+    let groupTest2 = CSG(groupTest1, transSolid3, Grouping)
 
-    let shapes : Shape List = [csgUnion2]
+    let shapes : Shape List = [csgBoxUnion2]
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
     //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
