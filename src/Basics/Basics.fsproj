@@ -92,6 +92,7 @@
     <Compile Include="Transformation.fsi" />
     <Compile Include="Transformation.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="CSG.fs" />
     <Compile Include="BaseShape.fs" />
     <Compile Include="BasicLight.fs" />
     <Compile Include="AreaLight.fs" />
