@@ -49,10 +49,10 @@ module ImplicitSurfaces =
 
   let discriminant (a:float) (b:float) (c:float) =
     (pown b 2) - 4.0 * a * c
-
+  
   let getDistances a b d = 
     let sres = sqrt d
-    let res f = (f (-b) sres) / 2.0 * a
+    let res f = (f (-b) sres) / (2.0 * a)
     [res (+); res (-)]
 
   let getValArray (r:Ray) = 
@@ -163,9 +163,11 @@ module ImplicitSurfaces =
     // converting the expression to a polynomial
     let p = (substWithRayVars >> exprToPoly) exp "t"
     // turning the polynomial into a list, since it's faster to work with, with our need
-    let plst = (polyAsList >> sepolyToSIEpoly) p
+    let plst = (polyAsList >> sepolyToSIEpoly >> List.rev) p
 
     let hitfunction =
+      printfn "degree: %i" (fst plst.[0])
+      printfn "%A" plst
       match fst (plst.[0]) with
       | 1 -> getFirstDegreeHF plst pdx pdy pdz
       | 2 -> getSecondDegreeHF plst pdx pdy pdz

@@ -2,7 +2,7 @@
 
 type Ray(origin: Point, direction: Vector) = 
     member this.GetOrigin = origin
-    member this.GetDirection = direction.Normalise
+    member this.GetDirection = direction
 
     // Returns a point from a given time/length of the ray
     member this.PointAtTime (t:float) = 

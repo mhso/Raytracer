@@ -25,13 +25,16 @@ type Render(scene : Scene, camera : Camera) =
           with 
             | _ -> filtershapes (c::nobb) bb cr                   
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
+    let p = printfn "nobbshapes: %i" nobbshapes.Length
+            printfn "bbshapes: %i" bbshapes.Length
+
 
     // Printing render status
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
     let up = Vector(0., 1., 0.)
-    let ppRendering = false
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
