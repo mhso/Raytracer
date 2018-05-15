@@ -20,11 +20,11 @@ type Sampler(samples : (float*float)[][]) =
     member this.NextSet() =
         let threadIndex = Thread.CurrentThread.GetHashCode()
 
-        if threadIndex >= sampleIndices.Length then
+        if threadIndex >= currentSet.Length then
             // If threads happen to have a hash code larger than the length of our indexing aray, 
             // we expand the array using Mutex for safety.
             mutex.WaitOne() |> ignore
-            sampleIndices <- Array.append sampleIndices (Array.create (threadIndex*2-sampleIndices.Length) 0)
+            currentSet <- Array.append currentSet (Array.create (threadIndex*2-currentSet.Length) 0)
             mutex.ReleaseMutex()
 
         let setIndex = currentSet.[threadIndex]

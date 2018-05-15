@@ -16,3 +16,4 @@ val nRooks : int -> int -> Sampler
 val multiJittered : int -> int -> Sampler
 val mapToDisc : (float * float) -> (float * float)
 val mapToHemisphere : (float * float) -> float -> (float * float * float)
+val main : string[] -> int

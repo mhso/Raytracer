@@ -20,15 +20,14 @@ type ThinLensCamera
     inherit Camera(position, lookat, up, zoom, width, height, resX, resY)   
     
     default this.CreateRays x y =
-        let rays = Array.zeroCreate lensSampler.SampleCount
         let lensSamples = lensSampler.NextSet()
         let viewSamples = viewSampler.NextSet()
 
-        for i in 0..lensSampler.SampleCount-1 do
+        [|for i in 0..lensSampler.SampleCount-1 do
             // Create Ray, setup direction and origin.
             let qx, qy = viewSamples.[i] // Sample unit square for center ray.
-            let qx = base.Pw * ((float x - float resX/2.0) + qx)
-            let qy = base.Ph * ((float y - float resY/2.0) + qy)
+            let qx = this.Pw * ((float x - float resX/2.0) + qx)
+            let qy = this.Ph * ((float y - float resY/2.0) + qy)
             
             let px, py = (f * qx)/zoom, (f * qy)/zoom
 
@@ -38,8 +37,7 @@ type ThinLensCamera
 
             // Create the primary lens ray, 
             // from the lens disc point to the focal point.
-            let rayOrigin = base.Position + lx * base.V + ly * base.U
+            let rayOrigin = this.Position + lx * this.V + ly * this.U
 
-            let rayDirection = ((px - lx) * base.V + (py - ly) * base.U - f * base.W).Normalise
-            rays.[i] <- (new Ray(rayOrigin, rayDirection))
-        rays
+            let rayDirection = ((px - lx) * this.V + (py - ly) * this.U - f * this.W).Normalise
+            yield (new Ray(rayOrigin, rayDirection))|]
