@@ -7,9 +7,10 @@ module Acceleration =
     
     let mutable acceleration = "KDTree"
 
-    type IAcceleration = KDTree of KDTree
-                       | BVHStructure of BVHStructure
-                       | RGStructure of RGStructure
+    type IAcceleration = | KDTree of KDTree
+                         | BVHStructure of BVHStructure
+                         | RGStructure of RGStructure
+                         member this.IsEmpty = false
 
     type shapeArray (number: int, shapes:Shape array, acceleration:IAcceleration Option)  = 
         member this.number = number
