@@ -27,7 +27,7 @@ type AreaLight(surfaceMaterial: Material, sampler: Sampler) =
                 let n = this.SamplePointNormal sp
                 yield 
                     if n * (hitPoint.Point - sp).Normalise > 0. then
-                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this, AmbientLight(Colour.White, 0.))
+                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this)
                     else
                         Colour.Black] 
         

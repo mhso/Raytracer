@@ -21,7 +21,7 @@ type MatteMaterial
     default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.IsRecursive = false
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters
         let kd = matteCoefficient                           // Matte coefficient
@@ -59,7 +59,7 @@ type PhongMaterial
     member this.SpecularColour = specularColour
     member this.SpecularExponent = specularExponent
     
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Initialize parameters
         let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
@@ -116,9 +116,9 @@ type MatteReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
@@ -171,9 +171,9 @@ type MatteGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 
 //- PHONG REFLECTIVE MATERIAL
@@ -206,9 +206,9 @@ type PhongReflectiveMaterial
         // Only one reflected ray
         [| Ray(hitPoint.EscapedPoint, rayDirection) |]
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
@@ -266,9 +266,9 @@ type PhongGlossyReflectiveMaterial
         // Return the rays to be handler in the raycaster
         rays
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material
-        base.Bounce(shape, hitPoint, light, ambientLight)
+        base.Bounce(shape, hitPoint, light)
 
 
 //- EMISSIVE MATERIAL
@@ -287,7 +287,7 @@ type EmissiveMaterial
     default this.IsRecursive = false
     default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
     default this.BounceMethod hitPoint = [||]
-    default this.Bounce(shape, hitPoint, light, ambientLight) = 
+    default this.Bounce(shape, hitPoint, light) = 
         
         // Only emit light from the front
         if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then emisiveRadience
@@ -336,7 +336,7 @@ type TransparentMaterial
         else
             [| perfectRay |]
 
-    default this.Bounce(shape, hitPoint, light, ambientLight) =
+    default this.Bounce(shape, hitPoint, light) =
         Colour.Black
 
     member this.ShouldRefract (hitPoint: HitPoint) = 

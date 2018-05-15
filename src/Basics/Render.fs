@@ -84,21 +84,18 @@ type Render(scene : Scene, camera : Camera) =
         let sampler = occluder.Sampler
         let transOrthoCoord (x,y,z) = 
             
-            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
-
-            // Reflected ray direction
-            let m = hitPoint.Normal
-
             // Transform orthonormal frame of sample point
+            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
             let up = new Vector(0., 1., 0.)
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
             sp.OrthonormalTransform(u, v, w)
 
-        let total = [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
-                    |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
-
+        let total = 
+            [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
+            |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
+                    
         total / sampler.SampleCount
         
 
@@ -168,22 +165,27 @@ type Render(scene : Scene, camera : Camera) =
         (accel: IAcceleration) (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
 
-        let shadowColour = this.CastShadow accel hitPoint light
-        if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
-        else
-            let outRay = reflectionFunction hitPoint
-            let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
-            let mutable outColour = Colour.Black
-            for i = 0 to outRay.Length-1 do
+        lock light (fun() -> 
+        
+            if light :? EnvironmentLight then
+                (light :?> EnvironmentLight).FlushDirections(hitPoint)
+
+            let shadowColour = this.CastShadow accel hitPoint light
+            if bounces = 0 || not hitPoint.Material.IsRecursive then
+                acc + (hitPoint.Material.PreBounce(shape, hitPoint, light) - shadowColour)
+            else
+                let outRay = reflectionFunction hitPoint
+                let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light) - shadowColour)
+                let mutable outColour = Colour.Black
+                for i = 0 to outRay.Length-1 do
                  
-                    let outHitPoint = this.GetFirstHitPoint accel outRay.[i]
-                    if outHitPoint.DidHit then
-                        let recursiveColour = this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
-                        outColour <- outColour + hitPoint.Material.ReflectionFactor(hitPoint, outRay.[i]) * recursiveColour
-                    else
-                        outColour <- outColour + this.Scene.BackgroundColour
-            baseColour + (outColour)
+                        let outHitPoint = this.GetFirstHitPoint accel outRay.[i]
+                        if outHitPoint.DidHit then
+                            let recursiveColour = this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                            outColour <- outColour + hitPoint.Material.ReflectionFactor(hitPoint, outRay.[i]) * recursiveColour
+                        else
+                            outColour <- outColour + this.Scene.BackgroundColour
+                baseColour + (outColour))
 
     member this.CalculateProgress current total =
         let pct = int((current/total) * 100.0)
