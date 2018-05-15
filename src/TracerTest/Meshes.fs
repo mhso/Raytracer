@@ -326,9 +326,9 @@ module Meshes =
     List.map mkTarget
       [
        //(renderIcosahedron, "icosahedron");
-       (renderUrn, "urn");
+       //(renderUrn, "urn");
        //(renderBunny, "bunny");
-       //(renderBunnyTexture, "bunny texture");
+       (renderBunnyTexture, "bunny texture");
        //(renderBunnyAO, "bunnyAO");
        //(renderInsideBunny, "inside bunny");
        //(renderBunnies 7, "bunnies small");

@@ -36,15 +36,6 @@ module Acceleration =
             | _        -> failwith "NOT A ACCELERATION TYPE"
         else listOfKDTree.[shape.number-1].acceleration.Value
 
-    let getAccelBoundingBox (accel:IAcceleration) = 
-        match accel with
-        | KDTree(kdTree) -> 
-            match kdTree with
-            | KDTree.Leaf(bBox, shapes) -> bBox
-            | KDTree.Node(axis, value, bBox, left, right) -> bBox
-        | BVHStructure(bvh)       -> failwith "Not Implemented"
-        | RGStructure(rg)         -> failwith "Not Implemented"
-
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with
         | KDTree(kdTree) -> traverseKDTree kdTree ray shapes
