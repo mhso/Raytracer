@@ -10,7 +10,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnitTests", "src\UnitTests\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriangleMeshes", "src\TriangleMeshes\TriangleMeshes.fsproj", "{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "..\backup_ray\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "src\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
