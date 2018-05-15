@@ -1,18 +1,8 @@
 ﻿open Tracer.Basics
 open Tracer.Basics.Textures
 open Tracer.Basics.Sampling
-open System.IO
 open Tracer.BaseShape
 open Tracer.Basics.Render
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open Tracer.Basics
-open System.Diagnostics
-open PLYParser
-open System
-open TriangleMes
-open System
 
 [<EntryPoint>]
 let main _ =
@@ -29,7 +19,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.KDTree
+    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -78,10 +68,16 @@ let main _ =
     
 
     //- SHAPES
-    let sphereRed        = SphereShape(Point(-5.,0.,2.), 5.5, mkMatTexture matteRed)
+    let sphereRed               = SphereShape(Point(-5.,0.,2.), 0.5, mkMatTexture matteRed)
     let spherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
-    let sphereGreen      = SphereShape(Point(1.,0.,-2.), 0.5, mkMatTexture matteGreen)
+    let sphereGreen             = SphereShape(Point(1.,0.,-7.), 1.5, mkMatTexture matteGreen)
+    let sphereBlue              = SphereShape(Point(1.,0.,-4.), 3.0, mkMatTexture matteBlue)
     
+    let tsphereBlue               = Transform.transform sphereBlue (Transformation.translate 0. 0. -7.)
+    //let tspherePerfectYellow     = SphereShape(Point(-2.,0.,0.), 0.5, mkMatTexture matteYellow)
+    //let tsphereGreen             = SphereShape(Point(1.,0.,-7.), 0.5, mkMatTexture matteGreen)
+    //let tsphereBlue              = SphereShape(Point(1.,0.,-4.), 3.0, mkMatTexture matteBlue)
+
     let matRedTex = mkMatTexture matteRed
     let matGreenTex = mkMatTexture matteGreen
     let matBlueTex = mkMatTexture matteBlue
@@ -111,21 +107,24 @@ let main _ =
         then matteRed :> Material
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
-
+    
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" true)
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" true)
     //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
-    //let urn = i.toShape(tex)
-    //let t = Transformation.mergeTransformations
-    //            [Transformation.rotateY (System.Math.PI/4.0);
-    //            Transformation.scale 6.0 6.0 6.0;
-    //            Transformation.translate 0. 3. 0.]
-    //let bunnyShape = Transform.transform urn t
+    let tex = matGreenTex
+    let urn = i.toShape(tex)
+    let t = Transformation.mergeTransformations
+                [Transformation.rotateY (System.Math.PI/4.0);
+                Transformation.scale 6.0 6.0 6.0;
+                Transformation.translate 0. 3. 0.]
+    let bunnyShape = Transform.transform urn t
     //let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
 
     //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
 
     //- CAMERA
-    let camera        = PinholeCamera(Point(4.0,8.0,16.0), Point(0.0,0.5,0.0), Vector(0.0,1.0,0.0), 4.0, 5.66, 4.0, 1024, 768, regular 1)
+    let camera        = PinholeCamera(Point(4.0,12.0,20.0), Point(0.0,4.0,0.0), Vector(0.0,1.0,0.0),32.0, 2.5, 2.5, 1000, 1000, regular 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
@@ -134,13 +133,13 @@ let main _ =
     let lightTop = DirectionalLight(Colour.White, 1., Vector(7., 7., 7.))
 
     //- AREA LIGHTS
-    let sampler        = multiJittered 5 1
-    let baseSphere = BaseSphere(Point.Zero, 1.)
-    let baseRect = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
-    let baseDisc = BaseDisc(Point.Zero, 1.)
-    let lightSphere    = SphereAreaLight(emissive, baseSphere, sampler)
-    let lightRect      = RectangleAreaLight(emissive, baseRect, sampler)
-    let lightDisc      = DiscAreaLight(emissive, baseDisc, sampler)
+    let sampler         = multiJittered 5 1
+    let baseSphere      = BaseSphere(Point.Zero, 1.)
+    let baseRect        = BaseRectangle(Point.Zero, Point(0., 1., 0.), Point(1., 0., 0.))
+    let baseDisc        = BaseDisc(Point.Zero, 1.)
+    let lightSphere     = SphereAreaLight(emissive, baseSphere, sampler)
+    let lightRect       = RectangleAreaLight(emissive, baseRect, sampler)
+    let lightDisc       = DiscAreaLight(emissive, baseDisc, sampler)
 
     let directLight = DirectionalLight(Colour.White, 0.9, Vector(-1., 0., 0.))
     let mkPoint a b c = Point(a,b,c)
@@ -149,17 +148,18 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    let triangle = Rectangle((mkPoint 0.0 0.0 0.0), (mkPoint 0.0 1.0 0.0), (mkPoint 1.0 0.0 0.0), matBlueTex)
-    let bigTriangle = Transform.transform triangle (Transformation.scale 5.0 5.0 5.0)
-    let shapes: Shape list      = [sphereRed]
+    let shapes: Shape list      = [bunnyShape]
+    //let shapes: Shape list      = [thinBoxL; thinBoxR]
+    //let shapes: Shape list      = [thinBoxL; sphereGreen]
+    //let shapes: Shape list      = [thinBoxL; sphereGreen; thinBoxR; thinBoxC; tsphereBlue]
 
-    let lightAmbient   = AmbientLight(Colour.Green, 0.1)
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)
 
 
     //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
-
     let render = new Render(scene, camera)
-    ignore (render.RenderToFile render.RenderParallel "image.bmp")
-    Console.ReadKey() |> ignore
+    //ignore (render.RenderToScreen render.Render)
+    ignore (render.RenderToFile render.Render "../../results/image.bmp")
+
     0

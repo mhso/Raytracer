@@ -25,16 +25,6 @@ module ImplicitSurfaces =
       let ez = FAdd(FVar "oz", FMult(FVar "t",FVar "dz"))
       List.fold subst e [("x",ex);("y",ey);("z",ez)]
 
-  //let rec containsVar var = function
-  //  | FVar x        -> x = var
-  //  | FNum _        -> false
-  //  | FAdd(e1,e2)   -> containsVar var e1 || containsVar var e2
-  //  | FSub(e1,e2)   -> containsVar var e1 || containsVar var e2
-  //  | FMult(e1,e2)  -> containsVar var e1 || containsVar var e2
-  //  | FDiv(e1,e2)   -> containsVar var e1 || containsVar var e2 
-  //  | FExponent(e,_)-> containsVar var e
-  //  | FRoot(e,_)    -> containsVar var e
-
   // returns a partial derivative with respect to var
   let rec partialDerivative var e =
     let rec inner = function
@@ -42,33 +32,27 @@ module ImplicitSurfaces =
       | FNum _          -> FNum 0.0 // case 1
       | FVar x          -> if x <> var then FNum 0.0 // case 1
                            else FNum 1.0 // case 2
+      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
       | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
       | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
       | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
-      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
       | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
     (inner >> reduceExpr) e
-
-  let getPointMap (p:Point) =
-    Map.empty
-      .Add("x",p.X)
-      .Add("y",p.Y)
-      .Add("z",p.Z)
 
   // thou shall not be simplified!
   // returns a vector, based on the initital shape equation, and partially derived with respect to x, y, and z from the hitpoint
   let normalVector p dx dy dz  =
-    let m = getPointMap p
-    let x = solveExpr m dx
-    let y = solveExpr m dy
-    let z = solveExpr m dz
+    let x = solveExpr p dx
+    let y = solveExpr p dy
+    let z = solveExpr p dz
     Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
     (pown b 2) - 4.0 * a * c
-
+  
   let getDistances a b d = 
-    let res f = (f (-b) (sqrt(d))) / 2.0 * a
+    let sres = sqrt d
+    let res f = (f (-b) sres) / (2.0 * a)
     [res (+); res (-)]
 
   let getValArray (r:Ray) = 
@@ -80,57 +64,6 @@ module ImplicitSurfaces =
     arr.[4] <- r.GetDirection.Y // dy
     arr.[5] <- r.GetDirection.Z // dz
     arr
-
-  let getFirstDegreeHF (P m) e : hf =
-    let aSIE = seToSIE (match Map.tryFind 1 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let bSIE = seToSIE (match Map.tryFind 0 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let pdx = partialDerivative "x" e
-    let pdy = partialDerivative "y" e
-    let pdz = partialDerivative "z" e
-    let hitFunction (r:Ray) =
-      let valArray = getValArray r
-      let a = solveSIE aSIE valArray
-      let b = solveSIE bSIE valArray
-      let t = (-b) / a
-      if t < 0.0 then None
-      else 
-        let c = new Colour(1.,1.,1.)
-        Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
-    hitFunction
-
-  let getSecondDegreeHF (P m) e :hf = 
-    let aSIE = seToSIE (match Map.tryFind 2 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let bSIE = seToSIE (match Map.tryFind 1 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let cSIE = seToSIE (match Map.tryFind 0 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let pdx = partialDerivative "x" e
-    let pdy = partialDerivative "y" e
-    let pdz = partialDerivative "z" e
-
-    let hitFunction (r:Ray) =
-      let valArray = getValArray r
-      let a = solveSIE aSIE valArray
-      let b = solveSIE bSIE valArray
-      let c = solveSIE cSIE valArray
-      let d = discriminant a b c
-      if d < 0.0 then None
-      else
-        let ts = getDistances a b d |> List.filter (fun x -> x >= 0.0)
-        if List.isEmpty ts then None
-        else
-          let t' = List.min ts
-          let hp = r.PointAtTime t'
-          Some (t', normalVector hp pdx pdy pdz)
-    hitFunction
 
   let nrtolerance = 10.**(-7.)
   let nrepsilon = 10.**(-14.)
@@ -154,15 +87,60 @@ module ImplicitSurfaces =
 
   let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
 
-  let getHigherDegreeHF p e =
-    // pre-processing parts of the normalVector
-    let pdx = partialDerivative "x" e
-    let pdy = partialDerivative "y" e
-    let pdz = partialDerivative "z" e
-    let lis = sepolyToSIEpoly p
+  let getFirstDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz : hf =
+    let mutable plst = plst
+    let aSIE = if not plst.IsEmpty && fst plst.[0] = 1 then
+                  let res = snd plst.[0]
+                  plst <- plst.Tail
+                  res
+               else SIE [[]]
+    let bSIE = if not plst.IsEmpty && fst plst.[0] = 0 then
+                  snd plst.[0]
+               else SIE [[]]
     let hitFunction (r:Ray) =
       let valArray = getValArray r
-      let up = toUnipoly lis valArray
+      let a = solveSIE aSIE valArray
+      let b = solveSIE bSIE valArray
+      let t = (-b) / a
+      if t < 0.0 then None
+      else 
+        let c = new Colour(1.,1.,1.)
+        Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
+    hitFunction
+
+  let getSecondDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz :hf =
+    let mutable plst = plst
+    let aSIE = snd plst.[0] // we know it is degree 2, otherwise we douldn't be here
+    plst <- plst.Tail
+    let bSIE = if not plst.IsEmpty && fst plst.[0] = 1 then
+                  let res = snd plst.[0]
+                  plst <- plst.Tail
+                  res
+               else SIE [[]]
+    let cSIE = if not plst.IsEmpty && fst plst.[0] = 0 then
+                  snd plst.[0]
+               else SIE [[]]
+    let hitFunction (r:Ray) =
+      let valArray = getValArray r
+      let a = solveSIE aSIE valArray
+      let b = solveSIE bSIE valArray
+      let c = solveSIE cSIE valArray
+      let d = discriminant a b c
+      if d < 0.0 then None
+      else
+        let ts = getDistances a b d |> List.filter (fun x -> x >= 0.0)
+        if List.isEmpty ts then None
+        else
+          let t' = List.min ts
+          let hp = r.PointAtTime t'
+          Some (t', normalVector hp pdx pdy pdz)
+    hitFunction
+
+  let getHigherDegreeHF plst pdx pdy pdz =
+    let hitFunction (r:Ray) =
+      let valArray = getValArray r
+      // now that we know the Ray values, we can turn our multivariable polynomial into a univariate one
+      let up = toUnipoly plst valArray
       let up' = unipolyDerivative up
       let ss = sturmSeq up up'
       let rec findx l h max itcount =
@@ -185,12 +163,20 @@ module ImplicitSurfaces =
 
   let mkImplicit (s:string) : baseShape =
     let exp = parseStr s // parsing the equation string to expression
-    let (P m) = (substWithRayVars >> exprToPoly) exp "t" // converting the expression to a polynomial
+    // partial derivates, needed for the normal, returned when a hit occurs
+    let pdx = partialDerivative "x" exp
+    let pdy = partialDerivative "y" exp
+    let pdz = partialDerivative "z" exp
+    // converting the expression to a polynomial
+    let p = (substWithRayVars >> exprToPoly) exp "t"
+    // turning the polynomial into a list, since it's faster to work with, with our need
+    let plst = (polyAsList >> sepolyToSIEpoly >> List.rev) p
+
     let hitfunction =
-      match getOrder m with
-      | 1 -> getFirstDegreeHF (P m) exp
-      | 2 -> getSecondDegreeHF (P m) exp
-      | _ -> getHigherDegreeHF (polyAsList (P m)) exp
+      match fst (plst.[0]) with
+      | 1 -> getFirstDegreeHF plst pdx pdy pdz
+      | 2 -> getSecondDegreeHF plst pdx pdy pdz
+      | _ -> getHigherDegreeHF plst pdx pdy pdz
     let bsh = 
         { new baseShape() with
             member this.toShape tex =
@@ -200,7 +186,7 @@ module ImplicitSurfaces =
                     match hitfunction r with
                     | None        -> hitPoint (r)
                     | Some (t,v)  -> hitPoint (r, t, v, mat, this)
-                  member this.isInside p = (solveExpr << getPointMap) p exp < 0.0
+                  member this.isInside p = solveExpr p exp < 0.0
                   member this.getBoundingBox () = failwith "getBoundingBox not implemented for implicit surfaces"
               }
           }
