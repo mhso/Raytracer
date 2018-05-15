@@ -35,7 +35,8 @@ type BaseTriangle(a:Point, b:Point, c:Point)=
     member this.v = a-c // same here
     member this.n = this.u.CrossProduct this.v
     override this.toShape tex = 
-      new Triangle(a, b, c, Textures.getBaseTexturedMaterial(tex)) :> Shape
+        let material = Textures.getFunc tex 0. 0.
+        new Triangle(a, b, c, material) :> Shape
 
 
 type BaseSphere(origin: Point, radius: float) = 
