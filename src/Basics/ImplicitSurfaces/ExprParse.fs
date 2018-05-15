@@ -1,6 +1,7 @@
 namespace Tracer
 
 module ExprParse =
+  open Tracer.Basics
 
   (* Grammar:
 
@@ -176,16 +177,18 @@ module ExprParse =
   let parseStr s = (scan >> insertMult >> parse) s
 
   // requires a map of all the variables used in the expression, mapped to float values
-  let rec solveExpr m = function
+  let rec solveExpr (p:Point) = function
   | FNum c          -> c
-  | FVar s          -> match Map.tryFind s m with
-                       | Some v -> v
-                       | None   -> failwith "solveExpr: variable not found"
-  | FRoot(e1,n)     -> (solveExpr m e1)**(1. / (float n))
-  | FAdd(e1,e2)     -> solveExpr m e1 + solveExpr m e2
-  | FMult(e1,e2)    -> solveExpr m e1 * solveExpr m e2
-  | FDiv(e1,e2)     -> solveExpr m e1 / solveExpr m e2
-  | FExponent(e1,n) -> pown (solveExpr m e1) n
+  | FVar s          -> match s with
+                       | "x" -> p.X
+                       | "y" -> p.Y
+                       | "z" -> p.Z
+                       | _    -> failwith "solveExpr: unmatched variable"
+  | FRoot(e1,n)     -> (solveExpr p e1)**(1. / (float n))
+  | FAdd(e1,e2)     -> solveExpr p e1 + solveExpr p e2
+  | FMult(e1,e2)    -> solveExpr p e1 * solveExpr p e2
+  | FDiv(e1,e2)     -> solveExpr p e1 / solveExpr p e2
+  | FExponent(e1,n) -> pown (solveExpr p e1) n
 
   let dotAST ast =
     let fixStr (s:string) = s.Replace ("\"", "\\\"")

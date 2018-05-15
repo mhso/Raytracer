@@ -35,7 +35,7 @@ type MatteMaterial
             let diffuse = (kd * cd) * pidivided
             let volume = (light.GetGeometricFactor hitPoint / light.GetProbabilityDensity hitPoint)
             let roundness = lc * (n * ld)
-            diffuse * volume * roundness   
+            diffuse * volume * roundness
         else
             Colour.Black
 
@@ -143,13 +143,13 @@ type MatteGlossyReflectiveMaterial
         // Prepare for sampling
         let direction = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
-        let rays = Array.create sampler.SampleCount Ray.None
+        let samples = sampler.NextSet()
 
         // Sample the outgoing rays
-        for i=0 to sampler.SampleCount-1 do
+        [|for (x, y) in samples do
             
             // Get a sample point from the sampler, and map it to a hemisphere
-            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) (float(glossyExponent)))
+            let sp = Tracer.Basics.Point(mapToHemisphere (x,y) (float(glossyExponent)))
 
             // Reflected ray direction
             let m = direction + 2. * (normal * -direction) * normal
@@ -162,15 +162,12 @@ type MatteGlossyReflectiveMaterial
             let transformed_sp = sp.OrthonormalTransform (u, v, w)
 
             // Add outgoing ray to the array
-            rays.[i] <- 
+            yield
                 if transformed_sp * normal > 0. then
                     Ray(hitPoint.Point, transformed_sp)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)
+                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
         
-        // Return the rays to be handler in the raycaster
-        rays
-
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material
         base.Bounce(shape, hitPoint, light, ambientLight)
@@ -238,13 +235,13 @@ type PhongGlossyReflectiveMaterial
         // Prepare for sampling
         let direction = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
-        let rays = Array.create sampler.SampleCount Ray.None
+        let samples = sampler.NextSet()
 
         // Sample the outgoing rays
-        for i=0 to sampler.SampleCount-1 do
+        [|for (x, y) in samples do
             
             // Get a sample point from the sampler, and map it to a hemisphere
-            let sp = Tracer.Basics.Point(mapToHemisphere (sampler.Next()) (float(glossyExponent)))
+            let sp = Tracer.Basics.Point(mapToHemisphere (x, y) (float(glossyExponent)))
 
             // Reflected ray direction
             let m = direction + 2. * (normal * -direction) * normal
@@ -257,14 +254,11 @@ type PhongGlossyReflectiveMaterial
             let transformed_sp = sp.OrthonormalTransform (u, v, w)
 
             // Add outgoing ray to the array
-            rays.[i] <- 
+            yield 
                 if transformed_sp * normal > 0. then
                     Ray(hitPoint.Point, transformed_sp)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)
-        
-        // Return the rays to be handler in the raycaster
-        rays
+                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
 
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material

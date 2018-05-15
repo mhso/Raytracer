@@ -184,13 +184,13 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     override this.isInside (p:Point) =
-        let x = (p.X - origin.X)**2. + (p.Y - origin.Y)**2. + (p.Z - origin.Z)**2. // i might be able to remove origin from this, as it should always be 0,0,0
+        let x = (p.X)**2. + (p.Y)**2. + (p.Z)**2. // i might be able to remove origin from this, as it should always be 0,0,0
         (x < (radius**2.))
 
     override this.getBoundingBox () = this.bBox    
 
     member this.NormalAtPoint (p:Point) = 
-        (p - origin).Normalise //can i remove origin from here as well???
+        Vector((p.X/radius),(p.Y/radius),(p.Z/radius)).Normalise
     
     member this.getTextureCoords (p:Point) =
         let n = this.NormalAtPoint p
@@ -293,7 +293,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             |(0.0) -> match t1 <= 0.0 with //if D=0 then t1 = t2
                       |true -> HitPoint(r) 
                       |false -> let p = r.PointAtTime t1
-                                match (p.Y > -(height/2.0) && p.Y < (height/2.0)) with
+                                match this.determineIfPointIsInsideHeight r t1 with
                                 |true -> this.determineHitPoint r t1 
                                 |false -> HitPoint(r)
             |(D) when D < 0.0 -> HitPoint(r)
@@ -620,7 +620,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
-    member this.epsilon = 10.**(-14.)//0.000001
+    member this.epsilon = 0.000001
     member this.bBox = match op with
                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                             let bBox1 = s1.getBoundingBox ()
@@ -636,12 +636,26 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                             BBox(newLow, newHigh)
                        |Subtraction -> s1.getBoundingBox () //just returns the bounding box for s1
 
-    override this.isInside (p:Point) = match op with //if-then-else can be removed here... silly me...
+    override this.isInside (p:Point) = match op with
                                         |Union|Grouping -> (s1.isInside p || s2.isInside p)
                                         |Intersection -> (s1.isInside p && s2.isInside p)
                                         |Subtraction -> (s1.isInside p && (not (s2.isInside p)))
 
     override this.getBoundingBox () = this.bBox
+
+    member this.checkForBoundingBox () =
+        let test = try 
+                      this.getBoundingBox() |> ignore
+                      false
+                    with 
+                      |_ -> true 
+        test
+    
+    member this.checkIntersectForBoundingBox (b:bool) (r:Ray) = 
+        match b with
+        |true -> (this.bBox.intersect r).IsSome
+        |false -> true
+
                                         
 
     ////UNION////
@@ -676,7 +690,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                            |false -> 
                                                 let s1Hit = s1.hitFunction r
                                                 let s2Hit = s2.hitFunction r
-                                                match (not(s1Hit.DidHit) && not(s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
+                                                match ((s1Hit.DidHit) || (s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
                                                 |true ->
                                                     let s1Time = match s1Hit.DidHit with
                                                                  |true -> s1Hit.Time 
@@ -692,7 +706,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                                
     ////INTERSECTION////
     member this.intersectionHitFunction (originalRay:Ray) (r:Ray) = 
-        match (this.bBox.intersect r).IsSome with //check bounding box for intersect
+        
+        match this.checkIntersectForBoundingBox (this.checkForBoundingBox()) r with //check bounding box for intersect (if a bounding box exists)
         |true ->
             let s1Hit = s1.hitFunction r //fire ray at both shapes
             let s2Hit = s2.hitFunction r
@@ -792,7 +807,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         *)
 
     member this.subtractionHitFunction (originalRay:Ray) (r:Ray) =
-        match (this.bBox.intersect r).IsSome with //doesnt seem to make a big dfference...
+        match this.checkIntersectForBoundingBox (this.checkForBoundingBox()) r with //doesnt seem to make a big dfference...
         |true ->
             let s1Hit = s1.hitFunction r //fire ray at first shape
    
@@ -808,7 +823,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     |true ->
                         match s1.isInside (r2.PointAtTime (s2Hit.Time)) with 
                         |true ->                                                                       
-                            HitPoint(originalRay, originalRay.TimeAtPoint(r2.PointAtTime s2Hit.Time), s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
+                            HitPoint(originalRay, originalRay.TimeAtPoint(r2.PointAtTime s2Hit.Time), s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                         |false -> 
                             let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
                             this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
@@ -850,8 +865,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
 
-        match (not(s1Hit.DidHit) && not(s1Hit.DidHit)) with
-        |false ->
+        match (s1Hit.DidHit || s2Hit.DidHit) with
+        |true ->
             let s1Time = match s1Hit.DidHit with
                          |true -> s1Hit.Time 
                          |false -> infinity
@@ -862,7 +877,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             match (s1Time <= (s2Time + this.epsilon)) with 
             |true -> HitPoint(r, s1Hit.Time, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
             |false -> HitPoint(r, s2Hit.Time, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-        |true -> HitPoint(r)
+        |false -> HitPoint(r)
 
     
     ////GENERAL HIT-FUNCTION////

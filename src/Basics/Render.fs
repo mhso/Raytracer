@@ -1,19 +1,19 @@
-﻿namespace Tracer.Basics.Render
+namespace Tracer.Basics.Render
 
 open Tracer.Basics
 open Tracer.Basics.Acceleration
 open System
 open System.Drawing
 open System.Windows.Forms
-open System.Diagnostics
-open System.Threading
 open System.Threading.Tasks
 open Tracer.Basics.Sampling
 open System.Runtime.InteropServices
 open System.Drawing.Imaging
-open System.Resources
 
 type Render(scene : Scene, camera : Camera) =
+    let accelTiming = false
+    let travTimer = new System.Diagnostics.Stopwatch()
+    let renderTimer = new System.Diagnostics.Stopwatch()
 
     // Pre-rendering
     let rec filtershapes (nobb: Shape list) (bb : Shape list) = function
@@ -30,7 +30,7 @@ type Render(scene : Scene, camera : Camera) =
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
-    let up = Vector(0., 1., 0.)
+
     let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
@@ -96,11 +96,11 @@ type Render(scene : Scene, camera : Camera) =
             let u = w % v
             sp.OrthonormalTransform(u, v, w)
 
-        let total = [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
+        let samples = sampler.NextSet()
+        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 0.)]
                     |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
 
         total / sampler.SampleCount
-        
 
     member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
         let ray = Ray(hitPoint.EscapedPoint, sp)
@@ -108,30 +108,20 @@ type Render(scene : Scene, camera : Camera) =
         if rayHit.DidHit then
             occluder.MinIntensityColour
         else
-            occluder.Colour
-            
-            
+            occluder.Colour       
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
-
-        // Get all hit points for shapes with no bounding boxes
-        let pointsThatHit = 
-            [for s in nobbshapes do yield s.hitFunction ray]
-                |> List.filter (fun hp -> hp.DidHit)
-        
-        // Add potential hitpoints from Acceleration structure shapes
-        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
-                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
-
-        // Check if the ray hit
-        if pointsThatHit.IsEmpty then
-            // If not, return an empty hit point
-            HitPoint(ray)
-        else
-            // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun hp -> hp.Time)
-
+      let rec findClosestHit (h:HitPoint) t' = function
+      | []    -> 
+          let hit = traverseIAcceleration accel ray bbshapes
+          if hit.DidHit && hit.Time < t' then hit
+          else h
+      | (s:Shape)::sl -> 
+          let hit = s.hitFunction ray
+          if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl
+          else findClosestHit h t' sl
+      findClosestHit (HitPoint(ray)) infinity nobbshapes
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
         let hit = this.GetFirstHitPoint accel ray
@@ -209,7 +199,18 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
+        // Start timer for acceleration create measurement
+        if accelTiming then 
+            travTimer.Start() 
+            printfn "# Acceleration create timing start"
+
         let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
+
+        // Stop timer for acceleration create measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration create in %f seconds" travTimer.Elapsed.TotalSeconds
+
         if ppRendering then
           Console.WriteLine(" 
         
@@ -259,6 +260,10 @@ type Render(scene : Scene, camera : Camera) =
         //Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
+        if accelTiming then 
+            renderTimer.Start()
+            printfn "# Acceleration RenderParallel timing start"
+
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         timer.Start()
@@ -276,54 +281,85 @@ type Render(scene : Scene, camera : Camera) =
         let pixel : byte[] = Array.zeroCreate(byteCount)
         let firstPixel = bitmapData.Scan0
         Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
-        let heightInPixel = bitmapData.Height
-        let widthInBytes = bitmapData.Width * bytesPrPixel
         
-        Parallel.For(0, heightInPixel, fun y ->
-        //for y in 0..(heightInPixel-1) do 
+        // Start timer for acceleration traverse measurement
+        if accelTiming then 
+            travTimer.Start()
+            printfn "# Acceleration traverese timing start"
+
+        Parallel.For(0, bitmapData.Height * bitmapData.Width, fun xy ->
+            let y = xy / bitmapData.Width
+            let x = (xy % bitmapData.Width) * bytesPrPixel
+
             let currentLine = y * bitmapData.Stride
         
-            let mutable x = 0
-            while (x < widthInBytes) do
-                let coordsX = x/bytesPrPixel
-                let rays = camera.CreateRays coordsX y
-                let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+            let coordsX = x/bytesPrPixel
+            let rays = camera.CreateRays coordsX y
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
 
-                let color = colour.ToColor
+            let color = colour.ToColor
 
-                pixel.[currentLine + x] <- (byte)color.B
-                pixel.[currentLine + x + 1] <- (byte)color.G
-                pixel.[currentLine + x + 2] <- (byte)color.R
-                //processed <- processed + 1.0
-                //this.CalculateProgress processed total
-                x <- x + bytesPrPixel
+            pixel.[currentLine + x] <- (byte)color.B
+            pixel.[currentLine + x + 1] <- (byte)color.G
+            pixel.[currentLine + x + 2] <- (byte)color.R
+
             ) |> ignore
+
         Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
         renderedImage.UnlockBits(bitmapData)
 
+        // Stop timer for acceleration traverse measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
+
         this.PostProcessing
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
+
+        // Stop timer for render measurement and print elapsed time
+        if accelTiming then
+            renderTimer.Stop()
+            printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
         renderedImage
 
     member this.Render =
+        if accelTiming then 
+            renderTimer.Start()
+            printfn "# Acceleration render timing start"
+
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
 
+        // Start timer for acceleration traverse measurement
+        if accelTiming then 
+            travTimer.Start()
+            printfn "# Acceleration traverse timing start"
+
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
-                this.CalculateProgress (float(x*y)) total
+                if ppRendering then this.CalculateProgress (float(x*y)) total
                     
                 let rays = camera.CreateRays x y
                 let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
                 let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
                 
                 renderedImage.SetPixel(x, y, colour.ToColor)
+        
+        // Stop timer for acceleration traverse measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
 
         this.PostProcessing
+        // Stop timer for render measurement and print elapsed time
+        if accelTiming then
+            renderTimer.Stop()
+            printfn "## Render in %f seconds" renderTimer.Elapsed.TotalSeconds
+        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
         renderedImage
 
     member this.RenderToFile renderMethod filename =
