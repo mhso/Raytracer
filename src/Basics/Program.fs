@@ -1,5 +1,5 @@
 ﻿open Tracer.Basics
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System
 open Tracer.Basics.Render
 open Tracer.Basics.Transform
@@ -8,7 +8,7 @@ open Tracer.Basics.Transform
 [<EntryPoint>]
 let main _ = 
     Acceleration.setAcceleration Acceleration.Acceleration.KDTree
-    let position = Point(-0.2,0.2,-0.2)
+    let position = Point(0.,0.,5.2)
     let lookat = Point(0.,0.,0.)
     let up = Vector(0.,1.,0.)
     let zoom = 1.
@@ -89,7 +89,7 @@ let main _ =
 
     let sphereOrigin = new Point(0., 0., 0.)
     let sphereRadius = 1.
-    let texSphere = Textures.mkMatTexture(matteGreen)
+    let texSphere = Textures.mkMatTexture(matteBlue)
     let sphere = new SphereShape(sphereOrigin, sphereRadius, texSphere)
     //let texTri = Textures.mkMatTexture(triangleMaterial)
     //let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
@@ -276,7 +276,12 @@ let main _ =
     let groupTest1 = CSG(solid1, transSolid2, Grouping)
     let groupTest2 = CSG(groupTest1, transSolid3, Grouping)
 
-    let shapes : Shape List = [csgBoxUnion2]
+    let transSphere1 = Transform.transform sphere (Transformation.translate 0.5 0. 0.)
+    let transSphere2 = Transform.transform sphere (Transformation.translate -0.5 0. 0.)
+    let csgInterTest = CSG(transSphere1, transSphere2, Intersection)
+    let csgUnionTest = CSG(transSphere1, transSphere2, Union)
+
+    let shapes : Shape List = [csgUnionTest]
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
     //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
@@ -304,16 +309,18 @@ let main _ =
     let lightTop       = DirectionalLight(Colour.White, 1., Vector(1.,3.,0.))
     let lightBack     = PointLight(Colour.White, 1.5, Point(-2.,-2.,-7.))
     let lightRight     = PointLight(Colour.White, 1., Point(-30., 0., 0.))
+    let l1 = new PointLight((Colour.White), 1.0, Point(4.0, 0.0, 4.0))
+    let l2 = new PointLight((Colour.White), 1.0, Point(-4.0, 0.0, 4.0))
 
-    let lightAmbient   = AmbientLight(Colour.White, 0.3)
+    let lightAmbient   = AmbientLight(Colour.White, 0.1)
     //let lightSphere    = SphereAreaLight(emissive, sC, 100, 5)
     //let lightDisc      = DiscAreaLight(emissive, disc, 100, 5)
     //let lightRect      = RectangleAreaLight(emissive, rectangle, 100, 5)
     //let plane          = InfinitePlane(matteWhite)
     //- FINAL
-    let lights: Light list      = [lightFront;]
+    let lights: Light list      = [l1;l2]
     //let spheres: Shape list     = [sL;sC;sR;plane]
-    let scene                   = Scene(shapes, lights, lightAmbient, 100)
+    let scene                   = Scene(shapes, lights, lightAmbient, 0)
 
     let render = new Render(scene, camera)
 
