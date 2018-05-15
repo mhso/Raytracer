@@ -291,7 +291,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
             |(0.0) -> match t1 <= 0.0 with //if D=0 then t1 = t2
                       |true -> HitPoint(r) 
                       |false -> let p = r.PointAtTime t1
-                                match (p.Y > -(height/2.0) && p.Y < (height/2.0)) with
+                                match this.determineIfPointIsInsideHeight r t1 with
                                 |true -> this.determineHitPoint r t1 
                                 |false -> HitPoint(r)
             |(D) when D < 0.0 -> HitPoint(r)
@@ -674,7 +674,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                            |false -> 
                                                 let s1Hit = s1.hitFunction r
                                                 let s2Hit = s2.hitFunction r
-                                                match (not(s1Hit.DidHit) && not(s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
+                                                match ((s1Hit.DidHit) || (s2Hit.DidHit)) with // this check reduced the render time of 10 tri-Unions (3 solid cylinders), from 41.5 to 28 sek!!!
                                                 |true ->
                                                     let s1Time = match s1Hit.DidHit with
                                                                  |true -> s1Hit.Time 
@@ -850,8 +850,8 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         let s1Hit = s1.hitFunction r //fire ray at both shapes
         let s2Hit = s2.hitFunction r
 
-        match (not(s1Hit.DidHit) && not(s1Hit.DidHit)) with
-        |false ->
+        match (s1Hit.DidHit || s2Hit.DidHit) with
+        |true ->
             let s1Time = match s1Hit.DidHit with
                          |true -> s1Hit.Time 
                          |false -> infinity
@@ -862,7 +862,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             match (s1Time <= (s2Time + this.epsilon)) with 
             |true -> HitPoint(r, s1Hit.Time, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
             |false -> HitPoint(r, s2Hit.Time, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-        |true -> HitPoint(r)
+        |false -> HitPoint(r)
 
     
     ////GENERAL HIT-FUNCTION////

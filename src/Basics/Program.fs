@@ -145,8 +145,8 @@ let main _ =
     let triangle = Triangle(a, b, c, new MatteMaterial(new Colour(0., 1., 1.), 1., new Colour(0., 1., 1.), 1.))
 
     let solidOrigin = new Point(0., 0., 0.)
-    let solidRadius = 0.5
-    let solidHeight = 2.
+    let solidRadius = 0.1
+    let solidHeight = 100.
     let texSolid = Textures.mkMatTexture(matteGreen)
     let texSolid2 = Textures.mkMatTexture(matteBlue)
     let texSolid3 = Textures.mkMatTexture(matteRed)
@@ -196,8 +196,8 @@ let main _ =
     let transSolid2 = Transform.transform solid2 rotateX
     let transSolid3 = Transform.transform solid3 rotateZ
 
-    let csgUnion1 = CSG(solid1, transSolid2, Union)
-    let csgUnion2 = CSG(csgUnion1, transSolid3, Union)
+    let csgUnion1 = CSG(solid1, transSolid2, Grouping)
+    let csgUnion2 = CSG(csgUnion1, transSolid3, Grouping)
     //let boxSubTest = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
     //let boxSubTest2 = new Box(lowTest, highTest, texbox, texbox2, texbox3, texbox4, texbox5, texbox6)
 
@@ -281,8 +281,10 @@ let main _ =
     let rectangleTest1 = Rectangle(Point(-1., -1., -1.), Point(-1., 0., -1.), Point(0., -1., -1.), texRectangle1) 
     let rectangleTest2 = Rectangle(Point(0., 0., 0.), Point(0., 1., 0.), Point(1., 0., 0.), texRectangle2)
 
+    let groupTest1 = CSG(solid1, solid2, Grouping)
+    let groupTest2 = CSG(groupTest1, solid3, Grouping)
 
-    let shapes : Shape List = [rectangleTest1]
+    let shapes : Shape List = [csgUnion2]
     //let shapes : Shape List = [rect1;rect2;rect3;rect4;rect5;rect6;rect7;rect8;rect9;rect10]
     //let shapes : Shape List = [sphere1;sphere2;sphere3;sphere4;sphere5;sphere6;sphere7;sphere8;sphere9;sphere10]
     //let shapes : Shape List = [cylinder1;cylinder2;cylinder3;cylinder4;cylinder5;cylinder6;cylinder7;cylinder8;cylinder9;cylinder10]
