@@ -15,7 +15,7 @@ let allTargets : Target list =
      //Shapes.render;
      //AffineTransformations.render true;
      //AffineTransformations.render false;
-     //ImplicitSurfaces.render;
+     ImplicitSurfaces.render;
      //Meshes.render Tracer.API.Acceleration.KDTree;
      //Texture.render;
      //Light.render;
@@ -24,7 +24,7 @@ let allTargets : Target list =
      // The test groups below is only needed for teams of 7 students.
      // Teams of 6 students can uncomment the lines below.
       //Meshes.render Tracer.API.Acceleration.RegularGrid;
-      Meshes.render Tracer.API.Acceleration.BVH;
+      //Meshes.render Tracer.API.Acceleration.BVH;
      ]
 
 

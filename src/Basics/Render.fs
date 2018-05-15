@@ -11,7 +11,7 @@ open System.Runtime.InteropServices
 open System.Drawing.Imaging
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = true
+    let accelTiming = false
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
@@ -31,7 +31,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
 
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
