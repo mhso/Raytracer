@@ -11,7 +11,7 @@ open System.Runtime.InteropServices
 open System.Drawing.Imaging
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = false
+    let accelTiming = true
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
