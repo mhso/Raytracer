@@ -4,6 +4,7 @@ open Tracer.Basics.Sampling
 open Tracer.BaseShape
 open Tracer.Basics.Render
 open Tracer.Basics
+open System.Security.Cryptography
 
 [<EntryPoint>]
 let main _ =
@@ -161,6 +162,6 @@ let main _ =
     //printfn "%A" (transformedSphere.isInside (Point (0., 3.5, 0.)))
     let render = new Render(scene, camera)
     //ignore (render.RenderToScreen render.Render)
-    ignore (render.RenderToFile render.RenderParallel "../../results/image.bmp")
+    ignore (render.RenderToFile render.Render "../../results/image.bmp")
 
     0

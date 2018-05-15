@@ -30,6 +30,13 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
         
 
 let drawTriangles (filepath:string) (smoothen:bool) = 
+    let drawTiming = true
+    let drawTimer = new System.Diagnostics.Stopwatch()
+    // Start timer for acceleration traverse measurement
+    if drawTiming then 
+        drawTimer.Start()
+        printfn "# TriangleMes drawTriangles timing start"
+
     let test = parsePLY filepath
     let triangleArray = fst test
     let faceArray = snd test
@@ -107,4 +114,8 @@ let drawTriangles (filepath:string) (smoothen:bool) =
             }
             shape
     }
+    // Stop timer for acceleration traverse measurement and print elapsed time
+    if drawTiming then
+        drawTimer.Stop()
+        printfn "## TriangleMes drawTriangles in %f seconds" drawTimer.Elapsed.TotalSeconds
     baseShape

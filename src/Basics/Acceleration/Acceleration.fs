@@ -4,9 +4,8 @@ module Acceleration =
     open KD_tree
     open BVH
     open RegularGrids
-
+    
     let mutable acceleration = "KDTree"
-    let debug = false
 
     type IAcceleration = KDTree of KDTree
                        | BVHStructure of BVHStructure
@@ -22,19 +21,23 @@ module Acceleration =
     let createAcceleration (shape: shapeArray) = 
         if (listOfKDTree.Length < shape.number) then
             let shapes = shape.shapes
+            
             match acceleration with
             | "KDTree" -> 
                 let accel = KDTree(buildKDTree shapes)
-                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
-                if debug then printfn "Number of kdtrees %A" shape.number
+                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree              
                 accel
             | "BVH"    ->
                 let accel = BVHStructure (BVH.build shapes)
                 listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
                 accel
-            | "RG"     -> RGStructure (RegularGrids.build shapes)
+            | "RG"     -> 
+                let accel =  RGStructure (RegularGrids.build shapes)
+                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
+                accel
             | _        -> failwith "NOT A ACCELERATION TYPE"
         else listOfKDTree.[shape.number-1].acceleration.Value
+        
 
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with

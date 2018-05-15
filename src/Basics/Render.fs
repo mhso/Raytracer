@@ -14,6 +14,9 @@ open System.Drawing.Imaging
 open System.Resources
 
 type Render(scene : Scene, camera : Camera) =
+    let accelTiming = true
+    let travTimer = new System.Diagnostics.Stopwatch()
+    let renderTimer = new System.Diagnostics.Stopwatch()
 
     // Pre-rendering
     let rec filtershapes (nobb: Shape list) (bb : Shape list) = function
@@ -120,10 +123,11 @@ type Render(scene : Scene, camera : Camera) =
             [for s in nobbshapes do yield s.hitFunction ray]
                 |> List.filter (fun hp -> hp.DidHit)
         
+
         // Add potential hitpoints from Acceleration structure shapes
         let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
                             if hit.DidHit then hit::pointsThatHit else pointsThatHit
-
+        
         // Check if the ray hit
         if pointsThatHit.IsEmpty then
             // If not, return an empty hit point
@@ -131,7 +135,6 @@ type Render(scene : Scene, camera : Camera) =
         else
             // If the ray hit, then return the first hit point
             pointsThatHit |> List.minBy (fun hp -> hp.Time)
-
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
         let hit = this.GetFirstHitPoint accel ray
@@ -209,7 +212,18 @@ type Render(scene : Scene, camera : Camera) =
             loadingIndex <- loadingIndex + 1
 
     member this.PreProcessing =
+        // Start timer for acceleration create measurement
+        if accelTiming then 
+            travTimer.Start() 
+            printfn "# Acceleration create timing start"
+
         let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
+
+        // Stop timer for acceleration create measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration create in %f seconds" travTimer.Elapsed.TotalSeconds
+
         if ppRendering then
           Console.WriteLine(" 
         
@@ -259,6 +273,9 @@ type Render(scene : Scene, camera : Camera) =
         //Process.Start(filepath) |> ignore
 
     member this.RenderParallel = 
+        if accelTiming then 
+            renderTimer.Start()
+            printfn "# Acceleration RenderParallel timing start"
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         timer.Start()
@@ -279,6 +296,11 @@ type Render(scene : Scene, camera : Camera) =
         let heightInPixel = bitmapData.Height
         let widthInBytes = bitmapData.Width * bytesPrPixel
         
+        // Start timer for acceleration traverse measurement
+        if accelTiming then 
+            travTimer.Start()
+            printfn "# Acceleration traverese timing start"
+
         Parallel.For(0, heightInPixel, fun y ->
         //for y in 0..(heightInPixel-1) do 
             let currentLine = y * bitmapData.Stride
@@ -302,16 +324,35 @@ type Render(scene : Scene, camera : Camera) =
         Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
         renderedImage.UnlockBits(bitmapData)
 
+        // Stop timer for acceleration traverse measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
+
         this.PostProcessing
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
+
+        // Stop timer for render measurement and print elapsed time
+        if accelTiming then
+            renderTimer.Stop()
+            printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
         renderedImage
 
     member this.Render =
+        if accelTiming then 
+            renderTimer.Start()
+            printfn "# Acceleration render timing start"
+
         // Prepare image
         let renderedImage = new Bitmap(camera.ResX, camera.ResY)
 
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
+
+        // Start timer for acceleration traverse measurement
+        if accelTiming then 
+            travTimer.Start()
+            printfn "# Acceleration render timing start"
 
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
@@ -322,8 +363,17 @@ type Render(scene : Scene, camera : Camera) =
                 let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
                 
                 renderedImage.SetPixel(x, y, colour.ToColor)
+        
+        // Stop timer for acceleration traverse measurement and print elapsed time
+        if accelTiming then
+            travTimer.Stop()
+            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
 
         this.PostProcessing
+        // Stop timer for render measurement and print elapsed time
+        if accelTiming then
+            renderTimer.Stop()
+            printfn "## Render in %f seconds" renderTimer.Elapsed.TotalSeconds
         renderedImage
 
     member this.RenderToFile renderMethod filename =
