@@ -32,26 +32,19 @@ module ImplicitSurfaces =
       | FNum _          -> FNum 0.0 // case 1
       | FVar x          -> if x <> var then FNum 0.0 // case 1
                            else FNum 1.0 // case 2
+      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
       | FAdd(e1, e2)    -> FAdd (inner e1, inner e2) // case 3
       | FMult(e1, e2)   -> FAdd (FMult (inner e1, e2), FMult (inner e2, e1)) // case 4
       | FDiv(e1, e2)    -> FDiv (FAdd (FMult (e2, inner e1), FMult (FNum -1.0, FMult (e1, inner e2))), FExponent(e2,2)) // case 5
-      | FExponent(e1, n)-> FMult(inner e1, FMult (FNum (float n), FExponent(e1, n-1))) // case 6
       | FRoot(e1, n)    -> FDiv(inner e1, FMult (FNum (float n), FExponent(FRoot(e1, n), n-1))) // case 7
     (inner >> reduceExpr) e
-
-  let getPointMap (p:Point) =
-    Map.empty
-      .Add("x",p.X)
-      .Add("y",p.Y)
-      .Add("z",p.Z)
 
   // thou shall not be simplified!
   // returns a vector, based on the initital shape equation, and partially derived with respect to x, y, and z from the hitpoint
   let normalVector p dx dy dz  =
-    let m = getPointMap p
-    let x = solveExpr m dx
-    let y = solveExpr m dy
-    let z = solveExpr m dz
+    let x = solveExpr p dx
+    let y = solveExpr p dy
+    let z = solveExpr p dz
     Vector(x, y, z).Normalise
 
   let discriminant (a:float) (b:float) (c:float) =
@@ -186,7 +179,7 @@ module ImplicitSurfaces =
                     match hitfunction r with
                     | None        -> hitPoint (r)
                     | Some (t,v)  -> hitPoint (r, t, v, mat, this)
-                  member this.isInside p = (solveExpr << getPointMap) p exp < 0.0
+                  member this.isInside p = solveExpr p exp < 0.0
                   member this.getBoundingBox () = failwith "getBoundingBox not implemented for implicit surfaces"
               }
           }
