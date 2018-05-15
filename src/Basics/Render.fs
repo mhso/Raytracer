@@ -109,23 +109,16 @@ type Render(scene : Scene, camera : Camera) =
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
-
-        // Get all hit points for shapes with no bounding boxes
-        let pointsThatHit = 
-            [for s in nobbshapes do yield s.hitFunction ray]
-                |> List.filter (fun hp -> hp.DidHit)
-        
-        // Add potential hitpoints from Acceleration structure shapes
-        let pointsThatHit = let hit = (traverseIAcceleration accel ray bbshapes)
-                            if hit.DidHit then hit::pointsThatHit else pointsThatHit
-
-        // Check if the ray hit
-        if pointsThatHit.IsEmpty then
-            // If not, return an empty hit point
-            HitPoint(ray)
-        else
-            // If the ray hit, then return the first hit point
-            pointsThatHit |> List.minBy (fun hp -> hp.Time)
+      let rec findClosestHit (h:HitPoint) t' = function
+      | []    -> 
+          let hit = traverseIAcceleration accel ray bbshapes
+          if hit.DidHit && hit.Time < t' then hit
+          else h
+      | (s:Shape)::sl -> 
+          let hit = s.hitFunction ray
+          if hit.DidHit && hit.Time < t' then findClosestHit hit hit.Time sl
+          else findClosestHit h t' sl
+      findClosestHit (HitPoint(ray)) infinity nobbshapes
 
     member this.GetFirstShadowHitPoint accel (ray:Ray) : HitPoint = 
         let hit = this.GetFirstHitPoint accel ray
