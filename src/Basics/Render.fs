@@ -27,8 +27,8 @@ type Render(scene : Scene, camera : Camera) =
     let total = float (camera.ResX * camera.ResY)
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
-    let up = Vector(0., 1., 0.)
-    let ppRendering = false
+
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -270,29 +270,43 @@ type Render(scene : Scene, camera : Camera) =
         let pixel : byte[] = Array.zeroCreate(byteCount)
         let firstPixel = bitmapData.Scan0
         Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
-        let heightInPixel = bitmapData.Height
-        let widthInBytes = bitmapData.Width * bytesPrPixel
         
-        Parallel.For(0, heightInPixel, fun y ->
-        //for y in 0..(heightInPixel-1) do 
+        Parallel.For(0, bitmapData.Height * bitmapData.Width, fun xy ->
+            let y = xy / bitmapData.Width
+            let x = (xy % bitmapData.Width) * bytesPrPixel
             let currentLine = y * bitmapData.Stride
         
-            let mutable x = 0
-            while (x < widthInBytes) do
-                let coordsX = x/bytesPrPixel
-                let rays = camera.CreateRays coordsX y
-                let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+            let coordsX = x/bytesPrPixel
+            let rays = camera.CreateRays coordsX y
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
 
-                let color = colour.ToColor
+            let color = colour.ToColor
 
-                pixel.[currentLine + x] <- (byte)color.B
-                pixel.[currentLine + x + 1] <- (byte)color.G
-                pixel.[currentLine + x + 2] <- (byte)color.R
-                //processed <- processed + 1.0
-                //this.CalculateProgress processed total
-                x <- x + bytesPrPixel
+            pixel.[currentLine + x] <- (byte)color.B
+            pixel.[currentLine + x + 1] <- (byte)color.G
+            pixel.[currentLine + x + 2] <- (byte)color.R
+
             ) |> ignore
+
+        //Parallel.For(0, heightInPixel, fun y ->
+        //    let currentLine = y * bitmapData.Stride
+        
+        //    let mutable x = 0
+        //    while (x < widthInBytes) do
+        //        let coordsX = x/bytesPrPixel
+        //        let rays = camera.CreateRays coordsX y
+        //        let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+        //        let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+
+        //        let color = colour.ToColor
+
+        //        pixel.[currentLine + x] <- (byte)color.B
+        //        pixel.[currentLine + x + 1] <- (byte)color.G
+        //        pixel.[currentLine + x + 2] <- (byte)color.R
+
+        //        x <- x + bytesPrPixel
+        //    ) |> ignore
         Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
         renderedImage.UnlockBits(bitmapData)
 
@@ -318,7 +332,7 @@ type Render(scene : Scene, camera : Camera) =
                 renderedImage.SetPixel(x, y, colour.ToColor)
 
         this.PostProcessing
-        renderedImage
+        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
 
     member this.RenderToFile renderMethod filename =
         let image = renderMethod
@@ -326,4 +340,4 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.RenderToScreen renderMethod =
         let image = renderMethod
-this.ShowImageOnScreen(image)
+        this.ShowImageOnScreen(image)

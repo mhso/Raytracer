@@ -173,8 +173,6 @@ module ImplicitSurfaces =
     let plst = (polyAsList >> sepolyToSIEpoly >> List.rev) p
 
     let hitfunction =
-      printfn "degree: %i" (fst plst.[0])
-      printfn "%A" plst
       match fst (plst.[0]) with
       | 1 -> getFirstDegreeHF plst pdx pdy pdz
       | 2 -> getSecondDegreeHF plst pdx pdy pdz
