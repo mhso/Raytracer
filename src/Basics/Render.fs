@@ -276,6 +276,7 @@ type Render(scene : Scene, camera : Camera) =
         if accelTiming then 
             renderTimer.Start()
             printfn "# Acceleration RenderParallel timing start"
+
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
         timer.Start()
@@ -352,7 +353,7 @@ type Render(scene : Scene, camera : Camera) =
         // Start timer for acceleration traverse measurement
         if accelTiming then 
             travTimer.Start()
-            printfn "# Acceleration render timing start"
+            printfn "# Acceleration traverse timing start"
 
         for x in 0..camera.ResX-1 do
             for y in 0..camera.ResY-1 do
