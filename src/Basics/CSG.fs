@@ -122,14 +122,14 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
                     this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
 
-            |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> //if both shapes are hit, and they overlap
-                HitPoint(originalRay, originalRay.TimeAtPoint (r.PointAtTime s1T), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
+            //|(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> //if both shapes are hit, and they overlap
+                //HitPoint(originalRay, originalRay.TimeAtPoint (r.PointAtTime s1T), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
 
             |(s1T, s2T) -> //both shapes are hit, and they dont overlap
                         //hit function, that fires rays fom the furthest hit, instead of the closest, might provide speed increase for more complex csg
                         let p1 = r.PointAtTime s1T //find the points, so they won't be calculated twice, might improve performance...
                         let p2 = r.PointAtTime s2T
-                        match (s1T > s2T) with
+                        match (s1T >= s2T) with
                         |true -> 
                             match (s2.isInside p1) with //might be able to condense this with next match
                             |true ->  
