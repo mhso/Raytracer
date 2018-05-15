@@ -94,16 +94,11 @@ module ImplicitSurfaces =
 
   let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
 
-  let getFirstDegreeHF (P m) e : hf =
-    let aSIE = seToSIE (match Map.tryFind 1 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let bSIE = seToSIE (match Map.tryFind 0 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let pdx = partialDerivative "x" e
-    let pdy = partialDerivative "y" e
-    let pdz = partialDerivative "z" e
+  let getFirstDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz : hf =
+    let aSIE = snd plst.[0] // we know it is degree 1, so a exists
+    let bSIE = if not plst.Tail.IsEmpty && fst plst.Tail.[1] = 1 then
+                  snd plst.[1]
+               else SIE [[]]
     let hitFunction (r:Ray) =
       let valArray = getValArray r
       let a = solveSIE aSIE valArray
@@ -115,15 +110,16 @@ module ImplicitSurfaces =
         Some (t, normalVector (r.PointAtTime t) pdx pdy pdz)
     hitFunction
 
-  let getSecondDegreeHF plst pdx pdy pdz :hf = 
-    let aSIE = seToSIE ()
+  let getSecondDegreeHF (plst:(int*simpleIntExpr) list) pdx pdy pdz :hf = 
+    let aSIE = snd plst.[0] // we know it is degree 2, so a exists
     let rest = plst.Tail
-    let bSIE = seToSIE (match Map.tryFind 1 m with
-                        | Some v -> v
-                        | None   -> SE [])
-    let cSIE = seToSIE (match Map.tryFind 0 m with
-                        | Some v -> v
-                        | None   -> SE [])
+    let bSIE = if not rest.IsEmpty && fst rest.[0] = 1 then
+                  snd rest.[0]
+               else SIE [[]]
+    let rest = rest.Tail
+    let cSIE = if not rest.IsEmpty && fst rest.[0] = 0 then
+                  snd rest.[0]
+               else SIE [[]]
     let hitFunction (r:Ray) =
       let valArray = getValArray r
       let a = solveSIE aSIE valArray
@@ -178,9 +174,9 @@ module ImplicitSurfaces =
 
     let hitfunction =
       match fst (plst.[0]) with
-      | 1 -> getFirstDegreeHF plst exp
-      | 2 -> getSecondDegreeHF plst exp
-      | _ -> getHigherDegreeHF plst exp
+      | 1 -> getFirstDegreeHF plst pdx pdy pdz
+      | 2 -> getSecondDegreeHF plst pdx pdy pdz
+      | _ -> getHigherDegreeHF plst pdx pdy pdz
     let bsh = 
         { new baseShape() with
             member this.toShape tex =
