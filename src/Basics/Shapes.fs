@@ -317,24 +317,15 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
 ////TRANSFORM////                                                                                     
 module Transform =
-    let cameraOriginPoint : Point array = Array.zeroCreate(2)
-    let mutable isFirstTransform = true
     let transformRay (r : Ray) t = 
+        let o = pointToMatrix r.GetOrigin
         let d = vectorToMatrix r.GetDirection
         let invT = getInvMatrix t
+        let originMatrix = QuickMatrix.multi (invT, o)
         let directionMatrix = QuickMatrix.multi (invT, d)
+        let origin = matrixToPoint originMatrix
         let direction = matrixToVector directionMatrix
-        if (cameraOriginPoint.[0] = r.GetOrigin) then 
-            new Ray(cameraOriginPoint.[1], direction)
-        else
-            let o = pointToMatrix r.GetOrigin
-            let originMatrix = QuickMatrix.multi (invT, o)
-            let origin = matrixToPoint originMatrix
-            if(isFirstTransform) then
-                cameraOriginPoint.[0] <- r.GetOrigin
-                cameraOriginPoint.[1] <- origin
-                isFirstTransform <- false
-            new Ray(origin, direction)
+        new Ray(origin, direction)
 
     let transformNormal (v:Vector) (t: Transformation.Transformation)= 
         let tVector = matrixToVector (QuickMatrix.multi ((getInvMatrix (t)).transpose,(vectorToMatrix v)))
