@@ -55,6 +55,7 @@ module RegularGrids =
 
         let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
         let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
+        printfn "build->lowPoint, highPoint: %A %A " lowPoint highPoint
         let boxIntList = [0..boxes.Length-1]
         let box = BBox (lowPoint, highPoint)
         let w = Vector(highPoint.X-lowPoint.X, highPoint.Y-lowPoint.Y, highPoint.Z-lowPoint.Z) // Vector from low to high of the outer bounding box.
@@ -67,7 +68,12 @@ module RegularGrids =
         let bbz = calcBbox nz w.Z
 
         let grid = Array3D.zeroCreate<Shape array> nx ny nz
-
+        printfn "build->grid: %i %i %i " nx ny nz
+        for iz in 0..nz-1 do
+                for iy in 0..ny-1 do
+                    for ix in 0..nx-1 do
+                        grid.[ix,iy,iz] <- [||]
+    
         for shape in shapes do 
             let bb = shape.getBoundingBox()
             let ixMin = int(clamp((bb.lowPoint.X-lowPoint.X)*bbx, nx-1))
@@ -77,11 +83,18 @@ module RegularGrids =
             let ixMax = int(clamp((bb.highPoint.X-lowPoint.X)*bbx, nx-1))
             let iyMax = int(clamp((bb.highPoint.Y-lowPoint.Y)*bby, ny-1))
             let izMax = int(clamp((bb.highPoint.Z-lowPoint.Z)*bbz, nz-1))
+            printfn "build->min: %i %i %i" ixMin iyMin izMin
+            printfn "build->max: %i %i %i" ixMax iyMax izMax
 
             for iz=izMin to izMax do
                 for iy=iyMin to iyMax do
                     for ix=ixMin to ixMax do
                         grid.[ix,iy,iz] <- [|shape|]
+                        printfn "Add shape to array at pos %i %i %i " ix iy iz
+                        printfn "Shape %A" shape
+        
+        printfn "build->shapes.Length: %i" shapes.Length
+        printfn "build->Grid: %A" grid
         (grid, nx, ny, nz, box)
                 
         
@@ -102,23 +115,21 @@ module RegularGrids =
 
     // Functions finds closest hit of a ray in structure.
     let closestHit (shapeList:Shape array) (ray:Ray) : HitPoint option =
-        if  isNull(shapeList) then None
-        else 
-            match shapeList with
-            | [||] -> None
-            |  shapes when shapes.Length > 0 ->
-                                        let mutable closestHit = None
-                                        let mutable closestDist = infinity
-                                        for shape in shapes do
-                                            let hit = shape.hitFunction ray
-                                            let dist = hit.Time
-                                            if hit.DidHit && dist < closestDist then
-                                                closestDist <- dist
-                                                closestHit <- Some hit
-                                        if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
-                                        closestHit
-            | _ ->  if debug then printfn "closestHit -> None..."
-                    None
+        match shapeList with
+        | [||] -> None
+        |  shapes ->
+                                    let mutable closestHit = None
+                                    let mutable closestDist = infinity
+                                    for shape in shapes do
+                                        let hit = shape.hitFunction ray
+                                        let dist = hit.Time
+                                        if hit.DidHit && dist < closestDist then
+                                            closestDist <- dist
+                                            closestHit <- Some hit
+                                    if debug then printfn "closestHit -> Leaf found return hit at dist %f" closestDist
+                                    closestHit
+        | _ ->  if debug then printfn "closestHit -> None..."
+                None
 
     //Function for search of the grid.
     let search (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =
