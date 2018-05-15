@@ -90,12 +90,12 @@ type Render(scene : Scene, camera : Camera) =
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
+
             sp.OrthonormalTransform(u, v, w)
 
-        let total = 
-            [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
-            |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
-                    
+        let total = [for i=0 to sampler.SampleCount do yield transOrthoCoord (mapToHemisphere (sampler.Next()) 0.)]
+                    |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
+
         total / sampler.SampleCount
         
 
@@ -127,6 +127,7 @@ type Render(scene : Scene, camera : Camera) =
             HitPoint(ray)
         else
             // If the ray hit, then return the first hit point
+
             pointsThatHit |> List.minBy (fun hp -> hp.Time)
 
 

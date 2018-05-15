@@ -127,12 +127,12 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
 module TransformLight = 
     let transformDirectionalLight ((light:DirectionalLight),t) = 
         let matrix = Transformation.vectorToMatrix (light.GetDirectionFromPoint (HitPoint(Point(0.,0.,0.))))
-        let transMatrix = Transformation.Matrix.multi (Transformation.getMatrix(t),matrix)
+        let transMatrix = Transformation.QuickMatrix.multi (Transformation.getMatrix(t),matrix)
         Transformation.matrixToVector transMatrix
 
     let transformPointLight ((light:PointLight),t) = 
         let matrix = Transformation.pointToMatrix (light.Position)
-        let transMatrix = Transformation.Matrix.multi (Transformation.getMatrix(t),matrix)
+        let transMatrix = Transformation.QuickMatrix.multi (Transformation.getMatrix(t),matrix)
         Transformation.matrixToPoint transMatrix
 
     let transformLight (light:Light) t =
@@ -141,12 +141,15 @@ module TransformLight =
         | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
         | :? AreaLight as a -> 
                 let movedShape = Transform.transform a.Shape t
-                let newPoint (p:Point) = a.SamplePoint (Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix p))))
                 let movedArea = 
                     {new AreaLight(a.SurfaceMaterial, a.Sampler) with
                         member this.Shape = movedShape
-                        member this.SamplePoint p = newPoint p(*(Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix (newPoint p)))))*)
-                        member this.SamplePointNormal p = a.SamplePointNormal p
+                        member this.SamplePoint p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            Transformation.transformPoint (a.SamplePoint inverted, Transformation.getMatrix t)
+                        member this.SamplePointNormal p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            a.SamplePointNormal inverted
                         member this.GetProbabilityDensity h = a.GetProbabilityDensity h
                     }            
                 movedArea :> Light
