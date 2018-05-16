@@ -92,8 +92,8 @@ let createSampler (set:(float * float)[][]) =
 
 let random n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
-    let samples = Array.create n (0.0, 0.0)
     let rec loop k =
+        let samples = Array.create n (0.0, 0.0)
         let rec inner = function
             | 0 -> samples.[0] <- (rand.NextDouble(), rand.NextDouble())
             | c -> 
@@ -109,8 +109,9 @@ let getJitteredValue (grid:int) (max:int) = (rand.NextDouble()/float max) + ((1.
 
 let jittered n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
-    let samples = Array.create (int (float n**2.0)) (0.0 ,0.0)
+    let pn = int (float n**2.0)
     let rec loop k =
+        let samples = Array.create pn (0.0 ,0.0)
         let rec innerX x = 
             let rec innerY = function
                 | 0 -> samples.[x*n] <- (getJitteredValue x n, getJitteredValue 0 n)
@@ -171,8 +172,8 @@ let shuffleDiagonals (samples:(float * float) []) =
 
 let nRooks n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
-    let samples = Array.create n (0.0,0.0)
     let rec loop k =
+        let samples = Array.create n (0.0,0.0)
         let rec placeDiagonals = function
             | 0 -> samples.[0] <- (getJitteredValue 0 n, getJitteredValue 0 n)
             | c -> 
@@ -229,8 +230,8 @@ let shuffleMulti (samples:(float * float) []) n =
 
 let multiJittered n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
+    let ns = int (float (n)**2.0)
     let rec loop k = 
-        let ns = int (float (n)**2.0)
         let samples = Array.create ns (0.0, 0.0)
         let rec placeDiag = function
             | 0 -> samples.[0] <- (getJitteredValue 0 ns, getJitteredValue 0 ns)

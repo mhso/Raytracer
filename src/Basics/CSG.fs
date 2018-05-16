@@ -58,14 +58,14 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             match (s2.isInside p1) with
             |true ->  
                 let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
-                this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                this.unionHitFunctionInside originalRay (new Ray(newOrigin, r.GetDirection.Normalise))//keep firing the ray (might have to move the origin forward a bit
             |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s1Hit.Time)), s1Hit.Normal, s1Hit.Material, this) //if the hit, is not inside s2, we have found the hitpoint
         |false -> 
             let p2 = r.PointAtTime s2Time
             match (s1.isInside p2) with
             |true ->
                 let newnewOrigin = p2.Move (r.GetDirection.MultScalar (this.epsilon))
-                this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection))//keep firing the ray (might have to move the origin forward a bit
+                this.unionHitFunctionInside originalRay (new Ray(newnewOrigin, r.GetDirection.Normalise))//keep firing the ray (might have to move the origin forward a bit
             |false ->
                 HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime(s2Hit.Time)), s2Hit.Normal, s2Hit.Material, this) //if the hit, is not inside s1, we have found the hitpoint
 
@@ -111,7 +111,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     HitPoint(originalRay, originalRay.TimeAtPoint p2, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                 |false -> 
                     let newOrigin = p2.Move (r.GetDirection.MultScalar (this.epsilon))
-                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
+                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
 
             |(s1T, s2T) when s2T = infinity -> //if only s1 was a hit
                 let p1 = r.PointAtTime s1T
@@ -120,7 +120,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     HitPoint(originalRay, originalRay.TimeAtPoint p1, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
                 |false -> 
                     let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
-                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
+                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
 
             //|(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> //if both shapes are hit, and they overlap
                 //HitPoint(originalRay, originalRay.TimeAtPoint (r.PointAtTime s1T), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
@@ -141,7 +141,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                 |true -> s2Hit
                                 |false ->
                                     let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
-                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
+                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
                         |false -> 
                             match (s1.isInside p2) with //might be able to condense this with next if
                             |true ->
@@ -153,7 +153,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                                 |true -> HitPoint(originalRay, originalRay.TimeAtPoint p2, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
                                 |false -> 
                                     let newOrigin = p2.Move (r.GetDirection.MultScalar (this.epsilon))
-                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
+                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
         |false -> HitPoint(r)
 
 
@@ -166,7 +166,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             match ( s2.isInside (r.PointAtTime (s1Hit.Time))) with
             |true -> //refire Ray
                 let newOrigin = (r.PointAtTime s1Hit.Time).Move (r.GetDirection.MultScalar (this.epsilon))
-                let r2 = new Ray(newOrigin, r.GetDirection) //make new ray, so you dont repeat hits
+                let r2 = new Ray(newOrigin, r.GetDirection.Normalise) //make new ray, so you dont repeat hits
                 let s2Hit = s2.hitFunction r2 //fire new ray at second shape
 
                 match s2Hit.DidHit with //can it even not hit s2, after i make a new ray with origin inside s2?
@@ -176,7 +176,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                         HitPoint(originalRay, originalRay.TimeAtPoint(r2.PointAtTime s2Hit.Time), s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                     |false -> 
                         let newnewOrigin = (r2.PointAtTime s2Hit.Time).Move (r2.GetDirection.MultScalar (this.epsilon))
-                        this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection)) //the direction vector should be the same for r and r2
+                        this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection.Normalise)) //the direction vector should be the same for r and r2
                 |false -> HitPoint(r)
             |false -> HitPoint(originalRay, originalRay.TimeAtPoint(r.PointAtTime s1Hit.Time), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
         |false -> HitPoint(r)
