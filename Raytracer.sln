@@ -4,13 +4,9 @@ VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Basics", "src\Basics\Basics.fsproj", "{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Raytracer", "src\RayTracerFramework\Raytracer.fsproj", "{92AE911B-8E25-405A-A804-046E4D018F0D}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TracerTest", "src\TracerTest\TracerTest.fsproj", "{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnitTests", "src\UnitTests\UnitTests.fsproj", "{E7720E48-DFC5-41B5-914A-C6E4510E5F37}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TriangleMeshes", "src\TriangleMeshes\TriangleMeshes.fsproj", "{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution
@@ -31,12 +27,6 @@ Global
 		{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}.Release|x64.ActiveCfg = Release|x64
 		{E7CBCC59-8C6C-4828-8840-47EABF7C95FB}.Release|x64.Build.0 = Release|x64
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Debug|x64.ActiveCfg = Debug|x64
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92AE911B-8E25-405A-A804-046E4D018F0D}.Release|x64.ActiveCfg = Release|x64
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7736D6C9-4DB1-4962-9AAD-89CFA07722DF}.Debug|x64.ActiveCfg = Debug|x64
@@ -51,14 +41,6 @@ Global
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|x64.ActiveCfg = Release|x64
 		{E7720E48-DFC5-41B5-914A-C6E4510E5F37}.Release|x64.Build.0 = Release|x64
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Debug|x64.ActiveCfg = Debug|x64
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Debug|x64.Build.0 = Debug|x64
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Release|Any CPU.Build.0 = Release|Any CPU
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Release|x64.ActiveCfg = Release|x64
-		{35E5FD13-1C17-4DF7-A26A-3D1EB06B6310}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
