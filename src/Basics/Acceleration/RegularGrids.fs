@@ -5,6 +5,7 @@ module RegularGrids =
     // Used for debug, will print to console etc. 
     let debugBuild = false
     let debugTraverse = false
+    let debugBuildCounts    = false
 
     // Type of the BVHTree, with Nodes and Leafs.
     type RGStructure = int list[,,]*int*int*int*BBox  
@@ -48,6 +49,8 @@ module RegularGrids =
  // ######################### BUILD REGULAR GRID #########################
     let calcBbox n w : float = float(n)/w
     
+    let mutable gridSize = (0,0,0)
+
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
     let buildStructure (shapes:array<Shape>) : RGStructure =
         if shapes.Length = 0 then failwith "build-> Cannont build with empty shape array" // Shapes needed for build.
@@ -56,12 +59,13 @@ module RegularGrids =
         let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
         let box = BBox (lowPoint, highPoint)
 
-        if shapes.Length < 5 then
+        if shapes.Length < 10 then
             // If only a fex shapes, put all in a single box
             let grid = Array3D.zeroCreate<int list> 1 1 1
             grid.[0,0,0] <- []
             for i in 0..shapes.Length-1 do 
                 grid.[0,0,0] <- i::grid.[0,0,0]
+            if debugBuildCounts then gridSize <- (1, 1, 1) // Debug grid size
             (grid, 1, 1, 1, box)
         else
             // Vector from low to high of the outer bounding box.
@@ -76,6 +80,7 @@ module RegularGrids =
 
             // Create grid of size x,y,z fill with empty list
             let grid = Array3D.create<int list> nx ny nz []
+            if debugBuildCounts then gridSize <- (nx, ny, nz) // Debug grid size
 
             // Fill shapes in grid
             for i in 0..shapes.Length-1 do 
@@ -97,6 +102,11 @@ module RegularGrids =
     
     let build (shapes:array<Shape>) : RGStructure = 
         let structure = buildStructure shapes
+        if debugBuildCounts then printfn "totalShapes: %i" shapes.Length 
+        if debugBuildCounts then 
+            let x,y,z = gridSize
+            printfn "Grid size x, y, z: %i %i %i" x y z
+
         structure
         
   // ######################### TRAVERSAL REGULAR GRID #########################

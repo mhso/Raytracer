@@ -325,22 +325,22 @@ module Meshes =
       Util.mkTarget grName (render', name)
     List.map mkTarget
       [
-       //(renderIcosahedron, "icosahedron");
-       //(renderUrn, "urn");
-       //(renderBunny, "bunny");
-       //(renderBunnyTexture, "bunny texture");
-       //(renderBunnyAO, "bunnyAO");
-       //(renderInsideBunny, "inside bunny");
-       //(renderBunnies 7, "bunnies small");
+       (renderIcosahedron, "icosahedron");
+       (renderUrn, "urn");
+       (renderBunny, "bunny");
+       (renderBunnyTexture, "bunny texture");
+       (renderBunnyAO, "bunnyAO");
+       (renderInsideBunny, "inside bunny");
+       (renderBunnies 7, "bunnies small");
        (renderBunnies 17, "bunnies big");
-       //(renderSpheres 17, "spheres small");
-       //(renderSpheres 47, "spheres big");
-       //(renderDragon, "dragon");
-       //(renderGoldDragon 4, "gold dragon");
-       //(renderHappy, "happy");
-       //(renderPorsche, "porsche");
-       //(renderHorse, "horse");
-       //(renderHead, "head")
-       //(renderVase, "vase")
-       //(renderArmadillo, "armadillo")
+       (renderSpheres 17, "spheres small");
+       (renderSpheres 47, "spheres big");
+       (renderDragon, "dragon");
+       (renderGoldDragon 4, "gold dragon");
+       (renderHappy, "happy");
+       (renderPorsche, "porsche");
+       (renderHorse, "horse");
+       (renderHead, "head")
+       (renderVase, "vase")
+       (renderArmadillo, "armadillo")
        ]

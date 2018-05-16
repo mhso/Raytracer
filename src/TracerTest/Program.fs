@@ -24,8 +24,8 @@ let allTargets : Target list =
      //AmbientOcclusion.render [1;2;4;8;16]
      // The test groups below is only needed for teams of 7 students.
      // Teams of 6 students can uncomment the lines below.
-     Meshes.render Tracer.API.Acceleration.RegularGrid;
      //Meshes.render Tracer.API.Acceleration.BVH;
+     //Meshes.render Tracer.API.Acceleration.RegularGrid;
      ]
 
 
@@ -55,5 +55,5 @@ let main argv =
     // renderTests false "ambientOcclusion" ["ao_sphere_regular_256"]
     
     Util.finalize();
-    Console.ReadKey() |> ignore
+
     0 // return an integer exit code

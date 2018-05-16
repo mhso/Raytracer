@@ -3,10 +3,7 @@
 module BVH = 
     
     // Used for debug, will print to console etc. 
-    let debugBuild          = false
-    let debugBuildCounts    = true
-    let debugTravers        = false
-    let debugSort           = false
+    let debugBuildCounts    = false
 
     // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
@@ -38,12 +35,12 @@ module BVH =
     let findLargestBoundingBoxSideLengths (box:(Point*Point)) : int*float =
         let lowPoint, highPoint = box
         let x, y, z = (highPoint.X - lowPoint.X), (highPoint.Y - lowPoint.Y), (highPoint.Z - lowPoint.Z)
-        let mutable value = (0, 0.)
 
-        if x > 0. then value <- (0, x)
-        if y > 0. then value <- (1, y)
-        if y < z then value <- (2, z)
-        value
+        match (x,y,z) with
+        | x, y, z when x>=y && x>=z -> (0, x) // x is longest
+        | x, y ,z when y>=x && y>=z -> (1, y) // y is longest
+        | _ -> (2, z) // z is longest
+        
     
     // Function to find the min-values from a bounding box based on the axis value.
     let findAxisMinMaxValues (box:BBox) axis =
@@ -69,45 +66,73 @@ module BVH =
  // ######################### BUILD BVH TREE #########################
     let mutable totalNodes = 0
     let mutable totalLeafs = 0
+    let mutable totalAxisX = 0
+    let mutable totalAxisY = 0
+    let mutable totalAxisZ = 0
+    let mutable totalSingleShape = 0
+    let mutable totalDualShape = 0
     // Build BVH structure from a list of shapes.
     let buildStructure (shapes:array<Shape>) : BVHStructure = 
         if shapes.Length = 0 then failwith "buildStructure -> Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes // Get bounding boxes
 
-        let boxIntList = [0..boxes.Length-1]
+        let boxIntList = [0..boxes.Length-1] // Initilize box indexes
+
         let rec innerNode (intIndexes:int list) : BVHStructure = 
             let boxArr = getBoxArrFromIndexes intIndexes boxes
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
 
+            if debugBuildCounts && axisToSplit=0 then totalAxisX <- totalAxisX+1
+            if debugBuildCounts && axisToSplit=1 then totalAxisY <- totalAxisY+1
+            if debugBuildCounts && axisToSplit=2 then totalAxisZ <- totalAxisZ+1
+
             let box = BBox (lowPoint, highPoint)
             
             let sortedList = sortListByAxis intIndexes boxes axisToSplit // Sort list min to max
 
-            match intIndexes with
+            match sortedList with
             | [] -> failwith " innerNode -> Empty array"
-            | b when intIndexes.Length > 1 ->
-                let middle = sortedList.Length/2
-                let leftList = sortedList.[0..middle-1]
-                let rigthList = sortedList.[middle..]
+            | b when b.Length > 2 ->
+                let middle = b.Length/2
+                let leftList = b.[0..middle-1]
+                let rigthList = b.[middle..]
+
                 if debugBuildCounts then totalNodes <- totalNodes+1
-                Node (
-                            innerNode leftList, 
-                            innerNode rigthList, 
-                            box, 
-                            axisToSplit)
-            | c when intIndexes.Length = 1 ->
-                if debugBuildCounts then totalLeafs <- totalLeafs+1
-                Leaf (c, box)
-            | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
+                Node (  innerNode leftList, 
+                        innerNode rigthList, 
+                        box, 
+                        axisToSplit)
+            | c when c.Length = 2 -> 
+                    if boxArr.[0].boundingBoxIntersect boxArr.[1] then
+                        if debugBuildCounts then totalDualShape <- totalDualShape+1
+                        if debugBuildCounts then totalLeafs <- totalLeafs+1
+                        Leaf (c, box)
+                    else 
+                        if debugBuildCounts then totalNodes <- totalNodes+1
+                        Node (  innerNode [c.[0]], 
+                                innerNode [c.[1]], 
+                                box, 
+                                axisToSplit)
+            | d when d.Length = 1 ->
+                    if debugBuildCounts then totalSingleShape <- totalSingleShape+1
+                    if debugBuildCounts then totalLeafs <- totalLeafs+1
+                    Leaf (d, box)
+            | _ -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         
         innerNode boxIntList
  
     let build (shapes:array<Shape>) : BVHStructure = 
         let structure = buildStructure shapes
+        if debugBuildCounts then printfn "totalShapes: %i" shapes.Length 
         if debugBuildCounts then printfn "totalNodes: %i" totalNodes 
         if debugBuildCounts then printfn "totalLeafs: %i" totalLeafs
+        if debugBuildCounts then printfn "totalAxisX: %i" totalAxisX
+        if debugBuildCounts then printfn "totalAxisY: %i" totalAxisY
+        if debugBuildCounts then printfn "totalAxisZ: %i" totalAxisZ
+        if debugBuildCounts then printfn "totalSingleShape: %i" totalSingleShape
+        if debugBuildCounts then printfn "totalDualShape: %i" totalDualShape
         structure
     
 
