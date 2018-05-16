@@ -170,9 +170,9 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
     member this.origin = origin 
     member this.radius = radius
     member this.tex = tex
-    member this.bBox = //no point on the sphere should be larger than the center point + the radius.
+    member this.bBox = //no point on the sphere should be larger than the radius, as origin is always 0,0,0
         let e = 0.000001
-        let lx = - radius - e //as the sphere is alwas spawned in 0,0,0´the bounding box should not take the origin value into consideration
+        let lx = - radius - e
         let ly = - radius - e
         let lz = - radius - e
 
@@ -219,10 +219,10 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
             let t1 = (-b + sqrtD)/(2.0 * a)
             let t2 = (-b - sqrtD)/(2.0 * a)
             match D with
-            |(0.0) -> match t1 > 0.0 with
+            |(0.0) -> match t1 > 0.0 with //when D = 0.0, there should only be one hit, and t1 should be equal to t2
                       |true -> this.determineHitPoint r t1 
                       |false -> HitPoint(r)
-            |(D) when D < 0.0 -> HitPoint(r)
+            |(D) when D < 0.0 -> HitPoint(r) //when D < 0.0 there are no hits
             |(D) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                       |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r)
                       |(t1,t2) -> match (t1 < t2 && t1 > 0.0) with
@@ -251,15 +251,15 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes"
 
     override this.getBoundingBox () = this.bBox
 
     member this.NormalAtPoint (p:Point):Vector =
         new Vector(p.X/radius, 0.0, p.Z/radius)
     
-    member this.getTextureCoords (p:Point) =
-        let n = this.NormalAtPoint p //might be able to remove one of these calls to normal
+    member this.getTextureCoords (p:Point) = //determines the the texture coords u and v
+        let n = this.NormalAtPoint p 
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = match phiNot < 0. with
                   |true -> (phiNot + 2.)*Math.PI 
@@ -268,32 +268,32 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let v = (p.Y / height) + (1. / 2.)
         (u, v)
 
-    member this.determineHitPoint (r:Ray) (p:Point) = 
+    member this.determineHitPoint (r:Ray) (p:Point) =  //creates the HitPoint, based on the given Point
         let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
-        HitPoint(r, r.TimeAtPoint p, this.NormalAtPoint p, mat, this, u, v) //might be able to remove one of these calls to normal
+        HitPoint(r, r.TimeAtPoint p, this.NormalAtPoint p, mat, this, u, v)
 
-    member this.determineIfPointIsInsideHeight (p:Point) =
+    member this.determineIfPointIsInsideHeight (p:Point) = //determines if a Point is within the height of the cylinder
         (p.Y > -(height/2.0) && p.Y < (height/2.0))
 
     override this.hitFunction (r:Ray) = 
         match (this.bBox.intersect r).IsSome with
         |true ->
-            let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //both are to the power of 2
-            let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z))
-            let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0)
+            let a = ((r.GetDirection.X)**2.0) + ((r.GetDirection.Z)**2.0) //Determines a in the quadratic equation
+            let b = 2.0*((r.GetOrigin.X * r.GetDirection.X)+(r.GetOrigin.Z * r.GetDirection.Z)) //Determines b in the quadratic equation
+            let c = ((r.GetOrigin.X)**2.0) + ((r.GetOrigin.Z)**2.0) - (radius**2.0) //Determines c in the quadratic equation
             let D = (b**2.0) - 4.0*a*c
             let t1 = (-b + Math.Sqrt(D))/(2.0 * a)
             let t2 = (-b - Math.Sqrt(D))/(2.0 * a)
             match D with
-            |(0.0) -> match t1 <= 0.0 with //if D=0 then t1 = t2
+            |(0.0) -> match t1 <= 0.0 with //when D = 0 then t1 = t2
                       |true -> HitPoint(r) 
                       |false -> let p = r.PointAtTime t1
                                 match this.determineIfPointIsInsideHeight p with
                                 |true -> this.determineHitPoint r p 
                                 |false -> HitPoint(r)
-            |(D) when D < 0.0 -> HitPoint(r)
+            |(D) when D < 0.0 -> HitPoint(r) //when D < 0.0 there are no hits
             |(_) -> match (t1,t2) with //when D > 0.0, and there are two valid values for t
                     |(t1,t2) when t1 <= 0.0 && t2 <= 0.0 -> HitPoint(r) //if both t's are a miss
                     |(t1,t2) -> 
@@ -401,12 +401,12 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
     override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
-        // look for hitPoints
+        // Check the component shapes, for HitPoints
         let hpTop = this.topDisc.hitFunction r
         let hpBottom = this.bottomDisc.hitFunction r
         let hpCylinder = this.hollowCylinder.hitFunction r
 
-        match ((hpBottom.DidHit || hpTop.DidHit) || hpCylinder.DidHit) with
+        match ((hpBottom.DidHit || hpTop.DidHit) || hpCylinder.DidHit) with //checks if all shapes were missed
         |true ->
             //extract t from hitPoints
             let tTop = match hpTop.DidHit with
@@ -424,7 +424,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
             |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
             |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
             |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
-            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom //do i need to replace the shape in the hipoint with the solid cylinder?
+            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
             |(_,_,_) -> HitPoint(r)
         |false -> HitPoint(r)
 
@@ -456,7 +456,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
         let e = 0.000001
         BBox(Point(low.X-e, low.Y-e, low.Z-e), Point(high.X+e, high.Y+e, high.Z+e))
     
-    member this.getMatFromTex (tex:Texture) (u:float) (v:float) =
+    member this.getMatFromTex (tex:Texture) (u:float) (v:float) = //gets the material, based on the texture and the texture coords
         let func = Textures.getFunc tex
         let mat = func u v 
         mat
@@ -467,6 +467,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
         let boolY = r.GetDirection.Y >= 0.0
         let boolZ = r.GetDirection.Z >= 0.0
         
+        //deermines the values, at which the ray either enters or exits certain dimensions of the box
         let tx =  match boolX with
                   |true -> (low.X - r.GetOrigin.X)/r.GetDirection.X 
                   |false -> (high.X - r.GetOrigin.X)/r.GetDirection.X
@@ -486,6 +487,7 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                   |true -> (high.Z - r.GetOrigin.Z)/r.GetDirection.Z 
                   |false -> (low.Z - r.GetOrigin.Z)/r.GetDirection.Z
         
+        //t is the distace where the ray enters the box, t' is the distance where the box exits the box
         let t = max tx (max ty tz)
 
         let t' = min tx' (min ty' tz')
@@ -549,7 +551,6 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height
                                                                     HitPoint(r, t', Vector(0.0, 0.0, -1.0), (this.getMatFromTex front u v), this, u, v) //when tz' is the smallest and t > 0.0
                                                                 |false ->
-                                                                    //printfn "width: %A, height: %A, depth: %A" this.width this.height this.depth
                                                                     let u = (r.PointAtTime(t').X - low.X) / this.width
                                                                     let v = (r.PointAtTime(t').Y - low.Y) / this.height 
                                                                     HitPoint(r, t', Vector(0.0, 0.0, 1.0), (this.getMatFromTex back u v), this, u, v)
@@ -561,10 +562,10 @@ type Box(low:Point, high:Point, front:Texture, back:Texture, top:Texture, bottom
 type InfinitePlane(tex:Texture) = 
     inherit Shape()
     member this.tex = tex
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" 
     override this.getBoundingBox () = failwith "Infinite Plane cannot have a Bounding Box"
     override this.hitFunction (r:Ray) = 
-        let t = -(r.GetOrigin.Z / r.GetDirection.Z) //the plane is on the x-z plane, as this fits with the coordinate system, we have been asked to use.
+        let t = -(r.GetOrigin.Z / r.GetDirection.Z)
         match (r.GetDirection.Z <> 0.0 && t > 0.0) with
         |true ->
             let func = Textures.getFunc tex
