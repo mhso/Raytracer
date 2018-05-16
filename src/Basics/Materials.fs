@@ -31,7 +31,7 @@ type MatteMaterial
         let kd = matteCoefficient                           // Matte coefficient
         let cd = matteColour                                // Matte colour
         let lc = light.GetColour hitPoint                   // Light colour
-        let n  = hitPoint.Normal                            // Normal at hit point
+        let n  = hitPoint.Normal.Normalise                  // Normal at hit point
         let ld = (light.GetDirectionFromPoint hitPoint)     // Light direction
 
         // Determine the colour (ambient colour is handled in Render.fs)
@@ -70,10 +70,10 @@ type PhongMaterial
         
         // Initialize parameters
         let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
-        let n = hitPoint.Normal                                     // Normal at hit point
+        let n = hitPoint.Normal.Normalise                           // Normal at hit point
         let r1 = -ld + (2. * (n * ld)) * n                          // Light ray direction
         let ray = hitPoint.Ray                                      // Casted ray
-        let rd = ray.GetDirection                                   // Direction of casted ray
+        let rd = ray.GetDirection.Normalise                         // Direction of casted ray
         let e = specularExponent                                    // Specular exponent
         let ks = specularCoefficient                                // Specular coefficient
         let cs = specularColour                                     // Specular colour
@@ -100,7 +100,7 @@ type PhongMaterial
 
 
 type RayReflector = 
-    static member Perfect (hitPoint:HitPoint) = (hitPoint.Ray.GetDirection + (-2. * (hitPoint.Normal * hitPoint.Ray.GetDirection)) * hitPoint.Normal).Normalise
+    static member Perfect (hitPoint:HitPoint) = (hitPoint.Ray.GetDirection.Normalise + (-2. * (hitPoint.Normal.Normalise * hitPoint.Ray.GetDirection.Normalise)) * hitPoint.Normal.Normalise).Normalise
 
 
 //- MATTE REFLECTIVE MATERIAL
@@ -171,7 +171,7 @@ type MatteGlossyReflectiveMaterial
         
         // Prepare for sampling
         let direction = hitPoint.Ray.GetDirection
-        let normal = hitPoint.Normal
+        let normal = hitPoint.Normal.Normalise
         let samples = sampler.NextSet()
 
         // Sample the outgoing rays
@@ -279,6 +279,11 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
         else Colour.Black
 
 
+type TransparentRay(origin: Point, direction: Vector, refracted: bool, isInside: bool) = 
+    inherit Ray(origin, direction)
+    member this.Refracted = refracted
+    member this.IsInside = isInside
+
 //- TRANSPARENT MATERIAL
 type TransparentMaterial
     (
@@ -297,20 +302,26 @@ type TransparentMaterial
     member this.ShouldRefract (hitPoint: HitPoint) = 
         let cos_angle_in = -(hitPoint.Normal * hitPoint.Ray.GetDirection)
         let cos_angle_out_exp = 1. - (1. - (cos_angle_in ** 2.)) / (refrIndex ** 2.)
-        if cos_angle_out_exp < 0. then
-            (false, cos_angle_in, cos_angle_out_exp)
-        else
-            (true,  cos_angle_in, cos_angle_out_exp)
+        if cos_angle_out_exp < 0. then (false, cos_angle_in, cos_angle_out_exp)
+        else (true,  cos_angle_in, cos_angle_out_exp)
 
     member this.RefractRay (hitPoint: HitPoint) (cos_angle_in, cos_angle_out_exp) = 
         let cos_angle_out = Math.Sqrt(cos_angle_out_exp)
-        let origin = hitPoint.Point
+        let (origin, isInside) = 
+            if hitPoint.Ray :? TransparentRay then
+                let transRay = hitPoint.Ray :?> TransparentRay
+                if transRay.IsInside then
+                    hitPoint.EscapedPoint, true
+                else
+                    hitPoint.InnerEscapedPoint, false
+            else 
+                hitPoint.EscapedPoint, false
         let direction = (1. / refrIndex) * hitPoint.Ray.GetDirection - (cos_angle_out - (cos_angle_in / refrIndex)) * hitPoint.Normal.Normalise
-        Ray(origin, direction.Normalise)
+        TransparentRay(origin, direction.Normalise, true, isInside)
 
     // Overwritten methods
     default this.IsRecursive = true
-    default this.AmbientColour(_,_) = Colour.Black
+    default this.AmbientColour(_,_) = Colour.White
 
     default this.ReflectionFactor (hitPoint,rayOut) = 
         let (shouldRefract, cos_angle_in, cos_angle_out_exp) = this.ShouldRefract hitPoint
@@ -335,7 +346,17 @@ type TransparentMaterial
         let dir = hitPoint.Ray.GetDirection
         let normal = hitPoint.Normal
         let rayDirection = (dir + (-2. * (normal * dir)) * normal)
-        let perfectRay = Ray(hitPoint.EscapedPoint, rayDirection.Normalise)
+        let isInside = 
+            if hitPoint.Ray :? TransparentRay then
+                (hitPoint.Ray :?> TransparentRay).IsInside
+            else
+                false
+        let perfectOrigin = 
+            if isInside then 
+                hitPoint.InnerEscapedPoint
+            else
+                hitPoint.EscapedPoint
+        let perfectRay = TransparentRay(perfectOrigin, rayDirection.Normalise, false, isInside)
         let refractRay = this.RefractRay hitPoint (cos_angle_in, cos_angle_out_exp)
         if shouldRefract then
             [| perfectRay; refractRay |]
