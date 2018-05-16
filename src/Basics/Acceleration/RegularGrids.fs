@@ -7,7 +7,7 @@ module RegularGrids =
     let debugTraverse = false
 
     // Type of the BVHTree, with Nodes and Leafs.
-    type RGStructure = Shape list[,,]*int*int*int*BBox  
+    type RGStructure = int list[,,]*int*int*int*BBox  
 
     let clamp (x:float,b:int) : float =
         match x with
@@ -58,10 +58,10 @@ module RegularGrids =
 
         if shapes.Length < 5 then
             // If only a fex shapes, put all in a single box
-            let grid = Array3D.zeroCreate<Shape list> 1 1 1
+            let grid = Array3D.zeroCreate<int list> 1 1 1
             grid.[0,0,0] <- []
-            for shape in shapes do 
-                grid.[0,0,0] <- shape::grid.[0,0,0]
+            for i in 0..shapes.Length-1 do 
+                grid.[0,0,0] <- i::grid.[0,0,0]
             (grid, 1, 1, 1, box)
         else
             // Vector from low to high of the outer bounding box.
@@ -75,11 +75,11 @@ module RegularGrids =
             let bbz = calcBbox nz w.Z
 
             // Create grid of size x,y,z fill with empty list
-            let grid = Array3D.create<Shape list> nx ny nz []
+            let grid = Array3D.create<int list> nx ny nz []
 
             // Fill shapes in grid
-            for shape in shapes do 
-                let bb = shape.getBoundingBox()
+            for i in 0..shapes.Length-1 do 
+                let bb = shapes.[i].getBoundingBox()
                 let ixMin = int(clamp((bb.lowPoint.X-lowPoint.X)*bbx, nx-1))
                 let iyMin = int(clamp((bb.lowPoint.Y-lowPoint.Y)*bby, ny-1))
                 let izMin = int(clamp((bb.lowPoint.Z-lowPoint.Z)*bbz, nz-1))
@@ -91,7 +91,7 @@ module RegularGrids =
                 for iz=izMin to izMax do
                     for iy=iyMin to iyMax do
                         for ix=ixMin to ixMax do
-                            grid.[ix,iy,iz] <- shape::grid.[ix,iy,iz]
+                            grid.[ix,iy,iz] <- i::grid.[ix,iy,iz]
 
             (grid, nx, ny, nz, box)
     
@@ -114,18 +114,19 @@ module RegularGrids =
         | _ -> failwith "nextStepStop -> float compareTo out of range (-1,0,1)"
 
     // Functions finds closest hit of a ray in structure.
-    let closestHit (shapeList:Shape list) (ray:Ray) : HitPoint option =
-        match shapeList with
+    let closestHit (intIndexes:int list) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
+        match intIndexes with
         | [] -> None
-        | shapes -> let mutable closestHit = None
-                    let mutable closestDist = infinity
-                    for shape in shapes do
-                        let hitPoint = shape.hitFunction ray
-                        let dist = hitPoint.Time
-                        if hitPoint.DidHit && dist<closestDist then
-                            closestDist <- dist
-                            closestHit <- Some hitPoint
-                    closestHit
+        | shapesRef ->
+                        let mutable closestHit = None
+                        let mutable closestDist = infinity
+                        for shapeRef in shapesRef do
+                            let hitPoint = shapes.[shapeRef].hitFunction ray
+                            let dist = hitPoint.Time
+                            if hitPoint.DidHit && dist<closestDist then
+                                closestDist <- dist
+                                closestHit <- Some hitPoint
+                        closestHit
         | _ ->  None
 
     //Function for search of the grid.
@@ -151,7 +152,7 @@ module RegularGrids =
                     let tzNext, izStep, izStop = calcNextStepStop d.Z tz iz dtz nz
 
                     let rec loop ix iy iz txNext tyNext tzNext =
-                        let checkForHit = closestHit grid.[ix,iy,iz] ray
+                        let checkForHit = closestHit grid.[ix,iy,iz] ray shapes
                         if txNext<tyNext && txNext<tzNext then
                             match checkForHit with
                             | Some hitPoint when hitPoint.Time<txNext -> Some hitPoint

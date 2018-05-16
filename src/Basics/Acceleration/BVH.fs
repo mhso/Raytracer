@@ -11,30 +11,6 @@ module BVH =
     // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
                         | Node of BVHStructure*BVHStructure*BBox*int
-
-    // Function for sorting a int list, based on array of bounding boxes and axis value.
-    ////let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
-    ////  match indexList with
-    ////  | [] -> []
-    ////  | x :: xs ->
-    ////      let less, great = 
-    ////          match axis with
-    ////          // Sort by x axis
-    ////          | 0 -> let filterLess = fun e -> boxes.[e].lowPoint.X <= boxes.[x].lowPoint.X
-    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.X >  boxes.[x].lowPoint.X
-    ////                 filterLess, filterGreat
-    ////          // Sort by y axis
-    ////          | 1 -> let filterLess = fun e -> boxes.[e].lowPoint.Y <= boxes.[x].lowPoint.Y
-    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.Y >  boxes.[x].lowPoint.Y
-    ////                 filterLess, filterGreat
-    ////          // Sort by z axis
-    ////          | _ -> let filterLess = fun e -> boxes.[e].lowPoint.Z <= boxes.[x].lowPoint.Z
-    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.Z >  boxes.[x].lowPoint.Z
-    ////                 filterLess, filterGreat
-
-    ////      let lesser    = sortListByAxis (xs |> List.filter(less)) (boxes) axis
-    ////      let greater   = sortListByAxis (xs |> List.filter(great)) (boxes) axis
-    ////      lesser @ [x] @ greater
     
     // Function for sorting a int list, based on array of bounding boxes and axis value.
     let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
@@ -101,7 +77,7 @@ module BVH =
         if debugBuild then printfn "buildStructure -> boxes len %i" boxes.Length
 
         let boxIntList = [0..boxes.Length-1]
-        let rec innerNode (intIndexes:list<int>) (depthLevel:int) : BVHStructure = 
+        let rec innerNode (intIndexes:int list) (depthLevel:int) : BVHStructure = 
             if debugBuild then printfn "buildStructure -> innerNode"
             let boxArr = getBoxArrFromIndexes intIndexes boxes
             if debugBuild then printfn "buildStructure -> boxArr len %i" boxArr.Length
@@ -185,11 +161,11 @@ module BVH =
         |   Leaf (shapesRef, _) ->  let mutable closestHit = None
                                     let mutable closestDist = infinity
                                     for shapeRef in shapesRef do
-                                        let hit = shapes.[shapeRef].hitFunction ray
-                                        let dist = hit.Time
-                                        if hit.DidHit && dist < closestDist then
+                                        let hitPoint = shapes.[shapeRef].hitFunction ray
+                                        let dist = hitPoint.Time
+                                        if hitPoint.DidHit && dist < closestDist then
                                             closestDist <- dist
-                                            closestHit <- Some hit
+                                            closestHit <- Some hitPoint
                                     closestHit
         | _ ->  None
 
