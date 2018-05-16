@@ -36,7 +36,7 @@ type Vector(x:float, y:float, z:float) =
         
     member this.Normalise = 
       match this.Magnitude with
-      | 0.        -> invalidArg "magnitude = 0." "Cannot divide by 0.0. Either the zero vector is being passed, or the floating points of the vector are so small, that it is computationally a zero vector"
+      | 0.        -> this
       | length    -> new Vector (x / length, y / length, z / length)
     member this.Round (d:int) = new Vector(System.Math.Round(x,d),System.Math.Round(y,d),System.Math.Round(z,d))
     static member Zero = Vector(0.,0.,0.)

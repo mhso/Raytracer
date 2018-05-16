@@ -211,11 +211,11 @@ module API =
   
   let renderToScreen (sc : scene) (c : camera) : unit = 
     let render = new Render(sc, c)
-    render.RenderToScreen render.RenderParallel
+    render.RenderToScreen
 
   let renderToFile (sc : scene) (c : camera) (path : string) : unit = 
     let render = new Render(sc, c)
-    render.RenderToFile render.RenderParallel path
+    render.RenderToFile path
 
   /////////////////////
   // Transformations //

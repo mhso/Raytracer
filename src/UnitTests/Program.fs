@@ -7,8 +7,6 @@ let main argv =
     BVHTest.allTest
     printfn("-=-=-=-=-=-=- RegularGrid Test -=-=-=-=-=-=-")
     RegularGridsTest.allTest
-    printfn("-=-=-=-=-=-=- KD-Tree Test -=-=-=-=-=-=-")
-    printfn("Test not run.")
     printfn("-=-=-=-=-=-=- Transformation Test -=-=-=-=-=-=-")
     TransformationTest.allTest
     printfn("-=-=-=-=-=-=- Shapes Test -=-=-=-=-=-=-")

@@ -17,28 +17,27 @@ module Acceleration =
         member this.shapes = shapes
         member this.acceleration = acceleration
 
-    let mutable listOfKDTree : shapeArray list = []
-    let discardAccelerations = listOfKDTree <- []
+    let mutable listOfAccel : shapeArray list = []
 
     let createAcceleration (shape: shapeArray) = 
-        if (listOfKDTree.Length < shape.number) then
+        if (listOfAccel.Length < shape.number) then
             let shapes = shape.shapes
             
             match acceleration with
             | "KDTree" -> 
                 let accel = KDTree(buildKDTree shapes)
-                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree              
+                listOfAccel <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfAccel              
                 accel
             | "BVH"    ->
                 let accel = BVHStructure (BVH.build shapes)
-                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
+                listOfAccel <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfAccel
                 accel
             | "RG"     -> 
                 let accel =  RGStructure (RegularGrids.build shapes)
-                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
+                listOfAccel <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfAccel
                 accel
             | _        -> failwith "NOT A ACCELERATION TYPE"
-        else listOfKDTree.[shape.number-1].acceleration.Value
+        else listOfAccel.[shape.number-1].acceleration.Value
         
 
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 

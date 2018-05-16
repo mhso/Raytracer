@@ -9,7 +9,6 @@ module KD_tree =
     type KDTree = Node of int * float * BBox * KDTree * KDTree
                 | Leaf of BBox * ShapeBBox list
 
-    let timer = new System.Diagnostics.Stopwatch()
     let debug = false
 
     let findMaxMin (xs:list<ShapeBBox>) = 

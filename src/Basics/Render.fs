@@ -12,10 +12,6 @@ open System.Drawing.Imaging
 open System.Threading
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = false
-    let travTimer = new System.Diagnostics.Stopwatch()
-    let renderTimer = new System.Diagnostics.Stopwatch()
-
     // Pre-rendering
     let rec filtershapes (nobb: Shape list) (bb : Shape list) = function
       | []            -> nobb, List.toArray bb
@@ -27,32 +23,7 @@ type Render(scene : Scene, camera : Camera) =
             | _ -> filtershapes (c::nobb) bb cr                   
     let (nobbshapes, bbshapes) = filtershapes [] [] scene.Shapes
 
-    // Printing render status
-    let total = float (camera.ResX * camera.ResY)
-    let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
-    let timer = new System.Diagnostics.Stopwatch()
-
-    let ppRendering = false
-    let mutable currentPct = 0
-    let mutable loadingIndex = 0
-    let randomStrings = [|"                                                      Traversing..."; 
-                          "                                                     Shooting Rays..."; 
-                          "                                              Applying Ambient Occlusion..."; 
-                          "                                                       Sampling..."; 
-                          "                                                 Transforming Bunnies..."; 
-                          "                                                 Stretching Triangles..."; 
-                          "                                                   Spawning Spheres..."; 
-                          "                                              Initializing Stackoverflow..."; 
-                          "                                                Creating Infinity Loops..."; 
-                          "                                               Making Surfaces Implicit..."; 
-                          "                                       Making Infinite Planes infinity + 1 long...";
-                          "                                             Deleting Random System File...";
-                          "                                          RayTracer.exe Has Stopped Working..."|]
-    let getRandomString () =  
-      let random = System.Random()  
-      randomStrings.[random.Next(randomStrings.Length)]
-
-    let idOfScene = Acceleration.listOfKDTree.Length + 1
+    let idOfScene = Acceleration.listOfAccel.Length + 1
     member this.Camera = camera
     member this.Scene = scene
     member this.Shapes = List.toArray scene.Shapes
@@ -192,77 +163,10 @@ type Render(scene : Scene, camera : Camera) =
                         outColour <- outColour + this.Scene.BackgroundColour
             baseColour + (outColour)
 
-    member this.CalculateProgress current total =
-        let pct = int((current/total) * 100.0)
-        // Progress bar!!!
-        if pct > currentPct then 
-            if loadingIndex = loadingSymbols.Length then loadingIndex <- 0
-            currentPct <- pct
-
-            let dots = String.replicate (currentPct/2 + 1) "█"
-            let white = String.replicate (50-(currentPct/2)) "░"
-
-            timer.Stop()
-            let msSpent = float timer.ElapsedMilliseconds
-            timer.Start()
-            let msRemaining = 
-              if currentPct <> 100 then ((100. - float currentPct) / float currentPct) * float msSpent
-              else 0.0000
-            let secondsRemaining = System.Math.Round (msRemaining * 0.001, 4)
-            Console.SetCursorPosition (0, Console.CursorTop - 2)
-            Console.Write("                               {0}", loadingSymbols.[loadingIndex] + " |" + dots + white + "| " + string pct + "%")
-            printf ("\n\n                                             Time remaining: %.4f") secondsRemaining
-            printf " seconds                   "
-            loadingIndex <- loadingIndex + 1
-
     member this.PreProcessing =
-        // Start timer for acceleration create measurement
-        if accelTiming then 
-            travTimer.Start() 
-            printfn "# Acceleration create timing start"
-
         let accel = Acceleration.createAcceleration (shapeArray (idOfScene, bbshapes, None))
 
-        // Stop timer for acceleration create measurement and print elapsed time
-        if accelTiming then
-            travTimer.Stop()
-            printfn "## Acceleration create in %f seconds" travTimer.Elapsed.TotalSeconds
-
-        if ppRendering then
-          Console.WriteLine(" 
-        
-                             ██▀███ ▓█████ ███▄    █▓█████▄▓█████ ██▀███  ██▓███▄    █  ▄████ 
-                             ▓██ ▒ ██▓█   ▀ ██ ▀█   █▒██▀ ██▓█   ▀▓██ ▒ ██▓██▒██ ▀█   █ ██▒ ▀█▒
-                             ▓██ ░▄█ ▒███  ▓██  ▀█ ██░██   █▒███  ▓██ ░▄█ ▒██▓██  ▀█ ██▒██░▄▄▄░
-                             ▒██▀▀█▄ ▒▓█  ▄▓██▒  ▐▌██░▓█▄   ▒▓█  ▄▒██▀▀█▄ ░██▓██▒  ▐▌██░▓█  ██▓
-                             ░██▓ ▒██░▒████▒██░   ▓██░▒████▓░▒████░██▓ ▒██░██▒██░   ▓██░▒▓███▀▒
-                             ░ ▒▓ ░▒▓░░ ▒░ ░ ▒░   ▒ ▒ ▒▒▓  ▒░░ ▒░ ░ ▒▓ ░▒▓░▓ ░ ▒░   ▒ ▒ ░▒   ▒ 
-                                 ░▒ ░ ▒░░ ░  ░ ░░   ░ ▒░░ ▒  ▒ ░ ░  ░ ░▒ ░ ▒░▒ ░ ░░   ░ ▒░ ░   ░ 
-                                 ░░   ░   ░     ░   ░ ░ ░ ░  ░   ░    ░░   ░ ▒ ░  ░   ░ ░░ ░   ░ 
-                                 ░       ░  ░        ░   ░      ░  ░  ░     ░          ░      ░ 
-                                                         ░                                        
-                                                                                                  ")
-          printfn "%s" (getRandomString())
-          //Console.WriteLine("                                                   Building Acceleration Structure..")
-        else ()
-        
-        //let kdTimer = Stopwatch.StartNew()
-        //kdTimer.Stop()
-        
-        //if ppRendering then
-         // Console.WriteLine("                                                   ...Done in " + string kdTimer.ElapsedMilliseconds + " ms.\n\n")
-          //Console.WriteLine()
-        //else ()
-
         accel
-
-    member this.PostProcessing =
-        timer.Stop()
-        // Printing how much time was spent rendering
-        if ppRendering then
-          printfn ""
-          printfn ""
-          printfn "                                            Rendering Time: %f Seconds\n\n" timer.Elapsed.TotalSeconds
 
     member this.ShowImageOnScreen (renderedImage:Bitmap) =
         let window = new Form(ClientSize=Size(renderedImage.Width, renderedImage.Height), StartPosition=FormStartPosition.CenterScreen)
@@ -273,17 +177,9 @@ type Render(scene : Scene, camera : Camera) =
         // Save image
         renderedImage.Save(filepath)
         
-        // Open image
-        //Process.Start(filepath) |> ignore
-
     member this.RenderParallel = 
-        if accelTiming then 
-            renderTimer.Start()
-            printfn "# Acceleration RenderParallel timing start"
-
         // Create our timer and Acceleration Structure
         let accel = this.PreProcessing
-        timer.Start()
 
         // Prepare image
         let renderedImage = (new Bitmap(camera.ResX, camera.ResY))
@@ -299,11 +195,6 @@ type Render(scene : Scene, camera : Camera) =
         let firstPixel = bitmapData.Scan0
         Marshal.Copy(firstPixel, pixel, 0, pixel.Length)
         
-        // Start timer for acceleration traverse measurement
-        if accelTiming then 
-            travTimer.Start()
-            printfn "# Acceleration traverese timing start"
-
         Parallel.For(0, bitmapData.Height * bitmapData.Width, fun xy ->
             let y = xy / bitmapData.Width
             let x = (xy % bitmapData.Width) * bytesPrPixel
@@ -326,109 +217,21 @@ type Render(scene : Scene, camera : Camera) =
         Marshal.Copy(pixel, 0, firstPixel, pixel.Length);
         renderedImage.UnlockBits(bitmapData)
 
-        // Stop timer for acceleration traverse measurement and print elapsed time
-        if accelTiming then
-            travTimer.Stop()
-            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
-
-        this.PostProcessing
         renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
 
-        // Stop timer for render measurement and print elapsed time
-        if accelTiming then
-            renderTimer.Stop()
-            printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
-        Acceleration.discardAccelerations
         renderedImage
 
+    member this.Clean (image:Bitmap) =
+        image.Dispose()
+        Acceleration.listOfAccel <- []
+        GC.Collect()
 
-    member this.RenderParallelWithProgressBar = 
-        // Prepare image
-        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
-
-        // Create our timer and Acceleration Structure
-        let accel = this.PreProcessing
-        
-        timer.Start()
-
-        let mutable processed = 0.0
-        let pos = [for y in 0 .. camera.ResY - 1 do
-                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
-        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
-        let mutex = new Mutex()
-
-        try
-          // Shoot rays and save the resulting colors, using parallel computations.
-          Parallel.ForEach (pos, fun (x,y) ->
-            let rays = camera.CreateRays x y
-            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
-            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
-              
-            // using mutex to deal with shared ressources in a thread-safe manner
-            if ppRendering then 
-              mutex.WaitOne() |> ignore
-              bmColourArray.[y,x] <- colour
-              processed <- processed + 1.0
-              this.CalculateProgress processed total
-              mutex.ReleaseMutex() |> ignore
-            else 
-              bmColourArray.[y,x] <- colour
-          ) |> ignore
-        finally
-          mutex.Dispose() |> ignore
-
-        // Apply the colors to the image.
-        for y in 0 .. camera.ResY - 1 do
-          for x in 0 .. camera.ResX - 1 do
-            let yrev = (camera.ResY - 1) - y
-            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
-
-        this.PostProcessing
-        renderedImage
-
-    member this.Render =
-        if accelTiming then 
-            renderTimer.Start()
-            printfn "# Acceleration render timing start"
-
-        // Prepare image
-        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
-
-        // Create our timer and Acceleration Structure
-        let accel = this.PreProcessing
-
-        // Start timer for acceleration traverse measurement
-        if accelTiming then 
-            travTimer.Start()
-            printfn "# Acceleration traverse timing start"
-
-        for x in 0..camera.ResX-1 do
-            for y in 0..camera.ResY-1 do
-                if ppRendering then this.CalculateProgress (float(x*y)) total
-                    
-                let rays = camera.CreateRays x y
-                let colours = Array.map (fun ray -> (this.Cast accel ray)) rays
-                let colour = (Array.fold (+) Colour.Black colours)/float colours.Length
-                
-                renderedImage.SetPixel(x, y, colour.ToColor)
-        
-        // Stop timer for acceleration traverse measurement and print elapsed time
-        if accelTiming then
-            travTimer.Stop()
-            printfn "## Acceleration traverse in %f seconds" travTimer.Elapsed.TotalSeconds
-
-        this.PostProcessing
-        // Stop timer for render measurement and print elapsed time
-        if accelTiming then
-            renderTimer.Stop()
-            printfn "## Render in %f seconds" renderTimer.Elapsed.TotalSeconds
-        renderedImage.RotateFlip(RotateFlipType.RotateNoneFlipY)
-        renderedImage
-
-    member this.RenderToFile renderMethod filename =
-        let image = renderMethod
+    member this.RenderToFile filename =
+        let image = this.RenderParallel
         this.SaveImage(image, filename)
+        this.Clean image
 
-    member this.RenderToScreen renderMethod =
-        let image = renderMethod
+    member this.RenderToScreen =
+        let image = this.RenderParallel
         this.ShowImageOnScreen(image)
+        this.Clean image
