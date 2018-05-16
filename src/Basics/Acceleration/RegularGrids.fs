@@ -126,6 +126,7 @@ module RegularGrids =
                             if hitPoint.DidHit && dist<closestDist then
                                 closestDist <- dist
                                 closestHit <- Some hitPoint
+                        if debugTraverse && closestHit.IsNone then printfn "RG -> closestHit isNone"
                         closestHit
         | _ ->  None
 
@@ -135,43 +136,48 @@ module RegularGrids =
         match bbox.intersectRG ray with
         | Some (t,t',tx,ty,tz,tx',ty',tz') ->
                 
-                let p = ray.GetOrigin
-                if not (bbox.isInside p) then
-                    let d = ray.GetDirection
-                    let p = p+(t*d)
+                let mutable p = ray.GetOrigin
+                let d = ray.GetDirection
+
+                if not (bbox.isInside p) 
+                then 
+                    p <- (p + (t * d))
+                //if  d.Y >= 0. then printfn "RG -> searchStructure -> ray y dir: d.Y = %f" d.Y
                                                 
-                    let ix, iy, iz = calcIxIyIz p bbox nx ny nz
-                    if debugTraverse then printfn "ix, iy, iz %i %i %i" ix iy iz
+                let ix, iy, iz = calcIxIyIz p bbox nx ny nz
+                if debugTraverse then printfn "ix, iy, iz %i %i %i" ix iy iz
 
-                    let dtx : float = (tx'-tx)/float nx
-                    let dty : float = (ty'-ty)/float ny
-                    let dtz : float = (tz'-tz)/float nz
+                let dtx : float = (tx'-tx)/float nx
+                let dty : float = (ty'-ty)/float ny
+                let dtz : float = (tz'-tz)/float nz
 
-                    let txNext, ixStep, ixStop = calcNextStepStop d.X tx ix dtx nx
-                    let tyNext, iyStep, iyStop = calcNextStepStop d.Y ty iy dty ny
-                    let tzNext, izStep, izStop = calcNextStepStop d.Z tz iz dtz nz
+                let txNext, ixStep, ixStop = calcNextStepStop d.X tx ix dtx nx
+                let tyNext, iyStep, iyStop = calcNextStepStop d.Y ty iy dty ny
+                let tzNext, izStep, izStop = calcNextStepStop d.Z tz iz dtz nz
 
-                    let rec loop ix iy iz txNext tyNext tzNext =
-                        let checkForHit = closestHit grid.[ix,iy,iz] ray shapes
-                        if txNext<tyNext && txNext<tzNext then
+                let rec loop ix iy iz txNext tyNext tzNext =
+                    let checkForHit = closestHit grid.[ix,iy,iz] ray shapes
+                    if txNext<tyNext && txNext<tzNext then
+                        match checkForHit with
+                        | Some hitPoint when hitPoint.Time<txNext -> Some hitPoint
+                        | _ ->  
+                                if debugTraverse then printfn "RG -> closestHit isNone -> txNext<tyNext && txNext<tzNext"
+                                if (ix+ixStep) = ixStop then None
+                                else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
+                    else
+                        if tyNext<tzNext then
                             match checkForHit with
-                            | Some hitPoint when hitPoint.Time<txNext -> Some hitPoint
-                            | _ ->  if (ix+ixStep) = ixStop then None
-                                    else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
+                            | Some hitPoint when hitPoint.Time<tyNext -> Some hitPoint
+                            | _ ->  if debugTraverse then printfn "RG -> closestHit isNone -> tyNext<tzNext"
+                                    if (iy+iyStep) = iyStop then None
+                                    else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
                         else
-                            if tyNext<tzNext then
-                                match checkForHit with
-                                | Some hitPoint when hitPoint.Time<tyNext -> Some hitPoint
-                                | _ -> if (iy+iyStep) = iyStop then None
-                                        else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
-                            else
-                                match checkForHit with
-                                | Some hitPoint when hitPoint.Time<tzNext -> Some hitPoint
-                                | _ ->  if (iz+izStep) = izStop then None
-                                        else loop ix iy (iz+izStep) txNext tyNext (tzNext+dtz)
-                    loop ix iy iz txNext tyNext tzNext
-                else
-                    None                    
+                            match checkForHit with
+                            | Some hitPoint when hitPoint.Time<tzNext -> Some hitPoint
+                            | _ ->  if debugTraverse then printfn "RG -> closestHit isNone -> tyNext<tzNext -> else"
+                                    if (iz+izStep) = izStop then None
+                                    else loop ix iy (iz+izStep) txNext tyNext (tzNext+dtz)
+                loop ix iy iz txNext tyNext tzNext                   
         | None -> None
 
     //Function for traversal of the structure.
