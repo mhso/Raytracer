@@ -120,11 +120,8 @@ module API =
   let mkRectangle (bottomLeft : point) (topLeft : point) (bottomRight : point) (t : texture) : shape = 
     //this doesnt work at the moment, the rectangles aren't transformed right
     let angleX = Math.Atan(topLeft.Y/topLeft.Z) 
-    printfn "angle %A" angleX
     let angleY = Math.Atan(bottomRight.X/bottomRight.Z)
-    printfn "angle2 %A" angleY
     let transformation = mergeTransformations [rotateX ((angleX)); rotateY ((angleY)); scale (bottomRight.X - bottomLeft.X) (topLeft.Y - bottomLeft.Y) 1. ; translate bottomLeft.X bottomLeft.Y bottomLeft.Z]
-    printfn "scaleY dist %A" (topLeft.Y - bottomLeft.Y)
     let transShape = Transform.transform (new Rectangle(bottomLeft, topLeft, bottomRight, t) :> shape) transformation
     transShape
     
