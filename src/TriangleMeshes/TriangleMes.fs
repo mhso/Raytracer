@@ -74,7 +74,7 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
     let bBoxSize : Point array = Array.zeroCreate(2)
     bBoxSize.[0] <- Point(infinity, infinity, infinity)
     bBoxSize.[1] <- Point(-infinity, -infinity, -infinity)
-    Parallel.For(0,ar.Length,fun i ->
+    for i in 0..ar.Length-1 do
         //CALCULATES THE NEW POINT
         let v1 = triangleArray.[faceArray.[i].[1]]
         let p1 = new TriPoint(v1)
@@ -94,7 +94,7 @@ let createTriangles (triangleArray : Vertex array) (faceArray : int list array) 
         let triangleHightPoint = triangle.BBox.highPoint
         bBoxSize.[0] <- bBoxSize.[0].Lowest triangleLowPoint
         bBoxSize.[1] <- bBoxSize.[1].Highest triangleHightPoint
-        ar.[i] <- (triangle)) |> ignore
+        ar.[i] <- (triangle)
     ar,BBox(bBoxSize.[0],bBoxSize.[1])
         
 
