@@ -1,6 +1,5 @@
 open TracerTestSuite
 open Tracer.API
-open System
 
 let allTargets : Target list =
   List.concat 
