@@ -16,7 +16,7 @@ type Ray(origin: Point, direction: Vector) =
         Ray(origin, direction.Invert.Normalise)
 
     static member None = 
-        Ray(Point(0.,0.,0.),Vector(0.,0.,0.).Normalise)
+        Ray(Point(0.,0.,0.),Vector(0.,0.,0.))
 
     override this.GetHashCode() = hash (this.GetOrigin, this.GetDirection)
     override this.Equals(other) =
