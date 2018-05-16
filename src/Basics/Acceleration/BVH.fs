@@ -125,14 +125,15 @@ module BVH =
  
     let build (shapes:array<Shape>) : BVHStructure = 
         let structure = buildStructure shapes
-        if debugBuildCounts then printfn "totalShapes: %i" shapes.Length 
-        if debugBuildCounts then printfn "totalNodes: %i" totalNodes 
-        if debugBuildCounts then printfn "totalLeafs: %i" totalLeafs
-        if debugBuildCounts then printfn "totalAxisX: %i" totalAxisX
-        if debugBuildCounts then printfn "totalAxisY: %i" totalAxisY
-        if debugBuildCounts then printfn "totalAxisZ: %i" totalAxisZ
-        if debugBuildCounts then printfn "totalSingleShape: %i" totalSingleShape
-        if debugBuildCounts then printfn "totalDualShape: %i" totalDualShape
+        if debugBuildCounts then 
+            printfn "totalShapes: %i" shapes.Length 
+            printfn "totalNodes: %i" totalNodes 
+            printfn "totalLeafs: %i" totalLeafs
+            printfn "totalAxisX: %i" totalAxisX
+            printfn "totalAxisY: %i" totalAxisY
+            printfn "totalAxisZ: %i" totalAxisZ
+            printfn "totalSingleShape: %i" totalSingleShape
+            printfn "totalDualShape: %i" totalDualShape
         structure
     
 

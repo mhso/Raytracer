@@ -3,9 +3,7 @@
 module RegularGrids =
 
     // Used for debug, will print to console etc. 
-    let debugBuild = false
-    let debugTraverse = false
-    let debugBuildCounts    = false
+    let debugBuildCounts = false
 
     // Type of the BVHTree, with Nodes and Leafs.
     type RGStructure = int list[,,]*int*int*int*BBox  
@@ -102,8 +100,8 @@ module RegularGrids =
     
     let build (shapes:array<Shape>) : RGStructure = 
         let structure = buildStructure shapes
-        if debugBuildCounts then printfn "totalShapes: %i" shapes.Length 
         if debugBuildCounts then 
+            printfn "totalShapes: %i" shapes.Length
             let x,y,z = gridSize
             printfn "Grid size x, y, z: %i %i %i" x y z
 
