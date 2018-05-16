@@ -5,27 +5,27 @@ open System
 let allTargets : Target list =
   List.concat 
     [
-     //Material.renderRegular;
-     //Material.renderMulti;
-     //Material.renderHigh;
-     //ThinLens.render;
-     //AreaLights.render;
-     //Shapes.render;
-     //Texture.render;
-     //Transparency.render;
-     //Shapes.render;
-     //AffineTransformations.render true;
-     //AffineTransformations.render false;
-     //ImplicitSurfaces.render;
-     //Meshes.render Tracer.API.Acceleration.KDTree;
-     //Texture.render;
-     //Light.render;
-     //CSG.render;
-     // AmbientOcclusion.render [1;2;4;8;16]
+     Material.renderRegular;
+     Material.renderMulti;
+     Material.renderHigh;
+     ThinLens.render;
+     AreaLights.render;
+     Shapes.render;
+     Texture.render;
+     Transparency.render;
+     Shapes.render;
+     AffineTransformations.render true;
+     AffineTransformations.render false;
+     ImplicitSurfaces.render;
+     Meshes.render Tracer.API.Acceleration.KDTree;
+     Texture.render;
+     Light.render;
+     CSG.render;
+     AmbientOcclusion.render [1;2;4;8;16]
      // The test groups below is only needed for teams of 7 students.
      // Teams of 6 students can uncomment the lines below.
      Meshes.render Tracer.API.Acceleration.KDTree;
-     //Meshes.render Tracer.API.Acceleration.BVH;
+     Meshes.render Tracer.API.Acceleration.BVH;
      ]
 
 
@@ -55,5 +55,4 @@ let main argv =
     // renderTests false "ambientOcclusion" ["ao_sphere_regular_256"]
     
     Util.finalize();
-    Console.ReadKey() |> ignore
     0 // return an integer exit code

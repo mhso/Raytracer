@@ -18,6 +18,7 @@ module Acceleration =
         member this.acceleration = acceleration
 
     let mutable listOfKDTree : shapeArray list = []
+    let discardAccelerations = listOfKDTree <- []
 
     let createAcceleration (shape: shapeArray) = 
         if (listOfKDTree.Length < shape.number) then
