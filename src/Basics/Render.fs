@@ -67,9 +67,13 @@ type Render(scene : Scene, camera : Camera) =
             let totalLightColour = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
-                    lock light (fun() -> 
+                    if light :? EnvironmentLight then
+                        lock light (fun() -> 
+                            let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
+                            acc + colour)
+                    else
                         let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
-                        acc + colour)
+                        acc + colour
                     ) Colour.Black
             ambientColour + totalLightColour
         else
