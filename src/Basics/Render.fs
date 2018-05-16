@@ -329,7 +329,7 @@ type Render(scene : Scene, camera : Camera) =
         if accelTiming then
             renderTimer.Stop()
             printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
-        Acceleration.shouldDiscard <- true 
+        Acceleration.discardAccelerations
         renderedImage
 
     member this.Render =
