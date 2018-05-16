@@ -352,9 +352,9 @@ let main _ =
   ////let sphere1 = SphereShape(Point.Zero, 1.0, mkMatTexture sphere1mat)
   //let sphere1cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, multiJittered 4 87)
 
-  //let sphere2mat = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
-  //let sphere2 = mkshape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (mkMatTexture sphere2mat)
-  //let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
+  let sphere2mat = MatteMaterial (Colour.Blue, 1.0, Colour.Blue, 1.0)
+  let sphere2 = mkshape (mkImplicit "(x^2 + y^2 + z^2)_2 - 1.0") (mkMatTexture sphere2mat)
+  let sphere2cam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
   //let torus = mkshape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (mkMatTexture sphere2mat)
   //let toruscam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
@@ -380,7 +380,7 @@ let main _ =
   //  mkshape (mkImplicit eqn) (mkMatTexture sphere2mat)
   //let torus2cam = PinholeCamera (Point(0.0, 4.0, 0.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-  //let testshapemat = MatteMaterial (Colour(Color.Gold), 1.0, Colour(Color.Gold), 1.0)
+  let testshapemat = MatteMaterial (Colour(Color.Gold), 1.0, Colour(Color.Gold), 1.0)
   //let testshape = mkshape (mkImplicit "(x - 2)^2*(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (mkMatTexture testshapemat)
   //let testshapecam = PinholeCamera (Point(6.0, 6.0, 8.0), Point(0.0, 0.0, 0.0), Vector(-1.0, -1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
@@ -388,44 +388,44 @@ let main _ =
   let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
   let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
-  //let factorial x = 
-  //  if x = 0 then 1 else
-  //  let rec fac_aux a acc =
-  //    if a >= x then
-  //      a * acc
-  //    else
-  //      fac_aux (a + 1) (a * acc)
-  //  fac_aux 1 x
+  let factorial x = 
+    if x = 0 then 1 else
+    let rec fac_aux a acc =
+      if a >= x then
+        a * acc
+      else
+        fac_aux (a + 1) (a * acc)
+    fac_aux 1 x
 
-  //let comb a b = 
-  //  let x = float (factorial a) in
-  //  let y = float (factorial b) in
-  //  let z = float (factorial (a - b)) in
-  //    x / (y * z)
+  let comb a b = 
+    let x = float (factorial a) in
+    let y = float (factorial b) in
+    let z = float (factorial (a - b)) in
+      x / (y * z)
 
-  //let rec strSum n f : string =
-  //  if n = 0 then
-  //    f 0
-  //  else
-  //    f n + " + " + (strSum (n - 1) f)
+  let rec strSum n f : string =
+    if n = 0 then
+      f 0
+    else
+      f n + " + " + (strSum (n - 1) f)
 
-  //let a = ()
-  //let chmutov degree =       
-  //  let T x = strSum (degree / 2) (fun (k : int) -> (string (comb degree (2 * k))) + " * (" + x + "^2 + -1.0)^" + (string k) + " * " + x + "^" + (string (degree - (2 * k))))
-  //  let is = mkImplicit (T "x" + " + " + T "y" + " + " + T "z")
-  //  let s = mkshape is (mkMatTexture testshapemat)
-  //  s
-  //let chmutovcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
+  let a = ()
+  let chmutov degree =       
+    let T x = strSum (degree / 2) (fun (k : int) -> (string (comb degree (2 * k))) + " * (" + x + "^2 + -1.0)^" + (string k) + " * " + x + "^" + (string (degree - (2 * k))))
+    let is = mkImplicit (T "x" + " + " + T "y" + " + " + T "z")
+    let s = mkshape is (mkMatTexture testshapemat)
+    s
+  let chmutovcam = PinholeCamera (Point (16.0, 16.0, 16.0), Point (0.0, -0.5, 0.0), Vector (-1.0, 1.0, -1.0), 16.0, 4.0, 4.0, 500, 500, regular 1)
 
   //let b = ()
   //let render = Render(mkScene' planeZ, planeZcam)
   //let render = Render(mkScene' sphere1, sphere1cam)
   //let render = Render(mkScene' sphere2, sphere2cam)
   //let render = Render(mkScene' torus, toruscam)
-  let render = Render(mkScene' heart, heartcam)
+  //let render = Render(mkScene' heart, heartcam)
   //let render = Render(mkScene' (chmutov 2), chmutovcam)
   //let render = Render(mkScene' (chmutov 3), chmutovcam)
-  //let render = Render(mkScene' (chmutov 4), chmutovcam)
+  let render = Render(mkScene' (chmutov 4), chmutovcam)
   //let render = Render(mkScene' (chmutov 5), chmutovcam)
   //let render = Render(mkScene' (chmutov 6), chmutovcam)
   //let render = Render(mkScene' torus2, torus2cam)

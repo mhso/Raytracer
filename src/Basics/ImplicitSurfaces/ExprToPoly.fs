@@ -6,6 +6,9 @@ module ExprToPoly =
 
   type expr = Tracer.ExprParse.expr
   
+  (*
+      Pretty prints an expression
+  *)
   let rec ppExpr = function
     | FNum c            -> string(c)
     | FVar s            -> s
@@ -15,6 +18,9 @@ module ExprToPoly =
     | FDiv(e1,e2)       -> ppExpr e1 + " / " + ppExpr e2
     | FRoot(e,n)        -> "(" + ppExpr e + ")_" + string(n)
 
+  (*
+      Substitutes an FVar expression, e, with another expression, ex, if the FVar's variable matches x
+  *)
   let rec subst e (x,ex) =
     match e with    
     | FNum c          -> FNum c
@@ -25,12 +31,18 @@ module ExprToPoly =
     | FDiv(a,b)       -> FDiv(subst a (x, ex), subst b (x, ex))
     | FRoot(a,i)      -> FRoot(subst a (x, ex), i)
 
+  (*
+      ARadical gets removed before the function simplify is called
+  *)
   type atom = ANum of float | AExponent of string * int | ARadical of simpleExpr * int
   and atomGroup = atom list  
   and simpleExpr = SE of atomGroup list
 
   let isSimpleExprEmpty (SE ags) = List.isEmpty ags || ags = [[]]
 
+  (*
+      Pretty prints an atom
+  *)
   let ppAtom = function
     | ANum c          -> string(c)
     | AExponent(s,1)  -> s
@@ -39,11 +51,16 @@ module ExprToPoly =
   let ppAtomGroup ag = String.concat "*" (List.map ppAtom ag)
   let ppSimpleExpr (SE ags) = String.concat "+" (List.map ppAtomGroup ags)
 
+  (*
+      Multiplies an atom list list into an atomGroup list
+  *)
   let rec combine (xss:atomGroup list) = function
     | [] -> []
     | ys::yss -> List.map ((@) ys) xss @ combine xss yss
 
-  // Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
+  (* 
+      Converts an expr to simpleExpr, and as the type implies: simplifies the expr in the process
+  *)
   let rec simplify = function
     | FNum c          -> [[ANum c]]
     | FVar s          -> [[AExponent(s,1)]]
@@ -54,31 +71,50 @@ module ExprToPoly =
                             | FNum c  -> combine (simplify (FNum (1./c))) (simplify (FExponent(e1, n + 1)))
                             | FVar s1 -> if n = -1 then [[AExponent(s1,-1)]]
                                          else combine [[AExponent(s1, -1)]] (simplify (FExponent(e1, n + 1)))
-                            | _       -> failwith "simplify: unmatched expr" // TODO: I need to figure out what to do when we encounter other stuff
+                            | _       -> failwith "simplify: unmatched expr, shouldn't end here" 
                          else combine (simplify e1) (simplify (FExponent(e1, n-1)))
     | FRoot(e1,n)     -> [[ARadical(SE (simplify e1),n)]]
     | FAdd(e1,e2)     -> simplify e1 @ simplify e2
     | FMult(e1,e2)    -> combine (simplify e1) (simplify e2)
     | FDiv(e1,e2)     -> combine (simplify e1) (simplify (FExponent(e2, -1))) // e1 / e2 is the same as e1 * e2^-1 (because e2^-1 = 1 / e2)
 
-  let rec highestRoot (c:int) = function
+  (*
+      Returns the highest nth root of an atom list list 
+  *)
+  let highestRoot s =
+    let rec inner c = function
     | []      -> c
     | ag::cr  -> 
-        highestRoot (List.fold (fun c x -> 
+        inner (List.fold (fun c x -> 
           match x with
           | ANum _          -> c
           | AExponent _     -> c
           | ARadical(_,n)   -> max c n
         ) c ag) cr
-                            
-  let rec containsRoots (s: atom list list) =
-    let atommatcher = function
-      | ANum _      -> false
-      | AExponent _ -> false
-      | ARadical _  -> false
-    let trav ag = List.fold (fun b a -> b || atommatcher a) false ag 
-    List.fold (fun b ag -> b || trav ag) false s
-  
+    inner 0 s
+                   
+  (*
+      Checks if an atom list list contains a radical sign
+  *)
+  let rec containsRoots = function
+    | []      -> false
+    | ag::cr  -> 
+        let rec inner = function
+        | []      -> false
+        | a::rest -> 
+              let b =
+                match a with
+                | ANum _      -> false
+                | AExponent _ -> false
+                | ARadical _  -> true
+              b || inner rest
+        inner ag || containsRoots cr
+
+  (*
+      Simplifies and reduces an expr, e
+      Runs recursively if a change has happen in the inner recursive call
+      The division cases should  
+  *)
   let rec simplifyExpr e =
     let rec inner ex =
       match ex with
@@ -110,6 +146,11 @@ module ExprToPoly =
     if rewritten = e then e
     else simplifyExpr rewritten
 
+  (*
+      Checks if nth radicals appear multiplied with itself n times
+      If that is the case, the rooted term is all that is left (1 time)
+      ex: x_3 * x_3 * x_3 = x
+  *)
   let removeNRoots s =
     let rec inner ag =
       let mutable roots = Map.empty
@@ -130,29 +171,45 @@ module ExprToPoly =
                                     rest <- combine rest remainingRoots
       combine rest freed
     List.fold (fun acc x -> acc @ (inner x)) [] s
-
+  
+  (*
+      Takes an atom list list, and first checks if there are any roots present
+      If that is the case:
+        Dinds the highest root, k, negates all the terms without roots, which is equivalent to moving these terms to the
+        other side of the equations sign.
+        Multiplies both sides of the equation with itself, k times. An negates the terms without roots once more.
+        Calls removeNRoots on the collection with roots, and then merges the result with the non-root terms
+        
+        If the combined result still containsRoots, simplifyRoots is called again, otherwise the result is returned
+  *)
   let rec simplifyRoots s =
-    let s' = if containsRoots s then removeNRoots s else s
-    let rec inner nr r = function
-      | []      -> nr, r
-      | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
-                     else inner (nr @ [ag]) r cr
-    let (noroots, roots) = inner [] [] s'
-    let x = ()
-    if roots <> [] then
-      let k = highestRoot 0 roots // first we find the highest root we want to get rid of
+    if containsRoots s then 
+      let s' = removeNRoots s
+      let rec inner nr r = function
+        | []      -> nr, r
+        | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
+                       else inner (nr @ [ag]) r cr
+      let (noroots, roots) = inner [] [] s'
+      if roots <> [] then
+        let k = highestRoot roots // first we find the highest root we want to get rid of
       
-      // no roots term. Multiply by -1, then to the power of k, and then again multiply by -1
-      let nrTerm = combine [[ANum -1.0]] noroots
-      let nrTermMultiplied = [for _ in 1 .. k -> nrTerm] |> List.fold (combine) [[]]
-      let nrTermDone = combine [[ANum -1.0]] nrTermMultiplied
+        // no roots term. Multiply by -1, then to the power of k, and then again multiply by -1
+        let nrTerm = combine [[ANum -1.0]] noroots
+        let nrTermMultiplied = [for _ in 1 .. k -> nrTerm] |> List.fold (combine) [[]]
+        let nrTermDone = combine [[ANum -1.0]] nrTermMultiplied
       
-      let rtTerm = [for _ in 1 .. k -> roots] |> List.fold (combine) [[]]
-      let result = nrTermDone @ removeNRoots rtTerm
+        let rtTerm = [for _ in 1 .. k -> roots] |> List.fold (combine) [[]]
+        let result = nrTermDone @ removeNRoots rtTerm
 
-      if containsRoots result then simplifyRoots result else result
-    else noroots
+        if containsRoots result then simplifyRoots result else result
+      else noroots
+    else s
 
+  (*
+      Takes a sequence of atoms (equivalent to a term in an equation)
+      Puts similar parts of the term together, and counts how many times they appear (their exponents).
+      Also, counts constants together to a single one.
+  *)
   let simplifyAtomGroup ag : atomGroup =
     let mutable nums = 1.0
     let mutable exps = Map.empty
@@ -169,7 +226,11 @@ module ExprToPoly =
                         else AExponent(k,v)]
     if nums = 0.0 then []
     else [ANum nums] @ expslist
-
+  
+  (*
+      Counts how many times equal terms appear, reduced them to a single term, multiplied by that number.
+      All constants are added to a single term.
+  *)
   let simplifySimpleExpr (SE ags) =
     let ags' = List.map simplifyAtomGroup ags
     let mutable nums = 0.0
@@ -191,6 +252,9 @@ module ExprToPoly =
     if nums <> 0.0 then SE ([[ANum nums]] @ varslist)
     else SE varslist
 
+  (*
+      Invoking the spirit of Muhammad ibn Musa al-Khwarizmi
+  *)
   let rewriteExpr e =
     let reduced =
       match simplifyExpr e with
@@ -198,10 +262,19 @@ module ExprToPoly =
       | res           -> res
     (simplifyRoots << simplify) reduced
 
+  (*
+      Runs most of the code above
+      Takes an expression as input, and returns a simpleExpr
+      
+      This simpleExpr contains no divisions, and no radical signs
+  *)
   let exprToSimpleExpr (e:expr) :simpleExpr = simplifySimpleExpr (SE (rewriteExpr e)) // swapped simplify with rewriteExpr
 
   type poly = P of Map<int,simpleExpr>
 
+  (*
+      Pretty prints a polynomial
+  *)
   let ppPoly v (P p) =
     let pp (d,ags) =
       let prefix = if d=0 then "" else ppAtom (AExponent(v,d))
@@ -209,7 +282,9 @@ module ExprToPoly =
       prefix + postfix
     String.concat "+" (List.map pp (Map.toList p))
 
-  // Collect atom groups into groups with respect to one variable v
+  (*
+      Collect atom groups into groups with respect to one variable v
+  *)
   let splitAG v m = function
     | [] -> m
     | ag ->
@@ -230,10 +305,16 @@ module ExprToPoly =
   let simpleExprToPoly (SE ags) v =
     P (List.fold (splitAG v) Map.empty ags)
 
-  // same as (simpleExprToPoly (simplifySimpleExpr (exprToSimpleExpr e)) v)
+  (* 
+      Converts an expression into a polynomial with respect to a variable v
+
+      Same as (simpleExprToPoly (simplifySimpleExpr (exprToSimpleExpr e)) v)
+  *)
   let exprToPoly e v = (exprToSimpleExpr >> simplifySimpleExpr >> simpleExprToPoly) e v
 
-  // derivative of a polynomial, with respect to t
+  (*
+      Returns the derivative of a polynomial, with respect to t
+  *)
   let polyDerivative (P m) = 
     let rec inner m' = function
     | []    -> m'
@@ -247,28 +328,10 @@ module ExprToPoly =
                   (simplifySimpleExpr (SE (combine s [[ANum (float n)]]) ))
                   m'
               inner updated cr
-    P (inner Map.empty (Map.toList m))
-
-  let rec solveAG m = function
-    | []   -> 1.0
-    | a::r -> 
-        match a with
-        | ANum c         -> c * solveAG m r
-        | AExponent(e,x) -> 
-            match Map.tryFind e m with
-            | Some v -> if x = 1 then v * solveAG m r
-                          else (pown v x) * solveAG m r
-            | None   -> failwith "solveAG: variable not found in map"
-        | _ -> failwith "solveAG: met an atom that shouldn't exist here"                
+    P (inner Map.empty (Map.toList m))             
   
-  // maps in fsharp are ordered according to generic comparison, and since our keys are ints,
-  // we know that the last element will have the largest integer value
-  // the following should then be faster than iterating over all the elements
-  let getOrder (m:Map<int,'a>) = (m |> Seq.last).Key
   
-  // requires a map of all variables, mapped to float values
-  //let rec solveSE m acc = function
-  //  | SE ([])     -> acc
-  //  | SE (ag::cr) -> solveSE m (acc + solveAG m ag) (SE cr)
-
+  (*
+      Turns a polynomial (Map<int,simpleExpr>) into a list ((int,simpleExpr) list)
+  *)
   let polyAsList (P m:poly) = Map.toList m

@@ -12,7 +12,7 @@ open System.Drawing.Imaging
 open System.Threading
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = true
+    let accelTiming = false
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
