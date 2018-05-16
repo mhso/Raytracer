@@ -6,6 +6,7 @@ open Tracer.Basics.Sampling
 open Tracer.Basics.Render
 open Tracer.BaseShape
 open Tracer.ImplicitSurfaces
+open Tracer.Basics.Textures
 open Transformation
 
 module API = 
