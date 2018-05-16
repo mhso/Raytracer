@@ -130,7 +130,7 @@ module KD_tree =
                            | 3 -> 0.25
                            | _ -> 0.3
             let (ax,em,len) = empty.[empty.Length - 1]
-            if em/len >= minSpace && abs em > threshold  then
+            if em/len >= minSpace then// && abs em > threshold  then
                 //emptyleafs <- emptyleafs+1
                 //printfn "empty found: %i, %f" (fst empty) (snd empty)
                 //printfn "hi.Y: %f, maxy: %f" (hi.Y) maxy
