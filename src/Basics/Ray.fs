@@ -1,9 +1,8 @@
 ﻿namespace Tracer.Basics
 
 type Ray(origin: Point, direction: Vector) = 
-    let normDir = direction.Normalise
     member this.GetOrigin = origin
-    member this.GetDirection = normDir
+    member this.GetDirection = direction
 
     // Returns a point from a given time/length of the ray
     member this.PointAtTime (t:float) = 
@@ -14,10 +13,10 @@ type Ray(origin: Point, direction: Vector) =
         (p - origin).Z / direction.Z
 
     member this.Invert = 
-        Ray(origin, direction.Invert)
+        Ray(origin, direction.Invert.Normalise)
 
     static member None = 
-        Ray(Point(0.,0.,0.),Vector(0.,0.,0.))
+        Ray(Point(0.,0.,0.),Vector(0.,0.,0.).Normalise)
 
     override this.GetHashCode() = hash (this.GetOrigin, this.GetDirection)
     override this.Equals(other) =

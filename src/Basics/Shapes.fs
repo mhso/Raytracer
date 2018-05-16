@@ -338,7 +338,7 @@ module Transform =
                 let hitsOriginal = s.hitFunction transformedRay
                 if (hitsOriginal.DidHit) then
                     let normal = transformNormal (hitsOriginal.Normal) t
-                    new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material, hitsOriginal.Shape, hitsOriginal.U, hitsOriginal.V)
+                    new HitPoint(r, hitsOriginal.Time, normal.Normalise, hitsOriginal.Material, hitsOriginal.Shape, hitsOriginal.U, hitsOriginal.V)
                 else 
                     new HitPoint(r)
             member this.getBoundingBox () = 

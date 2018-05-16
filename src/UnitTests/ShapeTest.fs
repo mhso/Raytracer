@@ -144,19 +144,19 @@ let allTest =
 
     //BBox Intersect test
     let bBox = BBox(Point(0.,0.,0.), Point(1.,1.,1.))
-    let rayInside = Ray(Point(0.5,0.5,0.5), Vector(0.5,0.5,0.5))
+    let rayInside = Ray(Point(0.5,0.5,0.5), Vector(0.5,0.5,0.5).Normalise)
     let hitInside = bBox.intersect(rayInside)
     Assert.True(hitInside.IsSome, "test on BBox intersect, for point inside BBox")
-    let rayOutside = Ray(Point(1.5,1.5,1.5), Vector(-0.5,-0.5,-0.5))
+    let rayOutside = Ray(Point(1.5,1.5,1.5), Vector(-0.5,-0.5,-0.5).Normalise)
     let hitOutside = bBox.intersect(rayOutside)
     Assert.True(hitOutside.IsSome, "test on BBox intersect, for point outside BBox")
-    let rayOutsideMiss = Ray(Point(1.5,1.5,1.5), Vector(0.5,0.5,0.5))
+    let rayOutsideMiss = Ray(Point(1.5,1.5,1.5), Vector(0.5,0.5,0.5).Normalise)
     let hitOutsideMiss = bBox.intersect(rayOutsideMiss)
     Assert.True(hitOutsideMiss.IsNone, "test on BBox not intersect, for point outside BBox")
 
     //Tests that hitFunctions act as expected
-    let rayHit =  Ray(Point(0.25, 0.25, 0.25), Vector(0.5, 0.5, -0.5))
-    let rayMiss =  Ray(Point(6., 3., 3.), Vector(1., -0.5, -0.5))
+    let rayHit =  Ray(Point(0.25, 0.25, 0.25), Vector(0.5, 0.5, -0.5).Normalise)
+    let rayMiss =  Ray(Point(6., 3., 3.), Vector(1., -0.5, -0.5).Normalise)
     //Hit
     Assert.True((rectangle.hitFunction rayHit).DidHit, "test on rectangle HitFunction, for Ray hitting")
     Assert.True((disc.hitFunction rayHit).DidHit, "test on disc HitFunction, for Ray hitting")

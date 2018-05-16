@@ -103,7 +103,7 @@ type Render(scene : Scene, camera : Camera) =
         total / sampler.SampleCount
 
     member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
-        let ray = Ray(hitPoint.EscapedPoint, sp)
+        let ray = Ray(hitPoint.EscapedPoint, sp.Normalise)
         let rayHit = this.GetFirstHitPoint accel ray
         if rayHit.DidHit then
             occluder.MinIntensityColour
