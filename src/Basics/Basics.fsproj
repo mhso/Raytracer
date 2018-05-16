@@ -78,34 +78,34 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="Vector.fs" />
-    <Compile Include="Colour.fs" />
-    <Compile Include="Point.fs" />
-    <Compile Include="Ray.fs" />
-    <Compile Include="BBox.fs" />
     <Compile Include="Sampling\Sampling.fsi" />
     <Compile Include="Sampling\Sampling.fs" />
-    <Compile Include="Foundation.fs" />
-    <Compile Include="Materials.fs" />
-    <Compile Include="Textures.fsi" />
-    <Compile Include="Textures.fs" />
-    <Compile Include="Transformation.fsi" />
-    <Compile Include="Transformation.fs" />
-    <Compile Include="Shapes.fs" />
-    <Compile Include="CSG.fs" />
-    <Compile Include="BaseShape.fs" />
-    <Compile Include="BasicLight.fs" />
-    <Compile Include="AreaLight.fs" />
-    <Compile Include="GlobalLight.fs" />
+    <Compile Include="Core\Vector.fs" />
+    <Compile Include="Core\Colour.fs" />
+    <Compile Include="Core\Point.fs" />
+    <Compile Include="Core\Ray.fs" />
+    <Compile Include="Core\BBox.fs" />
+    <Compile Include="Core\Foundation.fs" />
+    <Compile Include="Materials\Materials.fs" />
+    <Compile Include="Materials\Textures.fsi" />
+    <Compile Include="Materials\Textures.fs" />
+    <Compile Include="Transformation\Transformation.fsi" />
+    <Compile Include="Transformation\Transformation.fs" />
+    <Compile Include="Shapes\Shapes.fs" />
+    <Compile Include="Shapes\CSG.fs" />
+    <Compile Include="Shapes\BaseShape.fs" />
+    <Compile Include="Lights\GlobalLight.fs" />
+    <Compile Include="Lights\BasicLight.fs" />
+    <Compile Include="Lights\AreaLight.fs" />
     <Compile Include="Acceleration\KDTree.fs" />
     <Compile Include="Acceleration\BVH.fs" />
     <Compile Include="Acceleration\RegularGrids.fs" />
     <Compile Include="Acceleration\Acceleration.fs" />
-    <Compile Include="Camera.fs" />
-    <Compile Include="PinholeCamera.fs" />
-    <Compile Include="ThinLensCamera.fs" />
-    <Compile Include="Scene.fs" />
-    <Compile Include="Render.fs" />
+    <Compile Include="Camera\Camera.fs" />
+    <Compile Include="Camera\PinholeCamera.fs" />
+    <Compile Include="Camera\ThinLensCamera.fs" />
+    <Compile Include="TriangleMesh\PLYParser.fs" />
+    <Compile Include="TriangleMesh\TriangleMesh.fs" />
     <Compile Include="ImplicitSurfaces\ExprParse.fsi" />
     <Compile Include="ImplicitSurfaces\ExprParse.fs" />
     <Compile Include="ImplicitSurfaces\ExprToPoly.fsi" />
@@ -114,12 +114,22 @@
     <Compile Include="ImplicitSurfaces\PolyToUnipoly.fs" />
     <Compile Include="ImplicitSurfaces\ImplicitSurfaces.fsi" />
     <Compile Include="ImplicitSurfaces\ImplicitSurfaces.fs" />
+    <Compile Include="Scene.fs" />
+    <Compile Include="Render.fs" />
+    <Compile Include="API\API.fsi" />
+    <Compile Include="API\API.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FParsec">
+      <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsec.dll</HintPath>
+    </Reference>
+    <Reference Include="FParsecCS">
+      <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsecCS.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
       <Name>FSharp.Core</Name>
