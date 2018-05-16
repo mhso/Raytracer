@@ -19,6 +19,7 @@ module BVH =
                 | 0 -> (fun c -> boxes.[c].lowPoint.X)
                 | 1 -> (fun c -> boxes.[c].lowPoint.Y)
                 | 2 -> (fun c -> boxes.[c].lowPoint.Z)
+                | _ -> invalidArg "sortListByAxis -> invalid axis value" "Axis value needs to be between 0-2."
         List.sortBy (sort axis) indexList
 
     // Function for getting combined outer low and high from a array og bounding boxes.
@@ -70,57 +71,38 @@ module BVH =
     let mutable totalLeafs = 0
     // Build BVH structure from a list of shapes.
     let buildStructure (shapes:array<Shape>) : BVHStructure = 
-        if debugBuild then printfn "buildStructure -> started."
         if shapes.Length = 0 then failwith "buildStructure -> Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes // Get bounding boxes
-        if debugBuild then printfn "buildStructure -> boxes len %i" boxes.Length
 
         let boxIntList = [0..boxes.Length-1]
-        let rec innerNode (intIndexes:int list) (depthLevel:int) : BVHStructure = 
-            if debugBuild then printfn "buildStructure -> innerNode"
+        let rec innerNode (intIndexes:int list) : BVHStructure = 
             let boxArr = getBoxArrFromIndexes intIndexes boxes
-            if debugBuild then printfn "buildStructure -> boxArr len %i" boxArr.Length
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
-            if debugSort then printfn "buildStructure -> axisToSplit val %i" axisToSplit
+
             let box = BBox (lowPoint, highPoint)
             
-            let depthLevel = depthLevel + 1
-            
-            if debugSort then printfn "####################################"
-            if debugSort then printfn "buildStructure -> boxArr %A" boxArr
-            if debugSort then printfn "####################################"
-            if debugSort then printfn "buildStructure -> intIndexes %A" intIndexes
-            if debugSort then printfn "####################################"
             let sortedList = sortListByAxis intIndexes boxes axisToSplit // Sort list min to max
-            if debugSort then printfn "####################################"
-            if debugSort then printfn "buildStructure -> sortedList %A" sortedList
-            if debugSort then printfn "####################################"
 
-            if debugBuild then printfn "buildStructure -> sortedList len %i" sortedList.Length
-            if debugBuild then printfn "buildStructure -> intIndexes len %i" intIndexes.Length
             match intIndexes with
             | [] -> failwith " innerNode -> Empty array"
             | b when intIndexes.Length > 1 ->
-                if debugBuild then printfn "buildStructure -> Start splitting sortedList"
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
                 if debugBuildCounts then totalNodes <- totalNodes+1
-                if debugBuild then printfn "buildStructure -> Create node"
                 Node (
-                            innerNode leftList depthLevel, 
-                            innerNode rigthList depthLevel, 
+                            innerNode leftList, 
+                            innerNode rigthList, 
                             box, 
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
                 if debugBuildCounts then totalLeafs <- totalLeafs+1
-                if debugBuild then printfn "buildStructure -> Create leaf"
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         
-        innerNode boxIntList 0
+        innerNode boxIntList
  
     let build (shapes:array<Shape>) : BVHStructure = 
         let structure = buildStructure shapes

@@ -331,8 +331,8 @@ module Meshes =
        //(renderBunnyTexture, "bunny texture");
        //(renderBunnyAO, "bunnyAO");
        //(renderInsideBunny, "inside bunny");
-       (renderBunnies 7, "bunnies small");
-       //(renderBunnies 17, "bunnies big");
+       //(renderBunnies 7, "bunnies small");
+       (renderBunnies 17, "bunnies big");
        //(renderSpheres 17, "spheres small");
        //(renderSpheres 47, "spheres big");
        //(renderDragon, "dragon");
