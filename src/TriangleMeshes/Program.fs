@@ -109,16 +109,16 @@ let main _ =
     let plane =  InfinitePlane(mkTexture(checker))
     
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" true)
-    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" true)
-    //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
-    //let tex = matGreenTex
-    //let urn = i.toShape(tex)
-    //let t = Transformation.mergeTransformations
-    //            [Transformation.rotateY (System.Math.PI/4.0);
-    //            Transformation.scale 6.0 6.0 6.0;
-    //            Transformation.translate 0. 3. 0.]
-    //let bunnyShape = Transform.transform urn t
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
+    let tex = matGreenTex
+    let urn = i.toShape(tex)
+    let t = Transformation.mergeTransformations
+                [Transformation.rotateY (System.Math.PI/4.0);
+                Transformation.scale 6.0 6.0 6.0;
+                Transformation.translate 0. 3. 0.]
+    let bunnyShape = Transform.transform urn t
     //let secondBunny = Transform.transform (Transform.transform (i.toShape(matGreenTex)) t) (Transformation.translate 2. 0. 0.)
 
     //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
@@ -148,10 +148,10 @@ let main _ =
     let l3 = PointLight(Colour.White, 1.0,(mkPoint -3.5 12.0 4.0))
     //- FINAL
     let lights: Light list      = [l1;l2;l3; lightTop]
-    //let shapes: Shape list      = [bunnyShape]
+    let shapes: Shape list      = [bunnyShape]
     //let shapes: Shape list      = [thinBoxL; thinBoxR]
     //let shapes: Shape list      = [thinBoxL; sphereGreen]
-    let shapes: Shape list      = [thinBoxL; sphereGreen; thinBoxR; thinBoxC; tsphereBlue]
+    //let shapes: Shape list      = [thinBoxL; sphereGreen; thinBoxR; thinBoxC; tsphereBlue]
 
     let lightAmbient   = AmbientLight(Colour.White, 0.1)
     let scene = Scene(shapes, lights, lightAmbient, maxReflectionBounces)

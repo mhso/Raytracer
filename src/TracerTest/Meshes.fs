@@ -327,15 +327,15 @@ module Meshes =
       [
        //(renderIcosahedron, "icosahedron");
        //(renderUrn, "urn");
-       (renderBunny, "bunny");
-       //(renderBunnyTexture, "bunny texture");
+       //(renderBunny, "bunny");
+       (renderBunnyTexture, "bunny texture");
        //(renderBunnyAO, "bunnyAO");
        //(renderInsideBunny, "inside bunny");
        //(renderBunnies 7, "bunnies small");
        //(renderBunnies 17, "bunnies big");
-       //(renderSpheres 17, "spheres small");
+       (renderSpheres 17, "spheres small");
        //(renderSpheres 47, "spheres big");
-       //(renderDragon, "dragon");
+       (renderDragon, "dragon");
        //(renderGoldDragon 4, "gold dragon");
        //(renderHappy, "happy");
        //(renderPorsche, "porsche");

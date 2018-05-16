@@ -6,21 +6,44 @@ module BVH =
     let debugBuild          = false
     let debugBuildCounts    = true
     let debugTravers        = false
+    let debugSort           = false
 
     // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
                         | Node of BVHStructure*BVHStructure*BBox*int
+
+    // Function for sorting a int list, based on array of bounding boxes and axis value.
+    ////let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
+    ////  match indexList with
+    ////  | [] -> []
+    ////  | x :: xs ->
+    ////      let less, great = 
+    ////          match axis with
+    ////          // Sort by x axis
+    ////          | 0 -> let filterLess = fun e -> boxes.[e].lowPoint.X <= boxes.[x].lowPoint.X
+    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.X >  boxes.[x].lowPoint.X
+    ////                 filterLess, filterGreat
+    ////          // Sort by y axis
+    ////          | 1 -> let filterLess = fun e -> boxes.[e].lowPoint.Y <= boxes.[x].lowPoint.Y
+    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.Y >  boxes.[x].lowPoint.Y
+    ////                 filterLess, filterGreat
+    ////          // Sort by z axis
+    ////          | _ -> let filterLess = fun e -> boxes.[e].lowPoint.Z <= boxes.[x].lowPoint.Z
+    ////                 let filterGreat = fun e -> boxes.[e].lowPoint.Z >  boxes.[x].lowPoint.Z
+    ////                 filterLess, filterGreat
+
+    ////      let lesser    = sortListByAxis (xs |> List.filter(less)) (boxes) axis
+    ////      let greater   = sortListByAxis (xs |> List.filter(great)) (boxes) axis
+    ////      lesser @ [x] @ greater
     
     // Function for sorting a int list, based on array of bounding boxes and axis value.
-    let rec sortListByAxis (indexList: int list) (boxes:array<BBox>) (axis:int) : int list =
-      match indexList with
-      | [] -> [] // Return empty list, if empty
-      | x :: xs ->  let filter = 
-                        match axis with
-                        | 0 -> fun e -> boxes.[e].lowPoint.X > boxes.[x].lowPoint.X // Sort by x axis
-                        | 1 -> fun e -> boxes.[e].lowPoint.Y > boxes.[x].lowPoint.Y // Sort by y axis
-                        | _ -> fun e -> boxes.[e].lowPoint.Z > boxes.[x].lowPoint.Z // Sort by z axis
-                    [x]@sortListByAxis (xs |> List.sortBy(filter)) (boxes) axis     // Sort by filter and return
+    let rec sortListByAxis (indexList:list<int>) (boxes:array<BBox>) (axis:int) =
+        let sort ax = 
+                match ax with
+                | 0 -> (fun c -> boxes.[c].lowPoint.X)
+                | 1 -> (fun c -> boxes.[c].lowPoint.Y)
+                | 2 -> (fun c -> boxes.[c].lowPoint.Z)
+        List.sortBy (sort axis) indexList
 
     // Function for getting combined outer low and high from a array og bounding boxes.
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
@@ -71,26 +94,45 @@ module BVH =
     let mutable totalLeafs = 0
     // Build BVH structure from a list of shapes.
     let buildStructure (shapes:array<Shape>) : BVHStructure = 
+        if debugBuild then printfn "buildStructure -> started."
         if shapes.Length = 0 then failwith "buildStructure -> Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes // Get bounding boxes
+        if debugBuild then printfn "buildStructure -> boxes len %i" boxes.Length
 
         let boxIntList = [0..boxes.Length-1]
         let rec innerNode (intIndexes:list<int>) (depthLevel:int) : BVHStructure = 
+            if debugBuild then printfn "buildStructure -> innerNode"
             let boxArr = getBoxArrFromIndexes intIndexes boxes
+            if debugBuild then printfn "buildStructure -> boxArr len %i" boxArr.Length
             let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxArr
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
+            if debugSort then printfn "buildStructure -> axisToSplit val %i" axisToSplit
             let box = BBox (lowPoint, highPoint)
+            
             let depthLevel = depthLevel + 1
+            
+            if debugSort then printfn "####################################"
+            if debugSort then printfn "buildStructure -> boxArr %A" boxArr
+            if debugSort then printfn "####################################"
+            if debugSort then printfn "buildStructure -> intIndexes %A" intIndexes
+            if debugSort then printfn "####################################"
             let sortedList = sortListByAxis intIndexes boxes axisToSplit // Sort list min to max
+            if debugSort then printfn "####################################"
+            if debugSort then printfn "buildStructure -> sortedList %A" sortedList
+            if debugSort then printfn "####################################"
 
+            if debugBuild then printfn "buildStructure -> sortedList len %i" sortedList.Length
+            if debugBuild then printfn "buildStructure -> intIndexes len %i" intIndexes.Length
             match intIndexes with
             | [] -> failwith " innerNode -> Empty array"
             | b when intIndexes.Length > 1 ->
+                if debugBuild then printfn "buildStructure -> Start splitting sortedList"
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
                 if debugBuildCounts then totalNodes <- totalNodes+1
+                if debugBuild then printfn "buildStructure -> Create node"
                 Node (
                             innerNode leftList depthLevel, 
                             innerNode rigthList depthLevel, 
@@ -98,6 +140,7 @@ module BVH =
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
                 if debugBuildCounts then totalLeafs <- totalLeafs+1
+                if debugBuild then printfn "buildStructure -> Create leaf"
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
         
