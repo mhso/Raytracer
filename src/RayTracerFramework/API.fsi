@@ -3,7 +3,6 @@
 open Tracer.Basics.Sampling
 open Tracer.Basics
 open Transformation
-open Tracer.Basics.Acceleration
 
 module API =
   type dummy = unit

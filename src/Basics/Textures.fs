@@ -3,6 +3,8 @@ open System
 
 module Textures = 
 
+    type Texture = | Texture of (float -> float -> Material)
+
     let mkTexture func =
         Texture func
 
@@ -12,15 +14,4 @@ module Textures =
 
     let getFunc (Texture func) = func
     
-    //- For use with material-only data structures
-    let getBaseTexturedMaterial(texture: Texture) = {
-            new Material() with
-                member this.AmbientColour(hitPoint, ambientLight) = Colour.Black
-                member this.ReflectionFactor (hitPoint, rayOut) = Colour.White
-                member this.Bounce(shape, hitPoint, light) = 
-                    let func = getFunc texture
-                    let mat = func hitPoint.U hitPoint.V
-                    mat.Bounce(shape,hitPoint,light)
-                member this.BounceMethod hitPoint = [| hitPoint.Ray |]
-                member this.IsRecursive = false}
         

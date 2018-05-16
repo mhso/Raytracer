@@ -12,9 +12,25 @@ let setRandomSeed seed = rand <- new Random(seed)
 type Sampler(samples : (float*float)[][]) =
     let sampleSetCount = samples.Length
     let mutable sampleIndices = Array.create 40 0 // Set an intial thread indexing array of 40.
+    let mutable currentSet = Array.create 40 0
     let mutable currentSample: (float * float) = (0., 0.)
     let sampleCount = samples.[0].Length
     let mutex = new Mutex()
+
+    member this.NextSet() =
+        let threadIndex = Thread.CurrentThread.GetHashCode()
+
+        if threadIndex >= currentSet.Length then
+            // If threads happen to have a hash code larger than the length of our indexing aray, 
+            // we expand the array using Mutex for safety.
+            mutex.WaitOne() |> ignore
+            currentSet <- Array.append currentSet (Array.create (threadIndex*2-currentSet.Length) 0)
+            mutex.ReleaseMutex()
+
+        let setIndex = currentSet.[threadIndex]
+        let samples = samples.[setIndex % this.SetCount]
+        currentSet.[threadIndex] <- setIndex + 1
+        samples
 
     member this.Next() = 
         let threadIndex = Thread.CurrentThread.GetHashCode()

@@ -1,15 +1,23 @@
 ﻿namespace Tracer.Basics
 open Tracer.Basics.Sampling
+open Tracer.Basics.Textures
 open System
 
 //- ENVIRONMENT LIGHT
 type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) = 
     inherit Light(Colour.Black, 1.)
     
+    // Private fields
     let sphere = SphereShape(Point.Zero, radius, texture)
     let mutable sps = []
     let mutable ld = Vector.Zero
     let mutable lpdf = 1.
+
+    // Local methods
+    member this.Radius = radius
+    member this.Texture = texture
+    member this.Sampler = sampler
+    member this.Sphere = sphere
     member this.FlushDirections (hitPoint: HitPoint) = 
         let generateSample() = 
             let (x,y,z) = Sampling.mapToHemisphere (sampler.Next()) 0.
@@ -23,38 +31,30 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
         ld <- sps |> List.average
         lpdf <- [for sp in sps do yield (sp * hitPoint.Normal) / Math.PI] |> List.average
 
-    member this.Radius = radius
-    member this.Texture = texture
-    member this.Sampler = sampler
-    member this.Sphere = sphere
-
-    
-    // Handled in Render.fs, for environment lights only
-    // Below functions are unused
+    // Overwritten methods
     override this.GetGeometricFactor hitPoint = 1. 
+    override this.GetDirectionFromPoint hitPoint = hitPoint.Normal
+    override this.GetProbabilityDensity hitPoint = lpdf
+
     override this.GetColour hitPoint = 
         let getColour sp = 
             let ray = Ray(hitPoint.EscapedPoint, sp)
             let hit = sphere.hitFunction(ray)
             hit.Material.Bounce(sphere, hit, this)
         [for sp in sps do yield getColour sp] |> List.average
-
-    override this.GetDirectionFromPoint hitPoint = 
-        hitPoint.Normal
-
+    
     override this.GetShadowRay (hitPoint:HitPoint) =
-        if hitPoint.Material :? EmissiveMaterial then
-            [||]
+        if hitPoint.Material :? EmissiveMaterial then [||]
         else
-            let getRay sp = 
-                Ray(hitPoint.EscapedPoint + sp * 0.5, sp)
+            let getRay sp = Ray(hitPoint.EscapedPoint + sp * 0.5, sp)
             [for sp in sps do yield getRay sp] |> List.toArray
-    override this.GetProbabilityDensity hitPoint = 
-        lpdf
 
-//- AMBIENT OCCLUDER
+
+//- AMBIENT OCCLUDER: handled in Render.fs
 type AmbientOccluder (intensity: float, c: Colour, min_intensity: float, s: Sampler) = 
     inherit AmbientLight(c, intensity)
+
+    // Local methods
     member this.Intensity = intensity
     member this.MinIntensity = min_intensity
     member this.MinIntensityColour = min_intensity * c * intensity

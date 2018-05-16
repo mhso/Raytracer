@@ -1,41 +1,32 @@
 ﻿namespace Tracer.Basics
 
+
 //- POINT LIGHT
 type PointLight(colour: Colour, intensity: float, position: Point) = 
     inherit Light(colour, intensity)
 
+    // Local methods
     member this.Position = position
 
-    override this.GetColour hitPoint = 
-        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
-    override this.GetDirectionFromPoint hitPoint = 
-        (position - hitPoint.Point).Normalise
-    override this.GetShadowRay hitPoint = 
-        let normal = hitPoint.Normal
-        let shadowRayOrigin = hitPoint.Point + normal * 0.00001
-        let direction = (position - shadowRayOrigin).Normalise
-        [| new Ray(shadowRayOrigin, direction) |]
-    override this.GetGeometricFactor hitPoint = 
-        1.
-    override this.GetProbabilityDensity hitPoint = 
-        1.
+    // Overwritten methods
+    override this.GetColour _ = new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+    override this.GetDirectionFromPoint hitPoint = (position - hitPoint.Point).Normalise
+    override this.GetShadowRay hitPoint = [| new Ray(hitPoint.EscapedPoint, (position - hitPoint.EscapedPoint).Normalise) |]
+    override this.GetGeometricFactor _ = 1.
+    override this.GetProbabilityDensity _ = 1.
 
 
 //- DIRECTIONAL LIGHT  
 type DirectionalLight(colour: Colour, intensity: float, direction: Vector) = 
     inherit Light(colour, intensity)
 
+    // Local methods
     member this.Direction = direction
 
-    override this.GetColour hitPoint = 
-        new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
-    override this.GetDirectionFromPoint hitPoint = 
-        direction.Normalise
-    override this.GetShadowRay hitPoint =
-        let shadowRayOrigin = hitPoint.Point + hitPoint.Normal * 0.00001
-        [| new Ray(shadowRayOrigin, direction.Normalise) |]
-    override this.GetGeometricFactor point = 
-        1.
-    override this.GetProbabilityDensity hitPoint = 
-        1.
+    // Overwritten mthods
+    override this.GetColour hitPoint = new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
+    override this.GetDirectionFromPoint hitPoint = direction.Normalise
+    override this.GetShadowRay hitPoint = [| new Ray(hitPoint.EscapedPoint, direction.Normalise) |]
+    override this.GetGeometricFactor point = 1.
+    override this.GetProbabilityDensity hitPoint = 1.
 

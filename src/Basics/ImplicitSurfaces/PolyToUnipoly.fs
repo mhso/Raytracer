@@ -38,7 +38,7 @@ module PolyToUnipoly =
     List.fold (fun acc iag -> acc + iagsolver iag) 0.0 sie
 
   let toUnipoly (lis: (int*simpleIntExpr) list) valArr : unipoly =
-    UP (List.fold (fun acc (n, (SIE sie)) -> (n, solveSIE (SIE sie) valArr)::acc) [] lis)
+    UP (List.foldBack (fun (n, (SIE sie)) acc -> (n, solveSIE (SIE sie) valArr)::acc) lis [])
 
   let solveUnipoly (UP up:unipoly) t =
     List.fold (fun acc (n,c) -> if n > 0 then (acc + (pown t n) * c)
