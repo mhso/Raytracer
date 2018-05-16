@@ -100,82 +100,82 @@ module KD_tree =
         | boxes -> 
             if boxes.Length <= 1 then Leaf(BBox(lo, hi), boxes) //If we only have 1 element left
             else
-            let boxesLength = boxes.Length
+                let boxesLength = boxes.Length
             
-            //Find the split values, and values for the empty space check
-            let (splitX, splitY, splitZ, minx, maxx, miny, maxy, minz, maxz) = findSplitValues boxes
+                //Find the split values, and values for the empty space check
+                let (splitX, splitY, splitZ, minx, maxx, miny, maxy, minz, maxz) = findSplitValues boxes
 
-            //Find empty space
-            let empty = (List.sortBy (fun (_,a,b) -> a/b) 
-                          ([(1,(minx - lo.X),(hi.X-lo.X));
-                            (2,(hi.X - maxx),(hi.X-lo.X));
-                            (3,(miny - lo.Y),(hi.Y-lo.Y));
-                            (4,(hi.Y - maxy),(hi.Y-lo.Y));
-                            (5,(minz - lo.Z),(hi.Z-lo.Z));
-                            (6,(hi.Z - maxz),(hi.Z-lo.Z))]))
+                //Find empty space
+                let empty = (List.sortBy (fun (_,a,b) -> a/b) 
+                              ([(1,(minx - lo.X),(hi.X-lo.X));
+                                (2,(hi.X - maxx),(hi.X-lo.X));
+                                (3,(miny - lo.Y),(hi.Y-lo.Y));
+                                (4,(hi.Y - maxy),(hi.Y-lo.Y));
+                                (5,(minz - lo.Z),(hi.Z-lo.Z));
+                                (6,(hi.Z - maxz),(hi.Z-lo.Z))]))
 
-            //Empty space threshold for depths of the tree
-            let minSpace = match currentDepth with
-                           | 0 -> 0.1
-                           | 1 -> 0.15
-                           | 2 -> 0.2
-                           | 3 -> 0.25
-                           | _ -> 0.3
-            let (ax,em,len) = empty.[empty.Length - 1]
+                //Empty space threshold for depths of the tree
+                let minSpace = match currentDepth with
+                               | 0 -> 0.1
+                               | 1 -> 0.15
+                               | 2 -> 0.2
+                               | 3 -> 0.25
+                               | _ -> 0.3
+                let (ax,em,len) = empty.[empty.Length - 1]
 
-            //Empty space check
-            if em/len >= minSpace then
-                match ax with
-                | 1 -> Node(0, minx, BBox(lo, hi), Leaf(BBox(lo, Point(minx, hi.Y, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(minx, lo.Y, lo.Z)) boxes)
-                | 2 -> Node(0, maxx, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(maxx, hi.Y, hi.Z)) lo boxes, Leaf(BBox(Point(maxx, lo.Y, lo.Z), hi), []))
-                | 3 -> Node(1, miny, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, miny, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, miny, lo.Z)) boxes)
-                | 4 -> Node(1, maxy, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, maxy, hi.Z)) lo boxes, Leaf(BBox(Point(lo.X, maxy, lo.Z), hi), []))
-                | 5 -> Node(2, minz, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, hi.Y, minz)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, lo.Y, minz)) boxes)
-                | 6 -> Node(2, maxz, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, hi.Y, maxz)) lo boxes, Leaf(BBox(Point(lo.X, lo.Y, maxz), hi), []))
-            else
+                //Empty space check
+                if em/len >= minSpace then
+                    match ax with
+                    | 1 -> Node(0, minx, BBox(lo, hi), Leaf(BBox(lo, Point(minx, hi.Y, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(minx, lo.Y, lo.Z)) boxes)
+                    | 2 -> Node(0, maxx, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(maxx, hi.Y, hi.Z)) lo boxes, Leaf(BBox(Point(maxx, lo.Y, lo.Z), hi), []))
+                    | 3 -> Node(1, miny, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, miny, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, miny, lo.Z)) boxes)
+                    | 4 -> Node(1, maxy, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, maxy, hi.Z)) lo boxes, Leaf(BBox(Point(lo.X, maxy, lo.Z), hi), []))
+                    | 5 -> Node(2, minz, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, hi.Y, minz)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, lo.Y, minz)) boxes)
+                    | 6 -> Node(2, maxz, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, hi.Y, maxz)) lo boxes, Leaf(BBox(Point(lo.X, lo.Y, maxz), hi), []))
+                else
             
-            //Split boxes into 2 lists for each axis.
-            let (firstX, secondX, firstY, secondY, firstZ, secondZ) = partitionAfterSelect boxes splitX splitY splitZ
+                    //Split boxes into 2 lists for each axis.
+                    let (firstX, secondX, firstY, secondY, firstZ, secondZ) = partitionAfterSelect boxes splitX splitY splitZ
 
-            //Intersection values for the heuristics check.
-            let (fxIntersect, sxIntersect, fyIntersect, syIntersect, fzIntersect, szIntersect) = 
-                (float firstX.Length)/((float boxesLength)/2.), (float secondX.Length)/((float boxesLength)/2.),
-                (float firstY.Length)/((float boxesLength)/2.), (float secondY.Length)/((float boxesLength)/2.),
-                (float firstZ.Length)/((float boxesLength)/2.), (float secondZ.Length)/((float boxesLength)/2.)
+                    //Intersection values for the heuristics check.
+                    let (fxIntersect, sxIntersect, fyIntersect, syIntersect, fzIntersect, szIntersect) = 
+                        (float firstX.Length)/((float boxesLength)/2.), (float secondX.Length)/((float boxesLength)/2.),
+                        (float firstY.Length)/((float boxesLength)/2.), (float secondY.Length)/((float boxesLength)/2.),
+                        (float firstZ.Length)/((float boxesLength)/2.), (float secondZ.Length)/((float boxesLength)/2.)
 
-            //Find the right plane
-            let axis = findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect hi lo true true true
+                    //Find the right plane
+                    let axis = findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect hi lo true true true
 
-            //If no plane is good enough, create leaf.
-            if axis = 3 then
-                Leaf(BBox(lo, hi), boxes)
-            else
+                    //If no plane is good enough, create leaf.
+                    if axis = 3 then
+                        Leaf(BBox(lo, hi), boxes)
+                    else
 
-            //Set the lists to be used, the point to give to the recursive create, and the splitValue from the correct axis
-            let (first, second, firstHigh, 
-                 secondLow, splitValue) = if axis = 0 then 
-                                                    firstX, secondX, (Point(splitX, hi.Y, hi.Z)), 
-                                                    Point(splitX, lo.Y, lo.Z), splitX
-                                                else if axis = 1 then
-                                                    firstY, secondY, (Point(hi.X, splitY, hi.Z)), 
-                                                    Point(lo.X, splitY, lo.Z), splitY
-                                                else if axis = 2 then
-                                                    firstZ, secondZ, (Point(hi.X, hi.Y, splitZ)), 
-                                                    Point(lo.X, lo.Y, splitZ), splitZ
-                                                else
-                                                    [], [], hi, lo, 0.
+                        //Set the lists to be used, the point to give to the recursive create, and the splitValue from the correct axis
+                        let (first, second, firstHigh, 
+                             secondLow, splitValue) = if axis = 0 then 
+                                                                firstX, secondX, (Point(splitX, hi.Y, hi.Z)), 
+                                                                Point(splitX, lo.Y, lo.Z), splitX
+                                                            else if axis = 1 then
+                                                                firstY, secondY, (Point(hi.X, splitY, hi.Z)), 
+                                                                Point(lo.X, splitY, lo.Z), splitY
+                                                            else if axis = 2 then
+                                                                firstZ, secondZ, (Point(hi.X, hi.Y, splitZ)), 
+                                                                Point(lo.X, lo.Y, splitZ), splitZ
+                                                            else
+                                                                [], [], hi, lo, 0.
             
-            let firstLength = first.Length
-            let secondLength = second.Length
+                        let firstLength = first.Length
+                        let secondLength = second.Length
 
-            //Last checks for creating the leafs/nodes.
-            if firstLength = boxesLength && secondLength = boxesLength then 
-                Leaf(BBox(lo, hi), boxes)
-            else if firstLength = boxesLength then 
-                Node(axis, splitValue, BBox(lo, hi), Leaf(BBox(lo, firstHigh), first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
-            else if secondLength = boxesLength then 
-                Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), Leaf((BBox(secondLow, hi)), second))
-            else Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
+                        //Last checks for creating the leafs/nodes.
+                        if firstLength = boxesLength && secondLength = boxesLength then 
+                            Leaf(BBox(lo, hi), boxes)
+                        else if firstLength = boxesLength then 
+                            Node(axis, splitValue, BBox(lo, hi), Leaf(BBox(lo, firstHigh), first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
+                        else if secondLength = boxesLength then 
+                            Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), Leaf((BBox(secondLow, hi)), second))
+                        else Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
                 
     let buildKDTree (shapes:array<Shape>) = 
         //Function called from the rest of the program
