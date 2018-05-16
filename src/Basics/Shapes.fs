@@ -401,12 +401,13 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
     override this.getBoundingBox () = this.bBox
 
     override this.hitFunction (r:Ray) = 
-        match (this.bBox.intersect(r)).IsSome with
-        |true -> 
-            // look for hitPoints
-            let hpTop = this.topDisc.hitFunction r
-            let hpBottom = this.bottomDisc.hitFunction r
-            let hpCylinder = this.hollowCylinder.hitFunction r
+        // look for hitPoints
+        let hpTop = this.topDisc.hitFunction r
+        let hpBottom = this.bottomDisc.hitFunction r
+        let hpCylinder = this.hollowCylinder.hitFunction r
+
+        match ((hpBottom.DidHit || hpTop.DidHit) || hpCylinder.DidHit) with
+        |true ->
             //extract time from hitPoints
             let tTop = match hpTop.DidHit with
                             |true -> hpTop.Time
@@ -423,7 +424,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
             |(top, bottom, cylinder) when top = bottom && bottom = cylinder -> HitPoint(r)
             |(top, bottom, cylinder) when cylinder < bottom && cylinder < top ->  hpCylinder
             |(top, bottom, cylinder) when top < bottom && top < cylinder ->  hpTop
-            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom
+            |(top, bottom, cylinder) when bottom < top && bottom < cylinder ->  hpBottom //do i need to replace the shape in the hipoint with the solid cylinder?
             |(_,_,_) -> HitPoint(r)
         |false -> HitPoint(r)
 
