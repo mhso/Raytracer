@@ -27,7 +27,7 @@ module KD_tree =
                     let minY = if x.box.lowPoint.Y  < minY then x.box.lowPoint.Y  else minY
                     let minZ = if x.box.lowPoint.Z  < minZ then x.box.lowPoint.Z  else minZ
                     find maxX minX maxY minY maxZ minZ xs
-            find 0. 0. 0. 0. 0. 0. xs
+            find -infinity infinity -infinity infinity -infinity infinity xs
 
     let partitionAfterSelect (boxes:list<ShapeBBox>) (splitX:float) (splitY:float) (splitZ:float) =
         let rec inner leftX rightX leftY rightY leftZ rightZ (tosort:list<ShapeBBox>) = 
@@ -101,9 +101,9 @@ module KD_tree =
     let mutable maxLeafSize = 0
 
     let mutable emptyleafs = 0
-    let threshold = 10.**(-1.)
+    let threshold = 10.**(-3.)
 
-    let rec createKDTreeFromList (hi:Point) (lo:Point) (boxes:list<ShapeBBox>) = 
+    let rec createKDTreeFromList currentDepth (hi:Point) (lo:Point) (boxes:list<ShapeBBox>) = 
         match boxes with
         | []    -> failwith "There are no shapes to build a tree with!"
         | boxes -> 
@@ -116,25 +116,31 @@ module KD_tree =
             let (splitX, splitY, splitZ, minx, maxx, miny, maxy, minz, maxz) = findSplitValues boxes
 
             let empty = (List.sortBy (fun (_,a,b) -> a/b) 
-                          ([(1,(lo.X - minx),(hi.X-lo.X));
-                            (2,(maxx - hi.X),(hi.X-lo.X));
-                            (3,(lo.Y - miny),(hi.Y-lo.Y));
-                            (4,(maxy - hi.Y),(hi.Y-lo.Y));
-                            (5,(lo.Z - minz),(hi.Z-lo.Z));
-                            (6,(maxz - hi.Z),(hi.Z-lo.Z))]))
+                          ([(1,(minx - lo.X),(hi.X-lo.X));
+                            (2,(hi.X - maxx),(hi.X-lo.X));
+                            (3,(miny - lo.Y),(hi.Y-lo.Y));
+                            (4,(hi.Y - maxy),(hi.Y-lo.Y));
+                            (5,(minz - lo.Z),(hi.Z-lo.Z));
+                            (6,(hi.Z - maxz),(hi.Z-lo.Z))]))
             let x = ()
+            let minSpace = match currentDepth with
+                           | 0 -> 0.1
+                           | 1 -> 0.15
+                           | 2 -> 0.2
+                           | 3 -> 0.25
+                           | _ -> 0.3
             let (ax,em,len) = empty.[empty.Length - 1]
-            if em/len >= 0.20 && abs em > threshold  then
+            if em/len >= minSpace && abs em > threshold  then
                 emptyleafs <- emptyleafs+1
                 //printfn "empty found: %i, %f" (fst empty) (snd empty)
                 //printfn "hi.Y: %f, maxy: %f" (hi.Y) maxy
                 match ax with
-                | 1 -> Node(0, minx, BBox(lo, hi), Leaf(BBox(lo, Point(minx, hi.Y, hi.Z)), []), createKDTreeFromList hi (Point(minx, lo.Y, lo.Z)) boxes)
-                | 2 -> Node(0, maxx, BBox(lo, hi), createKDTreeFromList (Point(maxx, hi.Y, hi.Z)) lo boxes, Leaf(BBox(Point(maxx, lo.Y, lo.Z), hi), []))
-                | 3 -> Node(1, miny, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, miny, hi.Z)), []), createKDTreeFromList hi (Point(lo.X, miny, lo.Z)) boxes)
-                | 4 -> Node(1, maxy, BBox(lo, hi), createKDTreeFromList (Point(hi.X, maxy, hi.Z)) lo boxes, Leaf(BBox(Point(lo.X, maxy, lo.Z), hi), []))
-                | 5 -> Node(2, minz, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, hi.Y, minz)), []), createKDTreeFromList hi (Point(lo.X, lo.Y, minz)) boxes)
-                | 6 -> Node(2, maxz, BBox(lo, hi), createKDTreeFromList (Point(hi.X, hi.Y, maxz)) lo boxes, Leaf(BBox(Point(lo.X, lo.Y, maxz), hi), []))
+                | 1 -> Node(0, minx, BBox(lo, hi), Leaf(BBox(lo, Point(minx, hi.Y, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(minx, lo.Y, lo.Z)) boxes)
+                | 2 -> Node(0, maxx, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(maxx, hi.Y, hi.Z)) lo boxes, Leaf(BBox(Point(maxx, lo.Y, lo.Z), hi), []))
+                | 3 -> Node(1, miny, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, miny, hi.Z)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, miny, lo.Z)) boxes)
+                | 4 -> Node(1, maxy, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, maxy, hi.Z)) lo boxes, Leaf(BBox(Point(lo.X, maxy, lo.Z), hi), []))
+                | 5 -> Node(2, minz, BBox(lo, hi), Leaf(BBox(lo, Point(hi.X, hi.Y, minz)), []), createKDTreeFromList (currentDepth+1) hi (Point(lo.X, lo.Y, minz)) boxes)
+                | 6 -> Node(2, maxz, BBox(lo, hi), createKDTreeFromList (currentDepth+1) (Point(hi.X, hi.Y, maxz)) lo boxes, Leaf(BBox(Point(lo.X, lo.Y, maxz), hi), []))
             else
             let (firstX, secondX, firstY, secondY, firstZ, secondZ) = partitionAfterSelect boxes splitX splitY splitZ
 
@@ -190,13 +196,13 @@ module KD_tree =
                 if boxesLength > maxLeafSize then maxLeafSize <- firstLength
                 totalLeafs <- totalLeafs+1
                 totalLeafSize <- totalLeafSize+firstLength
-                Node(axis, splitValue, BBox(lo, hi), Leaf(BBox(lo, firstHigh), first), createKDTreeFromList secondLow hi (second))
+                Node(axis, splitValue, BBox(lo, hi), Leaf(BBox(lo, firstHigh), first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
             else if secondLength = boxesLength then 
                 if boxesLength > maxLeafSize then maxLeafSize <- secondLength
                 totalLeafs <- totalLeafs+1
                 totalLeafSize <- totalLeafSize+secondLength
-                Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList lo firstHigh (first), Leaf((BBox(secondLow, hi)), second))
-            else Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList lo firstHigh (first), createKDTreeFromList secondLow hi (second))
+                Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), Leaf((BBox(secondLow, hi)), second))
+            else Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
                 
     let buildKDTree (shapes:array<Shape>) = 
         maxLeafSize <- 0
@@ -222,7 +228,7 @@ module KD_tree =
                          printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
                          leaf
                      else
-                         let kdTree = createKDTreeFromList KDMaxXYZ KDMinXYZ ShapeBoxList
+                         let kdTree = createKDTreeFromList 0 KDMaxXYZ KDMinXYZ ShapeBoxList
                          timer.Stop()
                          printfn "KD-Tree build in %f seconds" timer.Elapsed.TotalSeconds
                          printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
