@@ -88,19 +88,23 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.Occlude accel (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
         let sampler = occluder.Sampler
-        let transOrthoCoord (x,y,z) = 
+        let transOrthoCoord (hemPoint:(float*float*float)) = 
             
             // Transform orthonormal frame of sample point
-            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
+            let sp = new Tracer.Basics.Point(hemPoint)
             let up = new Vector(0., 1., 0.)
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
+            let transformed_sp = sp.OrthonormalTransform(u, v, w)
 
-            sp.OrthonormalTransform(u, v, w)
+            if transformed_sp * hitPoint.Normal > 0.0 then
+                transformed_sp
+            else 
+                (-sp.X * v - sp.Y * u + sp.Z * w).Normalise
 
         let samples = sampler.NextSet()
-        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 0.)]
+        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 1.)]
                     |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
 
         total / sampler.SampleCount
