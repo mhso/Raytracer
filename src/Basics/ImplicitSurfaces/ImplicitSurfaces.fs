@@ -65,8 +65,8 @@ module ImplicitSurfaces =
     arr.[5] <- r.GetDirection.Z // dz
     arr
 
-  let nrtolerance = 10.**(-7.)
-  let nrepsilon = 10.**(-14.)
+  let nrtolerance = 10.**(-5.)
+  let nrepsilon = 10.**(-10.)
   
   // based on the pseudo code given here: https://en.wikipedia.org/wiki/Newton%27s_method#Pseudocode
   // but adapted to a functional, immutable, approach
@@ -83,7 +83,7 @@ module ImplicitSurfaces =
             then Some g'
           else
             inner g' (iter - 1)
-    inner initial 15
+    inner initial 20
 
   let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
 
