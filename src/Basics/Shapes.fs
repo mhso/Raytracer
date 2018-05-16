@@ -10,12 +10,12 @@ open Textures
 ////RECTANGLE////
 type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
     inherit Shape()
-    member this.bottomLeft = bottomLeft // must be 0,0,0
+    member this.bottomLeft = bottomLeft
     member this.topLeft = topLeft
     member this.bottomRight = bottomRight
     member this.tex = tex
-    member this.width = bottomRight.X
-    member this.height = topLeft.Y
+    member this.width = bottomRight.X - bottomLeft.X
+    member this.height = topLeft.Y - bottomLeft.Y
     member this.normal:Vector = new Vector(0.0, 0.0, 1.0)
     member this.bBox = 
         let e = 0.000001
@@ -241,15 +241,13 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
     member this.tex = tex
     member this.bBox = 
         let e = 0.000001
-        let lx = - radius - e
+        let lxz = - radius - e
         let ly = - (height/2.) - e //height instead of radius for the Y coord
-        let lz = - radius - e
 
-        let hx = radius + e
+        let hxz = radius + e
         let hy = (height/2.) + e //height instead of radius for the Y coord
-        let hz = radius + e
 
-        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
+        BBox(Point(lxz, ly, lxz), Point(hxz, hy, hxz))
 
     override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes"
 
@@ -262,7 +260,7 @@ type HollowCylinder(center:Point, radius:float, height:float, tex:Texture) = //c
         let n = this.NormalAtPoint p 
         let phiNot = Math.Atan2(n.X, n.Z)
         let phi = match phiNot < 0. with
-                  |true -> (phiNot + 2.)*Math.PI 
+                  |true -> phiNot + (2. * Math.PI) 
                   |false -> phiNot
         let u = phi / (2. * Math.PI)
         let v = (p.Y / height) + (1. / 2.)
