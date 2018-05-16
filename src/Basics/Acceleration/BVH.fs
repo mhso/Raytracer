@@ -4,6 +4,8 @@ module BVH =
     
     // Used for debug, will print to console etc. 
     let debug = false
+    let debugBuild = false
+    let debugBuildCounts = true
 
     // Type of the BVHTree, with Nodes and Leafs.
     type BVHStructure = | Leaf of List<int>*BBox
@@ -14,46 +16,15 @@ module BVH =
       match indexList with
       | [] -> []
       | x :: xs ->
-          let less, great = 
+          let filter = 
               match axis with
               // Sort by x axis
-              | 0 -> let filterLess = fun e -> boxes.[e].lowPoint.X <= boxes.[x].lowPoint.X
-                     let filterGreat = fun e -> boxes.[e].lowPoint.X >  boxes.[x].lowPoint.X
-                     filterLess, filterGreat
+              | 0 -> fun e -> boxes.[e].lowPoint.X > boxes.[x].lowPoint.X
               // Sort by y axis
-              | 1 -> let filterLess = fun e -> boxes.[e].lowPoint.Y <= boxes.[x].lowPoint.Y
-                     let filterGreat = fun e -> boxes.[e].lowPoint.Y >  boxes.[x].lowPoint.Y
-                     filterLess, filterGreat
+              | 1 -> fun e -> boxes.[e].lowPoint.Y > boxes.[x].lowPoint.Y
               // Sort by z axis
-              | _ -> let filterLess = fun e -> boxes.[e].lowPoint.Z <= boxes.[x].lowPoint.Z
-                     let filterGreat = fun e -> boxes.[e].lowPoint.Z >  boxes.[x].lowPoint.Z
-                     filterLess, filterGreat
-
-          let lesser    = sortListByAxis (xs |> List.filter(less)) (boxes) axis
-          let greater   = sortListByAxis (xs |> List.filter(great)) (boxes) axis
-          lesser @ [x] @ greater
-    
-    let rec quickselect (k:int) (indexList:list<int>) (boxes:list<BBox>) (axis:int) = 
-        match boxes with
-        | [] -> failwith "Cannot take largest element of empty list."
-        | [a] -> a
-        | x::xs ->
-            match axis with
-            | 0 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.X < x.highPoint.X) xs
-                    let l = List.length ys
-                    if k < l then quickselect k indexList ys axis
-                    elif k > l then quickselect (k-l-1) indexList zs axis
-                    else x
-            | 1 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.Y < x.highPoint.Y) xs
-                    let l = List.length ys
-                    if k < l then quickselect k indexList ys axis
-                    elif k > l then quickselect (k-l-1) indexList zs axis
-                    else x
-            | 2 ->  let (ys, zs) = List.partition (fun (arg:BBox) -> arg.highPoint.Z < x.highPoint.Z) xs
-                    let l = List.length ys
-                    if k < l then quickselect k indexList ys axis
-                    elif k > l then quickselect (k-l-1) indexList zs axis
-                    else x
+              | _ -> fun e -> boxes.[e].lowPoint.Z > boxes.[x].lowPoint.Z
+          [x]@sortListByAxis (xs |> List.sortBy(filter)) (boxes) axis
 
     // Function for getting combined outer low and high from a array og bounding boxes.
     let findOuterBoundingBoxLowHighPoints (boxes:array<BBox>) = 
@@ -74,7 +45,7 @@ module BVH =
         let x = highPoint.X - lowPoint.X
         let y = highPoint.Y - lowPoint.Y
         let z = highPoint.Z - lowPoint.Z
-        let mutable t = 0.
+        let t = 0.
         let mutable value = (0, 0.)
 
         if x > t then value <- (0, x)
@@ -102,9 +73,13 @@ module BVH =
         bboxArr
 
  // ######################### BUILD BVH TREE #########################
-
+    let mutable totalNodes = 0
+    let mutable totalLeafs = 0
+    let mutable totalLeafSize = 0
+    let mutable maxLeafSize = 0
+    let mutable avgLeafSize = 0.
     // Build BVH structure from a list of shapes.
-    let build (shapes:array<Shape>) : BVHStructure = 
+    let buildBVH (shapes:array<Shape>) : BVHStructure = 
         if shapes.Length = 0 then failwith "Unable to build BVH Tree, lists is empty."
 
         let boxes = convertShapesToBBoxes shapes
@@ -116,7 +91,7 @@ module BVH =
             let axisToSplit, _ = findLargestBoundingBoxSideLengths (lowPoint, highPoint)
             let box = BBox (lowPoint, highPoint)
             let depthLevel = depthLevel + 1
-            if debug then printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
+            if debugBuild then printfn "innerNodeTree rec run... axisToSplit: %i, countRuns: %i" axisToSplit (depthLevel)
             let sortedList = sortListByAxis intIndexes boxes axisToSplit
 
             //let quickSorted = quickselect 0 intIndexes (Array.toList boxes) axisToSplit
@@ -128,17 +103,26 @@ module BVH =
                 let middle = sortedList.Length/2
                 let leftList = sortedList.[0..middle-1]
                 let rigthList = sortedList.[middle..]
+                if debugBuildCounts then totalNodes <- totalNodes+1
                 Node (
                             innerNode leftList depthLevel, 
                             innerNode rigthList depthLevel, 
                             box, 
                             axisToSplit)
             | c when intIndexes.Length = 1 ->
-                if debug then printfn "Add new inner Leaf... Value: %O" c
+                if debugBuild then printfn "Add new inner Leaf... Value: %O" c
+                if debugBuildCounts then totalLeafs <- totalLeafs+1
                 Leaf (c, box)
             | [_] -> failwith "buildBVHTree -> innerNodeTree: Not caught by matching."
+        
         innerNode boxIntList 0
  
+    let build (shapes:array<Shape>) : BVHStructure = 
+        let structure = buildBVH shapes
+        if debugBuildCounts then printfn "totalNodes: %i" totalNodes 
+        if debugBuildCounts then printfn "totalLeafs: %i" totalLeafs
+        structure
+    
   // ######################### TRAVERSAL BVH STRUCTURE #########################
 
     // Function swaps the order if d is not positive
