@@ -37,8 +37,8 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
     override this.GetProbabilityDensity hitPoint = lpdf
 
     override this.GetColour hitPoint = 
-        let getColour sp = 
-            let ray = Ray(hitPoint.EscapedPoint, sp)
+        let getColour (sp:Vector) = 
+            let ray = Ray(hitPoint.EscapedPoint, sp.Normalise)
             let hit = sphere.hitFunction(ray)
             hit.Material.Bounce(sphere, hit, this)
         [for sp in sps do yield getColour sp] |> List.average
