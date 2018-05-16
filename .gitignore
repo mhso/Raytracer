@@ -8,6 +8,7 @@
 *.sln.docstates
 src/Basics/Program.fs
 src/result
+src/TriangleMeshes/results
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

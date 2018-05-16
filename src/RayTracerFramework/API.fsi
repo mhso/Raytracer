@@ -2,6 +2,7 @@
 
 open Tracer.Basics.Sampling
 open Tracer.Basics
+open Tracer.Basics.Textures
 open Transformation
 
 module API =

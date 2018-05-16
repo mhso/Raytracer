@@ -19,7 +19,7 @@ let main _ =
           let c = lock img (fun () -> img.GetPixel(x'',y''))
           (MatteMaterial(Colour.White, 1., Colour(c), 1.)) :> Material
         mkTexture texture
-    Acceleration.setAcceleration Acceleration.Acceleration.RegularGrid
+    Acceleration.setAcceleration Acceleration.Acceleration.BVH
     //let position = Point(-30.,140.,-200.) //Position for Armadillo
     //let position = Point(0.,1.,1.) //Position for Happy
     //let position = Point(0.5,0.4,1.) //Position for bunny
@@ -108,10 +108,10 @@ let main _ =
         else glossyBlue :> Material
     let plane =  InfinitePlane(mkTexture(checker))
     
-    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" true)
-    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\happy.ply" true)
     //let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\urn2.ply" true)
-    //let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
+    let i = (TriangleMes.drawTriangles  @"..\..\..\..\resources\ply\bunny_textured.ply" true)
+    let tex = mkTextureFromFile (fun x y -> (y,x)) @"..\..\..\..\resources\textures\bunny.png"
     let tex = matGreenTex
     let urn = i.toShape(tex)
     let t = Transformation.mergeTransformations
@@ -124,7 +124,7 @@ let main _ =
     //let mirror = Transform.transform bunnyShape (Transformation.scale 1. -1. 1.)
 
     //- CAMERA
-    let camera        = PinholeCamera(Point(4.0,12.0,20.0), Point(0.0,4.0,0.0), Vector(0.0,1.0,0.0),32.0, 2.5, 2.5, 1000, 1000, regular 1)
+    let camera        = PinholeCamera(Point(4.0,12.0,20.0), Point(0.0,0.0,0.0), Vector(0.0,1.0,0.0),4.0, 2.5, 2.5, 1000, 1000, regular 1)
     //let camera          = ThinLensCamera(position, lookat, up, zoom, width, height, resX, resY, 0.3, 8.0,
     //                        new SampleGenerator(multiJittered, VIEW_SAMPLES, CAM_SETS),
     //                        new SampleGenerator(multiJittered, LENS_SAMPLES, CAM_SETS))
