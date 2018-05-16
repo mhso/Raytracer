@@ -35,8 +35,7 @@ type ThinLensCamera
             let lx = lx * r
             let ly = ly * r
 
-            // Create the primary lens ray, 
-            // from the lens disc point to the focal point.
+            // Create the primary lens ray, from the lens disc point to the focal point.
             let rayOrigin = this.Position + lx * this.V + ly * this.U
 
             let rayDirection = ((px - lx) * this.V + (py - ly) * this.U - f * this.W).Normalise
