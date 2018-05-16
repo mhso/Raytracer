@@ -31,7 +31,7 @@ type MatteMaterial
         let kd = matteCoefficient                           // Matte coefficient
         let cd = matteColour                                // Matte colour
         let lc = light.GetColour hitPoint                   // Light colour
-        let n  = hitPoint.Normal.Normalise                  // Normal at hit point
+        let n  = hitPoint.Normal                            // Normal at hit point
         let ld = (light.GetDirectionFromPoint hitPoint)     // Light direction
 
         // Determine the colour (ambient colour is handled in Render.fs)
@@ -69,8 +69,8 @@ type PhongMaterial
     default this.Bounce(_, hitPoint, light) = 
         
         // Initialize parameters
-        let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
-        let n = hitPoint.Normal.Normalise                           // Normal at hit point
+        let ld = (light.GetDirectionFromPoint hitPoint)             // Light direction
+        let n = hitPoint.Normal                                     // Normal at hit point
         let r1 = -ld + (2. * (n * ld)) * n                          // Light ray direction
         let ray = hitPoint.Ray                                      // Casted ray
         let rd = ray.GetDirection.Normalise                         // Direction of casted ray
