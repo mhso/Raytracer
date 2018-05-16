@@ -14,7 +14,7 @@ type PointLight(colour: Colour, intensity: float, position: Point) =
         let normal = hitPoint.Normal
         let shadowRayOrigin = hitPoint.Point + normal * 0.00001
         let direction = (position - shadowRayOrigin).Normalise
-        [| new Ray(shadowRayOrigin, direction) |]
+        [| new Ray(shadowRayOrigin, direction.Normalise) |]
     override this.GetGeometricFactor hitPoint = 
         1.
     override this.GetProbabilityDensity hitPoint = 
