@@ -119,19 +119,19 @@ module ImplicitSurfaces =
 
   let render =
     List.map (Util.mkTarget "implicitSurfaces")
-      [//(heart, "heart");
-       //(sphere1 1.0 4, "sphere1");
-       //(sphere2 1.0, "sphere2");
-       //(planeX, "planeX");
-       //(planeY, "planeY");
-       //(planeZ, "planeZ");
-       //(torus 1.5 0.5, "torus");
-       //(torus2 1.5 0.5, "torus2");
-       (linkTorus 1, "linkTorus");
-       //(testShape, "testShape");
-       //(chmutov 2, "chmutov2");
-       //(chmutov 3, "chmutov3");
-       //(chmutov 4, "chmutov4");
-       //(chmutov 5, "chmutov5");
-       //(chmutov 6, "chmutov6")
+      [(heart, "heart");
+       (sphere1 1.0 4, "sphere1");
+       (sphere2 1.0, "sphere2");
+       (planeX, "planeX");
+       (planeY, "planeY");
+       (planeZ, "planeZ");
+       (torus 1.5 0.5, "torus");
+       (torus2 1.5 0.5, "torus2");
+       (linkTorus 4, "linkTorus");
+       (testShape, "testShape");
+       (chmutov 2, "chmutov2");
+       (chmutov 3, "chmutov3");
+       (chmutov 4, "chmutov4");
+       (chmutov 5, "chmutov5");
+       (chmutov 6, "chmutov6")
        ]

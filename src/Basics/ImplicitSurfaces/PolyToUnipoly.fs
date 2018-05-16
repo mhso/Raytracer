@@ -102,7 +102,7 @@ module PolyToUnipoly =
   (*
       Very small number. Considered as good as zero.
   *)
-  let epsilon = 10.**(-24.)
+  let epsilon = 10.**(-20.)
 
   (*
       Subtracts an unipoly, up2, from another unipoly, up1. I.e up1 - up2
