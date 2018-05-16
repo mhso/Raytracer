@@ -91,7 +91,6 @@
     <Compile Include="ImplicitSurfaces\PolyToUnipolyTests.fs" />
     <Compile Include="ImplicitSurfaces\ImplicitSurfacesTests.fs" />
     <Compile Include="SamplingTest.fs" />
-    <Compile Include="KDTest.fs" />
     <Compile Include="ShapeTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

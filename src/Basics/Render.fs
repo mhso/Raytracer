@@ -12,7 +12,7 @@ open System.Drawing.Imaging
 open System.Threading
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = false
+    let accelTiming = true
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
@@ -68,8 +68,14 @@ type Render(scene : Scene, camera : Camera) =
             let totalLightColour = 
                 this.Scene.Lights 
                 |> List.fold (fun acc light -> 
-                    let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
-                    acc + colour) Colour.Black
+                    if light :? EnvironmentLight then
+                        lock light (fun() -> 
+                            let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
+                            acc + colour)
+                    else
+                        let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
+                        acc + colour
+                    ) Colour.Black
             ambientColour + totalLightColour
         else
             // If we did not hit, return the background colour
@@ -85,16 +91,13 @@ type Render(scene : Scene, camera : Camera) =
         let sampler = occluder.Sampler
         let transOrthoCoord (x,y,z) = 
             
-            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
-
-            // Reflected ray direction
-            let m = hitPoint.Normal
-
             // Transform orthonormal frame of sample point
+            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
             let up = new Vector(0., 1., 0.)
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
+
             sp.OrthonormalTransform(u, v, w)
 
         let samples = sampler.NextSet()
@@ -104,7 +107,7 @@ type Render(scene : Scene, camera : Camera) =
         total / sampler.SampleCount
 
     member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
-        let ray = Ray(hitPoint.EscapedPoint, sp)
+        let ray = Ray(hitPoint.EscapedPoint, sp.Normalise)
         let rayHit = this.GetFirstHitPoint accel ray
         if rayHit.DidHit then
             occluder.MinIntensityColour
@@ -113,6 +116,7 @@ type Render(scene : Scene, camera : Camera) =
 
     // Get the first point the ray hits (if it hits, otherwise an empty hit point)
     member this.GetFirstHitPoint accel (ray:Ray) : HitPoint = 
+
       let rec findClosestHit (h:HitPoint) t' = function
       | []    -> 
           let hit = traverseIAcceleration accel ray bbshapes
@@ -159,12 +163,16 @@ type Render(scene : Scene, camera : Camera) =
         (accel: IAcceleration) (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
 
+        
+        if light :? EnvironmentLight then
+            (light :?> EnvironmentLight).FlushDirections(hitPoint)
+
         let shadowColour = this.CastShadow accel hitPoint light
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
+            acc + (hitPoint.Material.Bounce(shape, hitPoint, light) - shadowColour)
         else
             let outRay = reflectionFunction hitPoint
-            let baseColour = acc + (hitPoint.Material.PreBounce(shape, hitPoint, light, this.Scene.Ambient) - shadowColour)
+            let baseColour = acc + (hitPoint.Material.Bounce(shape, hitPoint, light) - shadowColour)
             let mutable outColour = Colour.Black
             for i = 0 to outRay.Length-1 do
                  

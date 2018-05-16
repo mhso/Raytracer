@@ -9,6 +9,7 @@ type PinholeCamera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point,
 
     default this.CreateRays x y =
         let samples = sampler.NextSet()
+        // Create the rays for anti-aliasing.
         [|for (sx, sy) in samples do
             let px = this.Pw * (float(x - (this.ResX/2)) + sx)
             let py = this.Ph * (float(y - (this.ResY/2)) + sy)

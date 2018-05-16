@@ -5,6 +5,7 @@ open Tracer.Basics.Acceleration
 open System.Threading.Tasks
 open PLYParser
 open Tracer.BaseShape
+open Tracer.Basics.Textures
 
 type TriPoint (v : Vertex) = 
     inherit Point(v.x,v.y,v.z)
@@ -30,9 +31,9 @@ type PLYTriangle (a: Point, b: Point, c: Point, t: Texture, smoothen, hasNormalW
                             Vector(triangle.nx.Value,triangle.ny.Value,triangle.nz.Value)
                         [|na.Normalise;nb.Normalise;nc.Normalise|]
                     else
-                        let na = (a :?> TriPoint).v.normal.Normalise
-                        let nb = (b :?> TriPoint).v.normal.Normalise
-                        let nc = (c :?> TriPoint).v.normal.Normalise
+                        let na = (a :?> TriPoint).v.normal
+                        let nb = (b :?> TriPoint).v.normal
+                        let nc = (c :?> TriPoint).v.normal
                         [|na;nb;nc|]
                 let V = (( * ) alpha vertexNormal.[0] |> ( + ) (( * ) base.beta vertexNormal.[1]) |> ( + ) (( * ) base.gamma vertexNormal.[2]))
                 (V).Normalise
@@ -49,7 +50,7 @@ type PLYTriangle (a: Point, b: Point, c: Point, t: Texture, smoothen, hasNormalW
             else 0.,0.
         if(oldHit.DidHit) then
             let material = (Textures.getFunc t) u v
-            let hitpoint = HitPoint(r, oldHit.Time, getNormal, material, oldHit.Shape)
+            let hitpoint = HitPoint(r, oldHit.Time, getNormal, material, this, u, v)
             hitpoint
         else HitPoint(r)
 
@@ -60,7 +61,7 @@ type BasePLYTriangle (a: Point, b: Point, c: Point,smoothen, hasNormalWithin, ha
 
 let createTriangles (triangleArray : Vertex array) (faceArray : int list array) (smooth:bool) (hasNormalWithin : bool) (hasTextureCoords : bool)= 
     let ar = Array.zeroCreate(faceArray.Length)
-    Parallel.For(0, ar.Length, fun i ->
+    Parallel.For(0,ar.Length,fun i ->
         let v1 = triangleArray.[faceArray.[i].[1]]
         let p1 = new TriPoint(v1)
         let v2 = triangleArray.[faceArray.[i].[2]]

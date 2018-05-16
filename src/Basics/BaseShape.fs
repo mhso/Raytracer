@@ -1,8 +1,7 @@
 ﻿namespace Tracer.BaseShape
 
 open Tracer.Basics
-open Tracer.Basics
-
+open Tracer.Basics.Textures
 
 [<AbstractClass>]
 type BaseShape()=

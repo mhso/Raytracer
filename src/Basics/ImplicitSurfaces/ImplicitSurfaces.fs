@@ -6,6 +6,7 @@ module ImplicitSurfaces =
   open Tracer.ExprToPoly
   open Tracer.PolyToUnipoly
   open Tracer.Basics
+  open Tracer.Basics.Textures
 
   type hf = Ray -> (float * Vector) option
   type hitPoint = Tracer.Basics.HitPoint
