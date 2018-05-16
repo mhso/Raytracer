@@ -19,15 +19,15 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
     member this.Sampler = sampler
     member this.Sphere = sphere
     member this.FlushDirections (hitPoint: HitPoint) = 
-        let generateSample() = 
-            let (x,y,z) = Sampling.mapToHemisphere (sampler.Next()) 0.
+        let generateSample(sx, sy) = 
+            let (x,y,z) = Sampling.mapToHemisphere (sx, sy) 0.
             let sp_local = Point(x/2.,y/2.,z)
             let up = new Vector(0., 1., 0.)
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
             sp_local.OrthonormalTransform(u, v, w)
-        sps <- [for i in 1..sampler.SampleCount do yield generateSample()]
+        sps <- [for (x, y) in sampler.NextSet() do yield generateSample(x, y)]
         ld <- sps |> List.average
         lpdf <- [for sp in sps do yield (sp * hitPoint.Normal) / Math.PI] |> List.average
 
