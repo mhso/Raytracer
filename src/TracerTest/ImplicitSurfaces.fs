@@ -70,7 +70,7 @@ module ImplicitSurfaces =
     let sz = "z^4 - 2*" + rs1 + "*z^2"
     let sc = rs2 + "^2"
     let eqn = sx + " + " + sy + " + " + sz + " + " + sc 
-    let _ = printf "torus equation %s\n" eqn
+    //let _ = printf "torus equation %s\n" eqn
     let s = mkShape (mkImplicit eqn) (mkMatTexture (mkMatte (fromColor Color.Blue) 1.0))
     { camera = mkPinholeCamera (mkPoint 0.0 4.0 0.0) (mkPoint 0.0 0.0 0.0) (mkVector 0.0 0.0 1.0) 2.0 4.0 4.0 500 500 (mkRegularSampler 1)
       scene = mkScene' s}
@@ -115,7 +115,7 @@ module ImplicitSurfaces =
     { camera = mkPinholeCamera (mkPoint 16.0 16.0 16.0) (mkPoint 0.0 -0.5 0.0) (mkVector -1.0 1.0 -1.0) 16.0 4.0 4.0 500 500 (mkRegularSampler 1)
       scene = mkScene' s}
 
- let test = (T "x" + " + " + T "y" + " + " + T "z")
+  //let test = (T "x" + " + " + T "y" + " + " + T "z")
 
   let render =
     List.map (Util.mkTarget "implicitSurfaces")
@@ -133,4 +133,5 @@ module ImplicitSurfaces =
        (chmutov 3, "chmutov3");
        (chmutov 4, "chmutov4");
        (chmutov 5, "chmutov5");
-       (chmutov 6, "chmutov6")]
+       (chmutov 6, "chmutov6")
+       ]
