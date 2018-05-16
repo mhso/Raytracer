@@ -52,7 +52,7 @@ module RegularGrids =
     let calcBbox n w = float(n)/w
     
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
-    let build (shapes:array<Shape>):RGStructure =
+    let buildStructure (shapes:array<Shape>) : RGStructure =
         if shapes.Length = 0 then failwith "build-> Cannont build with empty shape array" // Shapes needed for build.
 
         let boxes = convertShapesToBBoxes shapes // Return bounding boxes from shapes.
@@ -107,7 +107,10 @@ module RegularGrids =
             if debugBuild then printfn "build->shapes.Length: %i" shapes.Length
             if debugBuild then printfn "build->Grid: %A" grid
             (grid, nx, ny, nz, box)
-                
+    
+    let build (shapes:array<Shape>) : RGStructure = 
+        let structure = buildStructure shapes
+        structure
         
   // ######################### TRAVERSAL REGULAR GRID #########################
     let calcIxIyIz (p:Point) (bbox:BBox) (nx:int) (ny:int) (nz:int) : int*int*int = 
