@@ -3,11 +3,10 @@
 module RegularGrids =
 
     // Used for debug, will print to console etc. 
-    let debugBuild = false
-    let debugTraverse = false
+    let debugBuildCounts = false
 
     // Type of the BVHTree, with Nodes and Leafs.
-    type RGStructure = Shape list[,,]*int*int*int*BBox  
+    type RGStructure = int list[,,]*int*int*int*BBox  
 
     let clamp (x:float,b:int) : float =
         match x with
@@ -48,6 +47,8 @@ module RegularGrids =
  // ######################### BUILD REGULAR GRID #########################
     let calcBbox n w : float = float(n)/w
     
+    let mutable gridSize = (0,0,0)
+
     // Function performs recursive searh in the grid, with a maximum distance from the ray origin.
     let buildStructure (shapes:array<Shape>) : RGStructure =
         if shapes.Length = 0 then failwith "build-> Cannont build with empty shape array" // Shapes needed for build.
@@ -56,12 +57,13 @@ module RegularGrids =
         let lowPoint, highPoint = findOuterBoundingBoxLowHighPoints boxes // lo/high point of outer bounding box.
         let box = BBox (lowPoint, highPoint)
 
-        if shapes.Length < 5 then
+        if shapes.Length < 10 then
             // If only a fex shapes, put all in a single box
-            let grid = Array3D.zeroCreate<Shape list> 1 1 1
+            let grid = Array3D.zeroCreate<int list> 1 1 1
             grid.[0,0,0] <- []
-            for shape in shapes do 
-                grid.[0,0,0] <- shape::grid.[0,0,0]
+            for i in 0..shapes.Length-1 do 
+                grid.[0,0,0] <- i::grid.[0,0,0]
+            if debugBuildCounts then gridSize <- (1, 1, 1) // Debug grid size
             (grid, 1, 1, 1, box)
         else
             // Vector from low to high of the outer bounding box.
@@ -75,11 +77,12 @@ module RegularGrids =
             let bbz = calcBbox nz w.Z
 
             // Create grid of size x,y,z fill with empty list
-            let grid = Array3D.create<Shape list> nx ny nz []
+            let grid = Array3D.create<int list> nx ny nz []
+            if debugBuildCounts then gridSize <- (nx, ny, nz) // Debug grid size
 
             // Fill shapes in grid
-            for shape in shapes do 
-                let bb = shape.getBoundingBox()
+            for i in 0..shapes.Length-1 do 
+                let bb = shapes.[i].getBoundingBox()
                 let ixMin = int(clamp((bb.lowPoint.X-lowPoint.X)*bbx, nx-1))
                 let iyMin = int(clamp((bb.lowPoint.Y-lowPoint.Y)*bby, ny-1))
                 let izMin = int(clamp((bb.lowPoint.Z-lowPoint.Z)*bbz, nz-1))
@@ -91,12 +94,17 @@ module RegularGrids =
                 for iz=izMin to izMax do
                     for iy=iyMin to iyMax do
                         for ix=ixMin to ixMax do
-                            grid.[ix,iy,iz] <- shape::grid.[ix,iy,iz]
+                            grid.[ix,iy,iz] <- i::grid.[ix,iy,iz]
 
             (grid, nx, ny, nz, box)
     
     let build (shapes:array<Shape>) : RGStructure = 
         let structure = buildStructure shapes
+        if debugBuildCounts then 
+            printfn "totalShapes: %i" shapes.Length
+            let x,y,z = gridSize
+            printfn "Grid size x, y, z: %i %i %i" x y z
+
         structure
         
   // ######################### TRAVERSAL REGULAR GRID #########################
@@ -114,19 +122,19 @@ module RegularGrids =
         | _ -> failwith "nextStepStop -> float compareTo out of range (-1,0,1)"
 
     // Functions finds closest hit of a ray in structure.
-    let closestHit (shapeList:Shape list) (ray:Ray) : HitPoint option =
-        match shapeList with
+    let closestHit (intIndexes:int list) (ray:Ray) (shapes:array<Shape>) : HitPoint option =
+        match intIndexes with
         | [] -> None
-        | shapes -> let mutable closestHit = None
-                    let mutable closestDist = infinity
-                    for shape in shapes do
-                        let hitPoint = shape.hitFunction ray
-                        let dist = hitPoint.Time
-                        if hitPoint.DidHit && dist<closestDist then
-                            closestDist <- dist
-                            closestHit <- Some hitPoint
-                    closestHit
-        | _ ->  None
+        | shapesRef ->
+                        let mutable closestHit = None
+                        let mutable closestDist = infinity
+                        for shapeRef in shapesRef do
+                            let hitPoint = shapes.[shapeRef].hitFunction ray
+                            let dist = hitPoint.Time
+                            if hitPoint.DidHit && dist<closestDist then
+                                closestDist <- dist
+                                closestHit <- Some hitPoint
+                        closestHit
 
     //Function for search of the grid.
     let searchStructure (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =
@@ -134,43 +142,44 @@ module RegularGrids =
         match bbox.intersectRG ray with
         | Some (t,t',tx,ty,tz,tx',ty',tz') ->
                 
-                let p = ray.GetOrigin
+                let mutable p = ray.GetOrigin
+                let d = ray.GetDirection
+
                 if not (bbox.isInside p) then
-                    let d = ray.GetDirection
-                    let p = p+(t*d)
+                    p <- (p + (t * d))
                                                 
-                    let ix, iy, iz = calcIxIyIz p bbox nx ny nz
-                    if debugTraverse then printfn "ix, iy, iz %i %i %i" ix iy iz
+                let ix, iy, iz = calcIxIyIz p bbox nx ny nz
 
-                    let dtx : float = (tx'-tx)/float nx
-                    let dty : float = (ty'-ty)/float ny
-                    let dtz : float = (tz'-tz)/float nz
+                let dtx : float = (tx'-tx)/float nx
+                let dty : float = (ty'-ty)/float ny
+                let dtz : float = (tz'-tz)/float nz
 
-                    let txNext, ixStep, ixStop = calcNextStepStop d.X tx ix dtx nx
-                    let tyNext, iyStep, iyStop = calcNextStepStop d.Y ty iy dty ny
-                    let tzNext, izStep, izStop = calcNextStepStop d.Z tz iz dtz nz
+                let txNext, ixStep, ixStop = calcNextStepStop d.X tx ix dtx nx
+                let tyNext, iyStep, iyStop = calcNextStepStop d.Y ty iy dty ny
+                let tzNext, izStep, izStop = calcNextStepStop d.Z tz iz dtz nz
 
-                    let rec loop ix iy iz txNext tyNext tzNext =
-                        let checkForHit = closestHit grid.[ix,iy,iz] ray
-                        if txNext<tyNext && txNext<tzNext then
+                let rec loop ix iy iz txNext tyNext tzNext =
+                    let checkForHit = closestHit grid.[ix,iy,iz] ray shapes
+                    if txNext<tyNext && txNext<tzNext then
+                        match checkForHit with
+                        | Some hitPoint when hitPoint.Time<txNext -> Some hitPoint
+                        | _ ->  
+                                if (ix+ixStep) = ixStop then None
+                                else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
+                    else
+                        if tyNext<tzNext then
                             match checkForHit with
-                            | Some hitPoint when hitPoint.Time<txNext -> Some hitPoint
-                            | _ ->  if (ix+ixStep) = ixStop then None
-                                    else loop (ix+ixStep) iy iz (txNext+dtx) tyNext tzNext
+                            | Some hitPoint when hitPoint.Time<tyNext -> Some hitPoint
+                            | _ ->  
+                                    if (iy+iyStep) = iyStop then None
+                                    else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
                         else
-                            if tyNext<tzNext then
-                                match checkForHit with
-                                | Some hitPoint when hitPoint.Time<tyNext -> Some hitPoint
-                                | _ -> if (iy+iyStep) = iyStop then None
-                                        else loop ix (iy+iyStep) iz txNext (tyNext+dty) tzNext
-                            else
-                                match checkForHit with
-                                | Some hitPoint when hitPoint.Time<tzNext -> Some hitPoint
-                                | _ ->  if (iz+izStep) = izStop then None
-                                        else loop ix iy (iz+izStep) txNext tyNext (tzNext+dtz)
-                    loop ix iy iz txNext tyNext tzNext
-                else
-                    None                    
+                            match checkForHit with
+                            | Some hitPoint when hitPoint.Time<tzNext -> Some hitPoint
+                            | _ ->  
+                                    if (iz+izStep) = izStop then None
+                                    else loop ix iy (iz+izStep) txNext tyNext (tzNext+dtz)
+                loop ix iy iz txNext tyNext tzNext                   
         | None -> None
 
     //Function for traversal of the structure.
