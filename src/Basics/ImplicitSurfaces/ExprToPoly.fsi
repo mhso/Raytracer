@@ -26,5 +26,4 @@ module ExprToPoly =
   val rewriteExpr : expr -> atom list list
   val simplifyAtomGroup : seq<atom> -> atomGroup
   val combine : atomGroup list -> atom list list -> atom list list
-  val getOrder : Map<int, 'a> -> int
   val polyDerivative : poly -> poly

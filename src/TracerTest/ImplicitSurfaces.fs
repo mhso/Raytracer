@@ -133,4 +133,5 @@ module ImplicitSurfaces =
        (chmutov 3, "chmutov3");
        (chmutov 4, "chmutov4");
        (chmutov 5, "chmutov5");
-       (chmutov 6, "chmutov6")]
+       (chmutov 6, "chmutov6")
+       ]
