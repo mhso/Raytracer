@@ -72,4 +72,17 @@ type BBox(lowPoint:Point, highPoint:Point) =
 
         if t < t' && t' > 0.0 then Some(t, t', tx, ty, tz, tx', ty', tz') else None
 
+    member this.boundingBoxIntersect (other:BBox) : bool =
+        let newLow = Point((min lowPoint.X other.lowPoint.X), (min lowPoint.Y other.lowPoint.Y), (min lowPoint.Z other.lowPoint.Z))
+        let newHigh = Point((max highPoint.X other.highPoint.X), (max highPoint.Y other.highPoint.Y), (max highPoint.Z other.highPoint.Z))
+        
+        let halfDistX = (newHigh.X-newLow.X)/2.
+        let halfDistY = (newHigh.Y-newLow.Y)/2.
+        let halfDistZ = (newHigh.Z-newLow.Z)/2.
+
+        lowPoint.X <= halfDistX && halfDistX <= newHigh.X
+        || lowPoint.Y <= halfDistY && halfDistY <= newHigh.Y
+        || lowPoint.Z <= halfDistZ && halfDistZ <= newHigh.Z
+
+
 
