@@ -7,7 +7,7 @@ type PointLight(colour: Colour, intensity: float, position: Point) =
 
     // Local methods
     member this.Position = position
-
+    
     // Overwritten methods
     override this.GetColour _ = new Colour(colour.R * intensity, colour.G * intensity, colour.B * intensity)
     override this.GetDirectionFromPoint hitPoint = (position - hitPoint.Point).Normalise

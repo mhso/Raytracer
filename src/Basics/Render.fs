@@ -31,7 +31,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
 
-    let ppRendering = false
+    let ppRendering = true
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -102,7 +102,7 @@ type Render(scene : Scene, camera : Camera) =
         total / sampler.SampleCount
 
     member this.CastAmbientOcclusion accel (sp: Vector) (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
-        let ray = Ray(hitPoint.EscapedPoint, sp)
+        let ray = Ray(hitPoint.EscapedPoint, sp.Normalise)
         let rayHit = this.GetFirstHitPoint accel ray
         if rayHit.DidHit then
             occluder.MinIntensityColour

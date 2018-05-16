@@ -1,7 +1,6 @@
 ﻿namespace Tracer.Basics
 open System
 open Tracer.Basics.Sampling
-open System.Drawing
 
 
 //- MATTE MATERIAL
@@ -23,10 +22,10 @@ type MatteMaterial
     
     // Overwritten methods
     default this.AmbientColour(hitPoint, ambientLight) = ambientColour * ambientCoefficient * ambientLight.GetColour hitPoint
-    default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
+    default this.ReflectionFactor (_,_) = Colour.White
     default this.BounceMethod hitPoint = [||]
     default this.IsRecursive = false
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(_, hitPoint, light) = 
         
         // Initialize parameters
         let kd = matteCoefficient                           // Matte coefficient
@@ -67,7 +66,7 @@ type PhongMaterial
     member this.SpecularExponent = specularExponent
     
     // Overwritten methods
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.Bounce(_, hitPoint, light) = 
         
         // Initialize parameters
         let ld = (light.GetDirectionFromPoint hitPoint).Normalise   // Light direction
@@ -194,11 +193,12 @@ type MatteGlossyReflectiveMaterial
             // Add outgoing ray to the array
             yield
                 if transformed_sp * normal > 0. then
-                    Ray(hitPoint.Point, transformed_sp)
+                    Ray(hitPoint.Point, transformed_sp.Normalise)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
+                    Ray(hitPoint.Point, (-sp.X * u - sp.Y * v + sp.Z * w).Normalise)|]
         
     default this.Bounce(shape, hitPoint, light) = base.Bounce(shape, hitPoint, light)
+
 
 //- MATTE GLOSSY REFLECTIVE MATERIAL
 type PhongGlossyReflectiveMaterial     
@@ -218,7 +218,7 @@ type PhongGlossyReflectiveMaterial
     inherit PhongMaterial(ambientColour, ambientCoefficient, matteColour, matteCoefficient, specularColour, specularCoefficient, specularExponent)
     
     // Overwritten methods
-    default this.ReflectionFactor (hitPoint,rayOut) = reflectiveColour * glossyCoefficient
+    default this.ReflectionFactor (_,_) = reflectiveColour * glossyCoefficient
     default this.IsRecursive = true
     default this.BounceMethod hitPoint =
         
@@ -246,9 +246,9 @@ type PhongGlossyReflectiveMaterial
             // Add outgoing ray to the array
             yield 
                 if transformed_sp * normal > 0. then
-                    Ray(hitPoint.Point, transformed_sp)
+                    Ray(hitPoint.Point, transformed_sp.Normalise)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
+                    Ray(hitPoint.Point, (-sp.X * u - sp.Y * v + sp.Z * w).Normalise)|]
 
     default this.Bounce(shape, hitPoint, light) = 
         // Bounce the diffuse material
@@ -268,11 +268,11 @@ type EmissiveMaterial(lightColour: Colour, lightIntensity: float) =
     member this.EmisiveRadience = emisiveRadience
 
     // Overwritten fields
-    default this.AmbientColour(hitPoint, ambientLight) = Colour.Black
+    default this.AmbientColour(_, _) = Colour.Black
     default this.IsRecursive = false
-    default this.ReflectionFactor (hitPoint,rayOut) = Colour.White
-    default this.BounceMethod hitPoint = [||]
-    default this.Bounce(shape, hitPoint, light) = 
+    default this.ReflectionFactor (_,_) = Colour.White
+    default this.BounceMethod _ = [||]
+    default this.Bounce(_, hitPoint, _) = 
         
         // Only emit light from the front
         if hitPoint.Normal * -hitPoint.Ray.GetDirection > 0. then emisiveRadience
