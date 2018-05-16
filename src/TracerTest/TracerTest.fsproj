@@ -113,19 +113,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Basics\Basics.fsproj">
-      <Name>Basics</Name>
+    <ProjectReference Include="..\RayTracer\RayTracer.fsproj">
+      <Name>RayTracer</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\RayTracerFramework\Raytracer.fsproj">
-      <Name>Raytracer</Name>
-      <Project>{92ae911b-8e25-405a-a804-046e4d018f0d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TriangleMeshes\TriangleMeshes.fsproj">
-      <Name>TriangleMeshes</Name>
-      <Project>{35e5fd13-1c17-4df7-a26a-3d1eb06b6310}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

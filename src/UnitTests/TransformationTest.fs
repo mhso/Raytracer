@@ -6,7 +6,7 @@ open Assert
 open Tracer.Basics
 
 let allTest = 
-0
+  0
 //    let testPointLowest = 
 //        let p1 = Point(1.,2.,0.)
 //        let p2 = Point(0.,-2.,1.)

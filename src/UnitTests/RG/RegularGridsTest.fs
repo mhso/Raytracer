@@ -5,7 +5,6 @@ open Assert
 
 let allTest = 
     // Used for debug, will print to console etc. 
-    let debug = true
     // ----------------------------- Common data -----------------------------
 
 

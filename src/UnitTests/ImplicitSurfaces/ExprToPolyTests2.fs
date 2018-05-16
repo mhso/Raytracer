@@ -106,21 +106,6 @@ let allTest =
     let expected = P m
     Assert.Equal (expected, actual, "polyDerivative: 3x^3 + 3x^2 + 5x + 1 ; p' = 9x^2 + 5")
 
-  let test17 =
-    let mutable (m:Map<int, string>) = Map.empty
-    for i in 1 .. 9999 do m <- Map.add i (string i) m
-    let actual = getOrder m
-    let expected = 9999
-    Assert.Equal (expected, actual, "getOrder, returns the largest element (inserted in incremented order)")
-
-  let test18 =
-    let mutable (m:Map<int, string>) = Map.empty
-    let lis = List.rev [1..9999]
-    for i in lis do m <- Map.add i (string i) m
-    let actual = getOrder m
-    let expected = 9999
-    Assert.Equal (expected, actual, "getOrder, returns the largest element (inserted in decremented order)")
-
   let test19 =
     let pol = P (Map.empty
                   .Add(0,SE [[]])
@@ -146,6 +131,4 @@ let allTest =
   test14
   test15
   test16
-  test17
-  test18
   test19

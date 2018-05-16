@@ -1,6 +1,5 @@
 open TracerTestSuite
 open Tracer.API
-open System
 
 let allTargets : Target list =
   List.concat 
@@ -17,14 +16,14 @@ let allTargets : Target list =
      AffineTransformations.render true;
      AffineTransformations.render false;
      ImplicitSurfaces.render;
-     Meshes.render Tracer.API.Acceleration.KDTree;
+     Meshes.render Tracer.API.Acceleration.KDTree
      Texture.render;
      Light.render;
      CSG.render;
      AmbientOcclusion.render [1;2;4;8;16]
-     // The test groups below is only needed for teams of 7 students.
-     // Teams of 6 students can uncomment the lines below.
-     Meshes.render Tracer.API.Acceleration.KDTree;
+      //The test groups below is only needed for teams of 7 students.
+      //Teams of 6 students can uncomment the lines below.
+     Meshes.render Tracer.API.Acceleration.RegularGrid;
      Meshes.render Tracer.API.Acceleration.BVH;
      ]
 

@@ -118,10 +118,10 @@ module Material =
 
   let renderWithSampler (gname : string) (sampler : unit -> sampler) : Target list = 
     List.map (fun (test, name) -> mkTarget gname ((fun _ -> test (sampler ()) ()), name))
-      [//(scene, "AmbientLight");
-       //(sceneEL, "EnvironmentLight");
-       //(sceneAO, "AmbientOcclusion");
-       //(sceneAOEL, "AmbientOclusionEnvironmentLight");
+      [(scene, "AmbientLight");
+       (sceneEL, "EnvironmentLight");
+       (sceneAO, "AmbientOcclusion");
+       (sceneAOEL, "AmbientOclusionEnvironmentLight");
        (sceneMatte, "matte");
        (scenePhongReflective, "phongReflective");
        (scenePhongPoint, "phongPoint");
