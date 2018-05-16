@@ -3,19 +3,6 @@ namespace Tracer
 module ExprParse =
   open Tracer.Basics
 
-  (* Grammar:
-
-  E    = T Eopt .
-  Eopt = "+" T Eopt | e .
-  T    = F Topt .
-  Topt = "*" F Topt | e .
-  F    = P Fopt .
-  Fopt = "^" Int | e .
-  P    = Int [ Float | Var | "(" E ")" .
-
-  e is the empty sequence.
-  *)
-
   type terminal = 
     | Add               // addition
     | Mul               // multiplication
@@ -54,7 +41,10 @@ module ExprParse =
     match cs with
     | c :: cr when isletterdigit c  -> scname(cr, value + c.ToString())
     | _                             -> (cs, value)
-
+  
+  (*
+      Scans a string/char seq, and returns a list of terminals
+  *)
   let scan s =
     let negateNumber = function
         Int i -> Int -i
@@ -70,13 +60,8 @@ module ExprParse =
       | '(' :: cr                       -> Lpar :: sc cr
       | ')' :: cr                       -> Rpar :: sc cr
       | '_' :: cr                       -> Root :: sc cr
-      //| '-' :: c :: cr when isdigit c   -> let (cs1, t) = scnum(cr, intval c)
-      //                                     negateNumber t :: sc cs1
-      //| '-' :: c1 :: c2 :: cr when isblank c1 && isdigit c2 ->
-      //                                     let (cs1, t) = scnum(cr, intval c2)
-      //                                     Add :: negateNumber t :: sc cs1 
-      | '-' :: cr                       -> Add :: Float -1.0 :: Mul :: sc cr // Subtraction and negation is treated as multiplied by minus 1//Sub :: sc cr
-      //Add :: Float -1.0 :: Mul :: sc cr // Subtraction and negation is treated as multiplied by minus 1
+      // Subtraction and negation is treated as "add this term and multiply this term with minus 1"
+      | '-' :: cr                       -> Add :: Float -1.0 :: Mul :: sc cr
       | c :: cr when isdigit c          -> let (cs1, t) = scnum(cr, intval c)
                                            t :: sc cs1
       | c :: cr when isblank c          -> sc cr
@@ -85,7 +70,9 @@ module ExprParse =
       | _                               -> raise ScanErrorException
     sc (explode s)
 
-  // trying to use active patterns
+  (*
+      Active patterns on terminals
+  *)
   let (|Lterm|NoMatch|) left = 
     match left with
     | Float _ | Var _ | Int _ -> Lterm left
@@ -95,6 +82,9 @@ module ExprParse =
     | Float _ | Var _ | Int _ | Lpar _  -> Rterm right
     | _                                 -> NoMatch
 
+  (*
+      Inserts multiply terminals between terms where it has been implicit in the scanned string
+  *)
   let rec insertMult = function
     | Lterm left::Rterm right::ts -> left::Mul::insertMult (right::ts)
     | t::ts                       -> t::insertMult ts
@@ -111,6 +101,17 @@ module ExprParse =
 
   exception ParseErrorException
 
+  (* 
+      Grammar:
+      E    = T Eopt .
+      Eopt = "+" T Eopt | e .
+      T    = F Topt .
+      Topt = "*" F Topt | "/" F Topt | e .
+      F    = P Fopt .
+      Fopt = "^" Int | "_" Int | e .
+      P    = Int [ Float | Var | "(" E ")" .
+      e is the empty sequence.
+  *)
   let rec E (ts:terminal list) = (T >> Eopt) ts // or Eopt (T ts), and the full composition translates to Eopt (Topt (Fopt (P ts)))
   and Eopt (ts, (inval)) = 
     match ts with 
@@ -140,7 +141,7 @@ module ExprParse =
                      match ts1 with
                      | Rpar :: tr -> (tr, ev)
                      | _          -> raise ParseErrorException
-    | Add::tr -> P tr 
+    | Add::tr -> P tr // if the original equation started with a negative term, we end here.
     | _           -> raise ParseErrorException
 
   let parse ts : expr= 
@@ -148,6 +149,9 @@ module ExprParse =
     | ([], result)  -> result
     | _             -> raise ParseErrorException
 
+  (*
+      Reduces all possible expressions that include numbers
+  *)
   let rec reduceExpr e =
     let rec inner = function
       // remove zero-terms
@@ -169,14 +173,14 @@ module ExprParse =
       | FMult(e1,e2)       -> FMult (inner e1, inner e2)
       | FDiv(e1,e2)        -> FDiv (inner e1, inner e2)
       | FExponent(e1,n)    -> FExponent (inner e1, n)
-      | ex                 -> ex // FVar FNum
+      | ex                 -> ex // FVar and FNum
     let altered = inner e
     if e = altered then e
     else reduceExpr altered
 
-  let parseStr s = (scan >> insertMult >> parse) s
-
-  // requires a map of all the variables used in the expression, mapped to float values
+  (*
+      Given a point, with values for x, y, and z, solves the expression
+  *)
   let rec solveExpr (p:Point) = function
   | FNum c          -> c
   | FVar s          -> match s with
@@ -190,30 +194,8 @@ module ExprParse =
   | FDiv(e1,e2)     -> solveExpr p e1 / solveExpr p e2
   | FExponent(e1,n) -> pown (solveExpr p e1) n
 
-  let dotAST ast =
-    let fixStr (s:string) = s.Replace ("\"", "\\\"")
-    let genDot s n e = "digraph G {\nlabel=\"" + (fixStr s) + "\"\n" + n + e + "\n}"
-    // i is unique label such that nodes and edges are unique in DiGraph.
-    let genNodeStr i l = "Node"+(string i)+" [label=\""+l+"\"];\n"
-    let genEdgeStr i1 i2 = "Node"+(string i1)+" -> " + "Node"+(string i2)+";\n"
-    // Edges are unique and stored in a set.
-    // Nodes are not unique and stored in a map, i.e., node with "+" may happen several times. 
-    let rec genNE (i,nmap,eset) = function
-      FNum r -> (i,Map.add i (genNodeStr i ((string)r)) nmap,eset)            // Add node with number
-    | FVar x -> (i,Map.add i (genNodeStr i x) nmap,eset)                      // Add node with variable
-    | FAdd (e1,e2) -> let (i1,nmap1,eset1) = genNE (i+1,nmap,eset) e1         // Generate nodes and edges for e1 and e2
-                      let (i2,nmap2,eset2) = genNE (i1+1,nmap1,eset1) e2
-                      (i2+1,Map.add (i2+1) (genNodeStr (i2+1) "+") nmap2,                      // Add node for "+"
-                       Set.add (genEdgeStr (i2+1) i2) (Set.add (genEdgeStr (i2+1) i1) eset2))  // Add edge for "+"->e1 and "+"->e2
-    | FMult (e1,e2) -> let (i1,nmap1,eset1) = genNE (i+1,nmap,eset) e1        // Generate nodes and edges for e1 and e2
-                       let (i2,nmap2,eset2) = genNE (i1+1,nmap1,eset1) e2
-                       (i2+1,Map.add (i2+1) (genNodeStr (i2+1) "*") nmap2,                      // Add node for "*"
-                        Set.add (genEdgeStr (i2+1) i2) (Set.add (genEdgeStr (i2+1) i1) eset2))  // Add edge for "*"->e1 and "*"->e2
-    | FExponent (e1,ie) -> let (i1,nmap1,eset1) = genNE (i+1,nmap,eset) e1                                // Generate nodes and edges for e1
-                           let (i2,nmap2) = (i1+1,Map.add (i1+1) (genNodeStr (i1+1) ((string)ie)) nmap1)  // Add node for integer (exponent)
-                           (i2+1,Map.add (i2+1) (genNodeStr (i2+1) "^") nmap2,                            // Add node for "^"
-                            Set.add (genEdgeStr (i2+1) i2) (Set.add (genEdgeStr (i2+1) i1) eset1))        // Add edges for "^"->e1 and "^"->ie
-    | _ -> failwith "the rest of expr types not handled here"
-    let (_,nmap,eset) = genNE (0,Map.empty,Set.empty) ast  // Generate map for nodes and set for edges
-    genDot (sprintf "%A\n" ast) (Map.fold (fun acc _ s -> acc + s) "" nmap) (Set.fold (+) "" eset)  // Generate big string with dot-code.
-    
+  (*
+      Runs all the above functions for a string equation.
+      Returns an expr
+  *)
+  let parseStr s = (scan >> insertMult >> parse) s

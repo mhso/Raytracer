@@ -20,7 +20,6 @@ module ExprParse =
   exception ParseErrorException
   val parse : terminal list -> expr
   val parseStr : char seq -> expr
-  val dotAST : expr -> string
 
   val reduceExpr : expr -> expr
   val solveExpr : Point -> expr -> float

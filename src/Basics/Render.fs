@@ -9,9 +9,10 @@ open System.Threading.Tasks
 open Tracer.Basics.Sampling
 open System.Runtime.InteropServices
 open System.Drawing.Imaging
+open System.Threading
 
 type Render(scene : Scene, camera : Camera) =
-    let accelTiming = true
+    let accelTiming = false
     let travTimer = new System.Diagnostics.Stopwatch()
     let renderTimer = new System.Diagnostics.Stopwatch()
 
@@ -75,7 +76,7 @@ type Render(scene : Scene, camera : Camera) =
                         let colour = this.CastRecursively accel ray hitPoint.Shape hitPoint light Colour.Black this.Scene.MaxBounces hitPoint.Material.BounceMethod
                         acc + colour
                     ) Colour.Black
-            ambientColour + totalLightColour
+            totalLightColour
         else
             // If we did not hit, return the background colour
             this.Scene.BackgroundColour
@@ -88,19 +89,23 @@ type Render(scene : Scene, camera : Camera) =
 
     member this.Occlude accel (occluder: AmbientOccluder) (hitPoint: HitPoint) = 
         let sampler = occluder.Sampler
-        let transOrthoCoord (x,y,z) = 
+        let transOrthoCoord (hemPoint:(float*float*float)) = 
             
             // Transform orthonormal frame of sample point
-            let sp = Tracer.Basics.Point(x/2.,y/2.,z)
+            let sp = new Tracer.Basics.Point(hemPoint)
             let up = new Vector(0., 1., 0.)
             let w = hitPoint.Normal
             let v = (up % w).Normalise
             let u = w % v
+            let transformed_sp = sp.OrthonormalTransform(u, v, w)
 
-            sp.OrthonormalTransform(u, v, w)
+            if transformed_sp * hitPoint.Normal > 0.0 then
+                transformed_sp
+            else 
+                (-sp.X * v - sp.Y * u + sp.Z * w).Normalise
 
         let samples = sampler.NextSet()
-        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 0.)]
+        let total = [for (x, y) in samples do yield transOrthoCoord (mapToHemisphere (x,y) 1.)]
                     |> List.fold (fun acc ad -> acc + this.CastAmbientOcclusion accel ad occluder hitPoint) Colour.Black 
 
         total / sampler.SampleCount
@@ -161,14 +166,15 @@ type Render(scene : Scene, camera : Camera) =
     member this.CastRecursively 
         (accel: IAcceleration) (incomingRay: Ray) (shape: Shape) (hitPoint: HitPoint) (light: Light) (acc: Colour) (bounces: int) 
         (reflectionFunction: HitPoint -> Ray[]) : Colour =
-
         
         if light :? EnvironmentLight then
             (light :?> EnvironmentLight).FlushDirections(hitPoint)
 
         let shadowColour = this.CastShadow accel hitPoint light
+        let ambientColour = this.CastAmbientColour accel hitPoint
+
         if bounces = 0 || not hitPoint.Material.IsRecursive then
-            acc + (hitPoint.Material.Bounce(shape, hitPoint, light) - shadowColour)
+            acc + ambientColour + (hitPoint.Material.Bounce(shape, hitPoint, light) - shadowColour)
         else
             let outRay = reflectionFunction hitPoint
             let baseColour = acc + (hitPoint.Material.Bounce(shape, hitPoint, light) - shadowColour)
@@ -177,7 +183,10 @@ type Render(scene : Scene, camera : Camera) =
                  
                     let outHitPoint = this.GetFirstHitPoint accel outRay.[i]
                     if outHitPoint.DidHit then
-                        let recursiveColour = this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
+                        let amb = 
+                            if outHitPoint.Material :? TransparentMaterial then Colour.White + ambientColour
+                            else Colour.White
+                        let recursiveColour = amb * this.CastRecursively accel outRay.[i] outHitPoint.Shape outHitPoint light baseColour (bounces - 1) reflectionFunction
                         outColour <- outColour + hitPoint.Material.ReflectionFactor(hitPoint, outRay.[i]) * recursiveColour
                     else
                         outColour <- outColour + this.Scene.BackgroundColour
@@ -329,6 +338,52 @@ type Render(scene : Scene, camera : Camera) =
         if accelTiming then
             renderTimer.Stop()
             printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
+        Acceleration.discardAccelerations
+        renderedImage
+
+
+    member this.RenderParallelWithProgressBar = 
+        // Prepare image
+        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
+
+        // Create our timer and Acceleration Structure
+        let accel = this.PreProcessing
+        
+        timer.Start()
+
+        let mutable processed = 0.0
+        let pos = [for y in 0 .. camera.ResY - 1 do
+                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
+        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
+        let mutex = new Mutex()
+
+        try
+          // Shoot rays and save the resulting colors, using parallel computations.
+          Parallel.ForEach (pos, fun (x,y) ->
+            let rays = camera.CreateRays x y
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+              
+            // using mutex to deal with shared ressources in a thread-safe manner
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              bmColourArray.[y,x] <- colour
+          ) |> ignore
+        finally
+          mutex.Dispose() |> ignore
+
+        // Apply the colors to the image.
+        for y in 0 .. camera.ResY - 1 do
+          for x in 0 .. camera.ResX - 1 do
+            let yrev = (camera.ResY - 1) - y
+            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
+
+        this.PostProcessing
         renderedImage
 
     member this.Render =
