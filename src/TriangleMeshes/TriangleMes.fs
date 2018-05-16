@@ -56,25 +56,46 @@ type PLYTriangle (a: Point, b: Point, c: Point, t: Texture, smoothen, hasNormalW
 
 type BasePLYTriangle (a: Point, b: Point, c: Point,smoothen, hasNormalWithin, hasTextureCoords) = 
     inherit BaseTriangle(a,b,c)
+    let e = 0.000001
+    let lx = (min a.X (min b.X c.X)) - e
+    let ly = (min a.Y (min b.Y c.Y)) - e
+    let lz = (min a.Z (min b.Z c.Z)) - e 
+
+    let hx = (max a.X (max b.X c.X)) + e
+    let hy = (max a.Y (max b.Y c.Y)) + e
+    let hz = (max a.Z (max b.Z c.Z)) + e 
+    member this.BBox = 
+        BBox(Point(lx, ly, lz), Point(hx, hy, hz))
     override this.toShape(tex:Texture) = 
         PLYTriangle(a,b,c,tex, smoothen, hasNormalWithin, hasTextureCoords) :> Shape
 
 let createTriangles (triangleArray : Vertex array) (faceArray : int list array) (smooth:bool) (hasNormalWithin : bool) (hasTextureCoords : bool)= 
     let ar = Array.zeroCreate(faceArray.Length)
+    let bBoxSize : Point array = Array.zeroCreate(2)
+    bBoxSize.[0] <- Point(infinity, infinity, infinity)
+    bBoxSize.[1] <- Point(-infinity, -infinity, -infinity)
     Parallel.For(0,ar.Length,fun i ->
+        //CALCULATES THE NEW POINT
         let v1 = triangleArray.[faceArray.[i].[1]]
         let p1 = new TriPoint(v1)
         let v2 = triangleArray.[faceArray.[i].[2]]
         let p2 = new TriPoint(v2)
         let v3 = triangleArray.[faceArray.[i].[3]]
         let p3 = new TriPoint(v3)
+        //CONVERTS TO A TRIANGLE
         let triangle = new BasePLYTriangle((p1 :> Point) ,(p2 :> Point) ,(p3 :> Point), smooth, hasNormalWithin, hasTextureCoords)
+        //CALCULATES NORMAL IF NEEDED
         if (smooth && not hasNormalWithin) then
             v1.normal <- triangle.n
             v2.normal <- triangle.n
             v3.normal <- triangle.n
+        //INCREASE THE NEW BBOX
+        let triangleLowPoint = triangle.BBox.lowPoint 
+        let triangleHightPoint = triangle.BBox.highPoint
+        bBoxSize.[0] <- bBoxSize.[0].Lowest triangleLowPoint
+        bBoxSize.[1] <- bBoxSize.[1].Highest triangleHightPoint
         ar.[i] <- (triangle)) |> ignore
-    ar
+    ar,BBox(bBoxSize.[0],bBoxSize.[1])
         
 
 let drawTriangles (filepath:string) (smoothen:bool) = 
@@ -88,36 +109,24 @@ let drawTriangles (filepath:string) (smoothen:bool) =
     let test = parsePLY filepath
     let triangleArray = fst test
     let faceArray = snd test
+
     let hasNormalWithin = triangleArray.[0].nx.IsSome
     let hasTexture = triangleArray.[0].u.IsSome
 
-    let ar = createTriangles triangleArray faceArray smoothen hasNormalWithin hasTexture
-    let idOfShape = Acceleration.listOfKDTree.Length + 1
+    let triangleInfo = createTriangles triangleArray faceArray smoothen hasNormalWithin hasTexture
+    let ar = fst triangleInfo
+    let bBox = snd triangleInfo
 
+    let idOfShape = Acceleration.listOfKDTree.Length + 1
 
     let baseShape = {new BaseShape() with
         member this.toShape(tex) = 
-            let newTriangle = Array.zeroCreate(ar.Length)
-            let firstTriangle = (ar.[0]).toShape(tex)
-            newTriangle.[0] <- firstTriangle
-            let newPoints = Array.zeroCreate(2)
-            newPoints.[0] <- firstTriangle.getBoundingBox().lowPoint
-            newPoints.[1] <- firstTriangle.getBoundingBox().highPoint
-
-            for i in 0..ar.Length-1 do
-            //Parallel.For(0, ar.Length, fun i ->
-                let triangle = (ar.[i]).toShape(tex)
-                let triangleLowPoint = triangle.getBoundingBox().lowPoint 
-                let triangleHightPoint = triangle.getBoundingBox().highPoint
-                newPoints.[0] <- newPoints.[0].Lowest triangleLowPoint
-                newPoints.[1] <- newPoints.[1].Highest triangleHightPoint
-                newTriangle.[i] <- triangle(* ) |> ignore*)
-            let sA = shapeArray(idOfShape, newTriangle, None)
+            let triangles = ar |> Array.map (fun (i:BasePLYTriangle) -> (i.toShape(tex)))
+            let sA = shapeArray(idOfShape, triangles, None)
             let accel = Acceleration.createAcceleration(sA)
             let shape = {new Shape() with
-                member this.hitFunction r = 
-                    traverseIAcceleration accel r newTriangle
-                member this.getBoundingBox () = BBox(newPoints.[0],newPoints.[1])
+                member this.hitFunction r = traverseIAcceleration accel r triangles
+                member this.getBoundingBox () = bBox
                 member this.isInside p = false
             }
             shape
