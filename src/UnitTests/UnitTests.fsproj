@@ -111,8 +111,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Basics\Basics.fsproj">
-      <Name>Basics</Name>
+    <ProjectReference Include="..\RayTracer\RayTracer.fsproj">
+      <Name>RayTracer</Name>
       <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
       <Private>True</Private>
     </ProjectReference>

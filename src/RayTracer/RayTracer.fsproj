@@ -5,15 +5,15 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>35e5fd13-1c17-4df7-a26a-3d1eb06b6310</ProjectGuid>
+    <ProjectGuid>e7cbcc59-8c6c-4828-8840-47eabf7c95fb</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TriangleMeshes</RootNamespace>
-    <AssemblyName>TriangleMeshes</AssemblyName>
+    <RootNamespace>Basics</RootNamespace>
+    <AssemblyName>Basics</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseStandardResourceNames>true</UseStandardResourceNames>
     <TargetFSharpCoreVersion>4.4.3.0</TargetFSharpCoreVersion>
-    <Name>TriangleMeshes</Name>
+    <Name>RayTracer</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -78,12 +78,49 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
+    <Compile Include="Sampling\Sampling.fsi" />
+    <Compile Include="Sampling\Sampling.fs" />
+    <Compile Include="Core\Vector.fs" />
+    <Compile Include="Core\Colour.fs" />
+    <Compile Include="Core\Point.fs" />
+    <Compile Include="Core\Ray.fs" />
+    <Compile Include="Core\BBox.fs" />
+    <Compile Include="Core\Foundation.fs" />
+    <Compile Include="Materials\Materials.fs" />
+    <Compile Include="Materials\Textures.fsi" />
+    <Compile Include="Materials\Textures.fs" />
+    <Compile Include="Transformation\Transformation.fsi" />
+    <Compile Include="Transformation\Transformation.fs" />
+    <Compile Include="Shapes\Shapes.fs" />
+    <Compile Include="Shapes\CSG.fs" />
+    <Compile Include="Shapes\BaseShape.fs" />
+    <Compile Include="Lights\GlobalLight.fs" />
+    <Compile Include="Lights\BasicLight.fs" />
+    <Compile Include="Lights\AreaLight.fs" />
+    <Compile Include="Acceleration\KDTree.fs" />
+    <Compile Include="Acceleration\BVH.fs" />
+    <Compile Include="Acceleration\RegularGrids.fs" />
+    <Compile Include="Acceleration\Acceleration.fs" />
+    <Compile Include="Camera\Camera.fs" />
+    <Compile Include="Camera\PinholeCamera.fs" />
+    <Compile Include="Camera\ThinLensCamera.fs" />
+    <Compile Include="TriangleMesh\PLYParser.fs" />
+    <Compile Include="TriangleMesh\TriangleMesh.fs" />
+    <Compile Include="ImplicitSurfaces\ExprParse.fsi" />
+    <Compile Include="ImplicitSurfaces\ExprParse.fs" />
+    <Compile Include="ImplicitSurfaces\ExprToPoly.fsi" />
+    <Compile Include="ImplicitSurfaces\ExprToPoly.fs" />
+    <Compile Include="ImplicitSurfaces\PolyToUnipoly.fsi" />
+    <Compile Include="ImplicitSurfaces\PolyToUnipoly.fs" />
+    <Compile Include="ImplicitSurfaces\ImplicitSurfaces.fsi" />
+    <Compile Include="ImplicitSurfaces\ImplicitSurfaces.fs" />
+    <Compile Include="Scene.fs" />
+    <Compile Include="Render.fs" />
+    <Compile Include="API\API.fsi" />
+    <Compile Include="API\API.fs" />
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Compile Include="PLYParser.fs" />
-    <Compile Include="TriangleMes.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FParsec">
@@ -92,25 +129,21 @@
     <Reference Include="FParsecCS">
       <HintPath>..\..\packages\FParsec.1.0.3\lib\net40-client\FParsecCS.dll</HintPath>
     </Reference>
-    <Reference Include="FSharp.Core">
-      <HintPath>..\..\packages\FSharp.Core.4.3.4\lib\net45\FSharp.Core.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core">
+      <Name>FSharp.Core</Name>
+      <AssemblyName>FSharp.Core.dll</AssemblyName>
+      <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\$(TargetFSharpCoreVersion)\FSharp.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
-      <HintPath>..\..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+      <HintPath>..\packages\System.ValueTuple.4.3.1\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Basics\Basics.fsproj">
-      <Name>Basics</Name>
-      <Project>{e7cbcc59-8c6c-4828-8840-47eabf7c95fb}</Project>
-      <Private>True</Private>
-    </ProjectReference>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
