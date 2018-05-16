@@ -7,7 +7,7 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
     
     let sphere = SphereShape(Point.Zero, radius, texture)
     let mapSample (x, y, z) = (x, z, y)
-    let samples = [for i=1 to sampler.SampleCount do yield Point((mapToHemisphere (sampler.Next()) 1.) |> mapSample) * radius]
+    let samples = [for (sx, sy) in sampler.NextSet() do yield Point((mapToHemisphere (sx, sy) 1.) |> mapSample) * radius]
     let getSampleColour (sp:Vector) = 
         let hitPoint = sphere.hitFunction(Ray(Point.Zero, sp.Normalise))
         if hitPoint.Material :? EmissiveMaterial then

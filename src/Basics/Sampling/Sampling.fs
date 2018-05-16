@@ -3,7 +3,6 @@
 open System
 open System.Drawing
 open System.Threading
-open System.Threading.Tasks
 
 let mutable rand = new Random()
 
@@ -27,7 +26,9 @@ type Sampler(samples : (float*float)[][]) =
             currentSet <- Array.append currentSet (Array.create (threadIndex*2-currentSet.Length) 0)
             mutex.ReleaseMutex()
 
+        // Use the thread's hash code as index in an array where we keep track of the current sample set for each thread.
         let setIndex = currentSet.[threadIndex]
+        // We perform modulo here in order to avoid OutOfIndex exceptions when running with several threads.
         let samples = samples.[setIndex % this.SetCount]
         currentSet.[threadIndex] <- setIndex + 1
         samples
@@ -41,7 +42,9 @@ type Sampler(samples : (float*float)[][]) =
             sampleIndices <- Array.append sampleIndices (Array.create (threadIndex*2-sampleIndices.Length) 0)
             mutex.ReleaseMutex()
 
+        // Use the thread's hash code as index in an array where we keep track of the current sample for each thread.
         let currentSampleIndex = sampleIndices.[threadIndex]
+        // We perform modulo here in order to avoid OutOfIndex exceptions when running with several threads.
         let setIndex = (currentSampleIndex / sampleCount) % sampleSetCount
         let sampleIndex = currentSampleIndex % sampleCount
         let sample = samples.[setIndex].[sampleIndex]
@@ -73,6 +76,8 @@ let regular (ni:int) =
     innerX ni
     new Sampler([|samples|])
 
+// This method is called after every sample method is finished.
+// It shuffles the sample sets and the samples within each set.
 let createSampler (set:(float * float)[][]) =
     let rand = new Random() // We create a new Random here, for help with testing.
     for i in 0..set.Length-1 do
@@ -105,7 +110,8 @@ let random n sn =
     loop (sn-1)
     createSampler sets
 
-let getJitteredValue (grid:int) (max:int) = (rand.NextDouble()/float max) + ((1.0/float max) * float grid)
+// Returns a jittered sample point, that lies within a given grid cell, in relation to the max grid value.
+let getJitteredValue (cell:int) (max:int) = (rand.NextDouble()/float max) + ((1.0/float max) * float cell)
 
 let jittered n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
@@ -129,28 +135,32 @@ let jittered n sn =
     loop (sn-1)
     createSampler sets
 
-let getGrid (v:float) max = int(v*(float max))
+// Returns the grid that a sample point lies within (for jittered/nRooks).
+let getGridCell (v:float) max = int(v*(float max))
 
+// After shuffling a sample point in nRooks, we check that no other samples lie within these spots.
 let illegalSpots = [|(2, 1);(-2, 1);(2, -1);(-2, -1);(1, 2);(1, -2);(-1, 2);(-1, -2)|]
 
+// Returns an array of valid spots that a 'rook' can move to in nRooks sampling.
 let rec getLegalSpots i (samples:(float * float) array) =
     let n = samples.Length
     
     let mutable result = [||]
     for j in 0..i-1 do
         let xVal, _ = samples.[j]
-        let xGrid = getGrid xVal n
+        let xGrid = getGridCell xVal n
         let checkValidity k =
             if k < n && k > 0 then
                 let (x2, y2) = samples.[k]
-                let xGrid2 = getGrid x2 n
-                let yGrid2 = getGrid y2 n
+                let xGrid2 = getGridCell x2 n
+                let yGrid2 = getGridCell y2 n
                 not (Array.exists (fun (xi, yi) ->
                     xGrid2 = (xGrid+xi) && yGrid2 = (i+yi)) illegalSpots)
             else true
         result <- if checkValidity (i-1) && checkValidity (i-2) && checkValidity (i+1) && checkValidity (i+2) then Array.append result [|j|] else result
     result
 
+// Initial diagonal shuffling for nRooks.
 let shuffleDiagonals (samples:(float * float) []) =
     let n = samples.Length
     
@@ -185,6 +195,12 @@ let nRooks n sn =
     loop (sn-1)
     createSampler sets
 
+(*
+    This method lives up to the lecture notes PDF's version of multi-jittered sampling, 
+    but according to what I could read on the web, this is not the optimal multi-jittered
+    method, because samples are not as evenly distributed. The method below this one 
+    (that we use in our program) is supposedly more effective.
+*)
 let shuffleMultiPDF (samples:(float * float) []) n =
     for j in 0..n-1 do
         for i in 0..n-1 do
@@ -206,6 +222,14 @@ let shuffleMultiPDF (samples:(float * float) []) n =
 
     samples
 
+(* 
+    This method uses correlated shuffling to improve upon the basic idea of multi-jittered
+    sampling. This ensures a more evenly distributed set of samples. The change from above is
+    that this method shuffles using the same randomly chosen value for an entire row/column, 
+    instead of shuffling with a new random value for every sample point.
+
+    Correlated extension is found here: https://graphics.pixar.com/library/MultiJitteredSampling/paper.pdf.
+ *)
 let shuffleMulti (samples:(float * float) []) n =
     for j in 0..n-1 do
         let k = (j + rand.Next(n-j))
@@ -228,6 +252,10 @@ let shuffleMulti (samples:(float * float) []) n =
             samples.[current] <- (currentX, replY)
     samples
 
+(* 
+    This method sets up the initial diagonal distribution of samples, and calls
+    shuffleMulti to perform the multiJittered shuffling.
+*)
 let multiJittered n sn =
     let sets = Array.create sn [|(0.0, 0.0)|]
     let ns = int (float (n)**2.0)
@@ -261,6 +289,7 @@ let mapToHemisphere (x, y) e =
     let theta = Math.Acos((1.0-y)**E_VAL)
     (Math.Sin(theta) * Math.Cos(phi), Math.Sin(theta) * Math.Sin(phi), Math.Cos(theta))
 
+// A series of helper methods to visualize the sampling as points on square/disc/sphere.
 let drawSamples (sampler:Sampler) sampleMethod fileName =
     let size = 400
     let dotSize = 4
@@ -280,8 +309,8 @@ let drawSamples (sampler:Sampler) sampleMethod fileName =
         else if sampleMethod = "multi" then
             drawGrid (int (Math.Sqrt(float sampler.SampleCount))) 2
             drawGrid sampler.SampleCount 1
-    for _ in 0..sampler.SampleCount-1 do
-        let sx, sy = sampler.Next()
+    let samples = sampler.NextSet()
+    for (sx, sy) in samples do
         let x = int (float size*sx)
         let y = int (float size*sy)
         for i in [x-(dotSize/2)..x+(dotSize/2)] do
@@ -307,8 +336,9 @@ let drawDiscSamples (sampler:Sampler) fileName =
             for j in [0..size-1] do
                 img.SetPixel(i, j, Color.White)
     drawCircle img size
-    for _ in 0..sampler.SampleCount-1 do
-        let sx, sy = mapToDisc (sampler.Next())
+    let samples = sampler.NextSet()
+    for (sx, sy) in samples do
+        let sx, sy = mapToDisc (sx, sy)
         let x = int (float (size)*((sx+1.0)/2.0))
         let y = int (float (size)*((sy+1.0)/2.0))
         for i in [x-(dotSize/2)..x+(dotSize/2)] do
@@ -324,8 +354,9 @@ let drawSphereSamples (sampler:Sampler) e fileName above =
             for j in [0..size-1] do
                 img.SetPixel(i, j, Color.White)
     drawCircle img size
-    for _ in 0..sampler.SampleCount-1 do
-        let sx, sy, sz = mapToHemisphere (sampler.Next()) e
+    let samples = sampler.NextSet()
+    for (sx, sy) in samples do
+        let sx, sy, sz = mapToHemisphere (sx, sy) e
         let x = int (float (size)*((sx+1.0)/2.0))
         let sv = if above then sy else sz
         let y = int (float (size)*((sv+1.0)/2.0))
@@ -333,10 +364,6 @@ let drawSphereSamples (sampler:Sampler) e fileName above =
             for j in [y-(dotSize/2)..y+(dotSize/2)] do
                 if i >= 0 && j >= 0 && i < size && j < size then img.SetPixel(i, j, Color.Red)
     img.Save(fileName)
-
-(*for i in 0..1920/127 do
-    for j in 0..1080/127 do
-        ignore (nRooks 256 127)*)
 
 let main argsv =
     if Array.isEmpty argsv then 

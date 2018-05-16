@@ -15,7 +15,7 @@ let allTargets : Target list =
      //Shapes.render;
      //AffineTransformations.render true;
      //AffineTransformations.render false;
-     ImplicitSurfaces.render;
+     //ImplicitSurfaces.render;
      //Meshes.render Tracer.API.Acceleration.KDTree;
      //Texture.render;
      //Light.render;
