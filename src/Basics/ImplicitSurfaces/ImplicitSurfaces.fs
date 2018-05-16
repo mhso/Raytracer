@@ -83,7 +83,7 @@ module ImplicitSurfaces =
             then Some g'
           else
             inner g' (iter - 1)
-    inner initial 20
+    inner initial 25
 
   let sepolyToSIEpoly p = List.foldBack (fun ((n:int),c) acc -> (n,seToSIE c)::acc) p []
 

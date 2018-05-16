@@ -12,7 +12,7 @@ module PolyToUnipoly =
   // univariate polynomial type, i.e. only one variable, which is implicitly present in all map elements
   type unipoly = UP of (int * float) list
 
-  let epsilon = 10.**(-14.) // we consider this to be as good as zero. Might wanna adjust this...
+  let epsilon = 10.**(-24.) // we consider this to be as good as zero. Might wanna adjust this...
   
   let seToSIE (SE se) =
     let asubst (a:atom) : iAtom =

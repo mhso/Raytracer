@@ -68,11 +68,17 @@ module ExprToPoly =
           match x with
           | ANum _          -> c
           | AExponent _     -> c
-          | ARadical(_,n)   -> (max c n) ) c ag) cr
+          | ARadical(_,n)   -> max c n
+        ) c ag) cr
                             
-  let rec containsRoots s =
-    highestRoot 0 s > 0
-
+  let rec containsRoots (s: atom list list) =
+    let atommatcher = function
+      | ANum _      -> false
+      | AExponent _ -> false
+      | ARadical _  -> false
+    let trav ag = List.fold (fun b a -> b || atommatcher a) false ag 
+    List.fold (fun b ag -> b || trav ag) false s
+  
   let rec simplifyExpr e =
     let rec inner ex =
       match ex with
@@ -126,12 +132,13 @@ module ExprToPoly =
     List.fold (fun acc x -> acc @ (inner x)) [] s
 
   let rec simplifyRoots s =
-    let s' =  removeNRoots s // e_2 * e_2 will be e
+    let s' = if containsRoots s then removeNRoots s else s
     let rec inner nr r = function
       | []      -> nr, r
       | ag::cr  -> if containsRoots [ag] then inner nr (r @ [ag]) cr
                      else inner (nr @ [ag]) r cr
     let (noroots, roots) = inner [] [] s'
+    let x = ()
     if roots <> [] then
       let k = highestRoot 0 roots // first we find the highest root we want to get rid of
       
