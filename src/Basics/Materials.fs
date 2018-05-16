@@ -114,7 +114,7 @@ type MatteReflectiveMaterial
         let rayDirection = (hitPoint.Ray.GetDirection + (-2. * (hitPoint.Normal * hitPoint.Ray.GetDirection)) * hitPoint.Normal).Normalise
 
         // Only one reflected ray
-        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
+        [| Ray(hitPoint.EscapedPoint, rayDirection.Normalise) |]
 
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
@@ -164,9 +164,9 @@ type MatteGlossyReflectiveMaterial
             // Add outgoing ray to the array
             yield
                 if transformed_sp * normal > 0. then
-                    Ray(hitPoint.Point, transformed_sp)
+                    Ray(hitPoint.Point, transformed_sp.Normalise)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
+                    Ray(hitPoint.Point, (-sp.X * u - sp.Y * v + sp.Z * w).Normalise)|]
         
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material
@@ -201,7 +201,7 @@ type PhongReflectiveMaterial
         let rayDirection = (dir + (-2. * (normal * dir)) * normal)
 
         // Only one reflected ray
-        [| Ray(hitPoint.EscapedPoint, rayDirection) |]
+        [| Ray(hitPoint.EscapedPoint, rayDirection.Normalise) |]
 
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material, handle the reflection in the raycaster
@@ -256,9 +256,9 @@ type PhongGlossyReflectiveMaterial
             // Add outgoing ray to the array
             yield 
                 if transformed_sp * normal > 0. then
-                    Ray(hitPoint.Point, transformed_sp)
+                    Ray(hitPoint.Point, transformed_sp.Normalise)
                 else
-                    Ray(hitPoint.Point, -sp.X * u - sp.Y * v + sp.Z * w)|]
+                    Ray(hitPoint.Point, (-sp.X * u - sp.Y * v + sp.Z * w).Normalise)|]
 
     default this.Bounce(shape, hitPoint, light, ambientLight) = 
         // Bounce the diffuse material

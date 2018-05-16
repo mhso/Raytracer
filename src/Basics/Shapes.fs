@@ -147,15 +147,17 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                     let h = ((a.Y)-(r.GetOrigin.Y)) 
                     let l = ((a.Z)-(r.GetOrigin.Z))
                     let D = (this.pa*((this.f*k)-(g*this.j)) + this.pb*((g*this.i)-(this.e*k)) + pc*((this.e*this.j)-(this.f*this.i)))
-                    let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
-                    let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
-                    let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
-                    //x=beta, y=gamma, z=t
-                    //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
-                    if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0) then
-                            this.beta <- x
-                            this.gamma <- y
-                            HitPoint(r, z, (this.u % this.v).Normalise, mat, this) else HitPoint(r) //why mat instead of texture???
+                    if (not (D = 0.0)) then
+                        let x = (d*((this.f*k)-(g*this.j)) + this.pb*((g*l)-(h*k)) + pc*((h*this.j)-(this.f*l)))/D
+                        let y = (this.pa*((h*k)-(g*l)) + d*((g*this.i)-(this.e*k)) + pc*((this.e*l)-(h*this.i)))/D
+                        let z = (this.pa*((this.f*l)-(h*this.j)) + this.pb*((h*this.i)-(this.e*l)) + d*((this.e*this.j)-(this.f*this.i)))/D
+                        //x=beta, y=gamma, z=t
+                        //alpha is gained from 1-x-y, this is used for texturing (alpha, beta, gamma that is)
+                        if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0) then
+                                this.beta <- x
+                                this.gamma <- y
+                                HitPoint(r, z, this.n, mat, this) else HitPoint(r) //why mat instead of texture???
+                    else HitPoint(r)
                             
 
 
@@ -336,7 +338,7 @@ module Transform =
                 let hitsOriginal = s.hitFunction transformedRay
                 if (hitsOriginal.DidHit) then
                     let normal = transformNormal (hitsOriginal.Normal) t
-                    new HitPoint(r, hitsOriginal.Time, normal, hitsOriginal.Material, hitsOriginal.Shape, hitsOriginal.U, hitsOriginal.V)
+                    new HitPoint(r, hitsOriginal.Time, normal.Normalise, hitsOriginal.Material, hitsOriginal.Shape, hitsOriginal.U, hitsOriginal.V)
                 else 
                     new HitPoint(r)
             member this.getBoundingBox () = 
