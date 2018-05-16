@@ -111,7 +111,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     HitPoint(originalRay, originalRay.TimeAtPoint p2, s2Hit.Normal, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                 |false -> 
                     let newOrigin = p2.Move (r.GetDirection.MultScalar (this.epsilon))
-                                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
+                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
 
             |(s1T, s2T) when s2T = infinity -> //if only s1 was a hit
                 let p1 = r.PointAtTime s1T
@@ -120,7 +120,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     HitPoint(originalRay, originalRay.TimeAtPoint p1, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
                 |false -> 
                     let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
-                                                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
+                    this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection.Normalise))
 
             //|(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> //if both shapes are hit, and they overlap
                 //HitPoint(originalRay, originalRay.TimeAtPoint (r.PointAtTime s1T), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
