@@ -7,7 +7,7 @@ let allTargets : Target list =
      //Material.renderRegular;
      //Material.renderMulti;
      //Material.renderHigh;
-     ThinLens.render;
+     //ThinLens.render;
      //AreaLights.render;
      //Shapes.render;
      //Texture.render;

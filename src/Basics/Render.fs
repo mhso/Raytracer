@@ -9,6 +9,7 @@ open System.Threading.Tasks
 open Tracer.Basics.Sampling
 open System.Runtime.InteropServices
 open System.Drawing.Imaging
+open System.Threading
 
 type Render(scene : Scene, camera : Camera) =
     let accelTiming = false
@@ -31,7 +32,7 @@ type Render(scene : Scene, camera : Camera) =
     let loadingSymbols = [|"|"; "/"; "-"; @"\"; "|"; "/"; "-"; @"\"|]
     let timer = new System.Diagnostics.Stopwatch()
 
-    let ppRendering = true
+    let ppRendering = false
     let mutable currentPct = 0
     let mutable loadingIndex = 0
     let randomStrings = [|"                                                      Traversing..."; 
@@ -321,6 +322,51 @@ type Render(scene : Scene, camera : Camera) =
         if accelTiming then
             renderTimer.Stop()
             printfn "## RenderParallel in %f seconds" renderTimer.Elapsed.TotalSeconds
+        renderedImage
+
+
+    member this.RenderParallelWithProgressBar = 
+        // Prepare image
+        let renderedImage = new Bitmap(camera.ResX, camera.ResY)
+
+        // Create our timer and Acceleration Structure
+        let accel = this.PreProcessing
+        
+        timer.Start()
+
+        let mutable processed = 0.0
+        let pos = [for y in 0 .. camera.ResY - 1 do
+                    for x in 0 .. camera.ResX - 1 do yield (x,y)]
+        let bmColourArray = Array2D.zeroCreate camera.ResY camera.ResX
+        let mutex = new Mutex()
+
+        try
+          // Shoot rays and save the resulting colors, using parallel computations.
+          Parallel.ForEach (pos, fun (x,y) ->
+            let rays = camera.CreateRays x y
+            let cols = Array.map (fun ray -> (this.Cast accel ray)) rays
+            let colour = (Array.fold (+) Colour.Black cols)/float cols.Length
+              
+            // using mutex to deal with shared ressources in a thread-safe manner
+            if ppRendering then 
+              mutex.WaitOne() |> ignore
+              bmColourArray.[y,x] <- colour
+              processed <- processed + 1.0
+              this.CalculateProgress processed total
+              mutex.ReleaseMutex() |> ignore
+            else 
+              bmColourArray.[y,x] <- colour
+          ) |> ignore
+        finally
+          mutex.Dispose() |> ignore
+
+        // Apply the colors to the image.
+        for y in 0 .. camera.ResY - 1 do
+          for x in 0 .. camera.ResX - 1 do
+            let yrev = (camera.ResY - 1) - y
+            renderedImage.SetPixel(x, yrev, bmColourArray.[y,x].ToColor)
+
+        this.PostProcessing
         renderedImage
 
     member this.Render =

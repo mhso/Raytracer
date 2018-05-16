@@ -359,14 +359,14 @@ let main _ =
   //let torus = mkshape (mkImplicit "(((x^2 + y^2)_2 - 1.5)^2 + z^2)_2 - 0.5") (mkMatTexture sphere2mat)
   //let toruscam = PinholeCamera (Point(0.0, 0.0, 4.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
-  //let linktorus1mat = mkMatTexture (PhongReflectiveMaterial (Colour(Color.Orange), 0.2, Colour(Color.Orange), 0.8, Colour.White, 0.3, Colour.White, 1.0, 100))
-  //let linktorus2mat = mkMatTexture (PhongReflectiveMaterial (Colour(Color.Violet), 0.2, Colour(Color.Violet), 0.8, Colour.White, 0.3, Colour.White, 1.0, 100))
-  //let linktorus =
-  //  let bs = mkImplicit ("(((x^2 + y^2)_2 - " + (string 2.0) + ")^2 + z^2)_2 - " + (string 0.3))
-  //  let t1 = transform (bs.toShape linktorus1mat) (translate -1.5 0.0 0.0)
-  //  let t2 = transform (bs.toShape linktorus2mat) (mergeTransformations [rotateX 90.0; translate 1.5 0.0 0.0])
-  //  new CSG(t1, t2, CSGOperator.Grouping) :> shape
-  //let linktoruscam = PinholeCamera (Point (0.0, 0.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, regular 1)//multiJittered 4 83)
+  let linktorus1mat = mkMatTexture (PhongReflectiveMaterial (Colour(Color.Orange), 0.2, Colour(Color.Orange), 0.8, Colour.White, 0.3, Colour.White, 1.0, 100))
+  let linktorus2mat = mkMatTexture (PhongReflectiveMaterial (Colour(Color.Violet), 0.2, Colour(Color.Violet), 0.8, Colour.White, 0.3, Colour.White, 1.0, 100))
+  let linktorus =
+    let bs = mkImplicit ("(((x^2 + y^2)_2 - " + (string 2.0) + ")^2 + z^2)_2 - " + (string 0.3))
+    let t1 = transform (bs.toShape linktorus1mat) (translate -1.5 0.0 0.0)
+    let t2 = transform (bs.toShape linktorus2mat) (mergeTransformations [rotateX 90.0; translate 1.5 0.0 0.0])
+    new CSG(t1, t2, CSGOperator.Grouping) :> shape
+  let linktoruscam = PinholeCamera (Point (0.0, 0.0, 6.0), Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 2.0, 4.0, 3.0, 1024, 768, regular 1)//multiJittered 4 83)
 
   //let torus2 =
   //  let rs1 = "(1.5^2 + 0.5^2)"
@@ -384,9 +384,9 @@ let main _ =
   //let testshape = mkshape (mkImplicit "(x - 2)^2*(x+2)^2 + (y - 2)^2(y+2)^2 + (z - 2)^2(z+2)^2 + 3(x^2*y^2 + x^2z^2 + y^2z^2) + 6x y z - 10(x^2 + y^2 + z^2) + 22") (mkMatTexture testshapemat)
   //let testshapecam = PinholeCamera (Point(6.0, 6.0, 8.0), Point(0.0, 0.0, 0.0), Vector(-1.0, -1.0, 0.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
     
-  let heartmat = MatteMaterial (Colour(Color.DarkRed), 1.0, Colour(Color.DarkRed), 1.0)
-  let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
-  let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
+  //let heartmat = MatteMaterial (Colour(Color.DarkRed), 1.0, Colour(Color.DarkRed), 1.0)
+  //let heart = mkshape (mkImplicit "(x^2 + (4.0/9.0)*(y+1)^2 + z^2 - 1)^3 - x^2 * z^3 - (9.0/80.0)*(y+1)^2*z^3") (mkMatTexture heartmat)
+  //let heartcam = PinholeCamera (Point(0.0, 3.0, 1.0), Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0, 4.0, 4.0, 500, 500, regular 1)
 
   let factorial x = 
     if x = 0 then 1 else
@@ -420,7 +420,7 @@ let main _ =
   //let render = Render(mkScene' sphere1, sphere1cam)
   //let render = Render(mkScene' sphere2, sphere2cam)
   //let render = Render(mkScene' torus, toruscam)
-  let render = Render(mkScene' heart, heartcam)
+  //let render = Render(mkScene' heart, heartcam)
   //let render = Render(mkScene' (chmutov 2), chmutovcam)
   //let render = Render(mkScene' (chmutov 3), chmutovcam)
   //let render = Render(mkScene' (chmutov 4), chmutovcam)
@@ -428,9 +428,9 @@ let main _ =
   //let render = Render(mkScene' (chmutov 6), chmutovcam)
   //let render = Render(mkScene' torus2, torus2cam)
   //let render = Render(mkScene' testshape, testshapecam)
-  //let render = Render(mkScene' linktorus, linktoruscam)
+  let render = Render(mkScene' linktorus, linktoruscam)
 
-  render.RenderToScreen render.RenderParallel |> ignore
+  render.RenderToScreen render.RenderParallelWithProgressBar |> ignore
   //Console.ReadKey () |> ignore
   
   0
