@@ -46,7 +46,7 @@ type EnvironmentLight(radius: float, texture: Texture, sampler: Sampler) =
     override this.GetShadowRay (hitPoint:HitPoint) =
         if hitPoint.Material :? EmissiveMaterial then [||]
         else
-            let getRay sp = Ray(hitPoint.EscapedPoint + sp * 0.5, sp)
+            let getRay (sp:Vector) = Ray(hitPoint.EscapedPoint + sp * 0.5, sp.Normalise)
             [for sp in sps do yield getRay sp] |> List.toArray
 
 
