@@ -214,7 +214,7 @@ module API =
 
   let renderToFile (sc : scene) (c : camera) (path : string) : unit = 
     let render = new Render(sc, c)
-    render.RenderToFile render.Render path
+    render.RenderToFile render.RenderParallel path
 
   /////////////////////
   // Transformations //

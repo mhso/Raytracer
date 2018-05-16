@@ -129,7 +129,7 @@ module RegularGrids =
         | _ ->  None
 
     //Function for search of the grid.
-    let search (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =
+    let searchStructure (structure:RGStructure) (shapes:Shape array) (ray:Ray): HitPoint option =
         let grid, nx, ny, nz, bbox = structure
         match bbox.intersectRG ray with
         | Some (t,t',tx,ty,tz,tx',ty',tz') ->
@@ -175,6 +175,6 @@ module RegularGrids =
 
     //Function for traversal of the structure.
     let traverse (structure:RGStructure) (ray:Ray) (shapes:array<Shape>) = 
-        match search structure shapes ray with
+        match searchStructure structure shapes ray with
         | Some r -> r
         | None -> HitPoint ray

@@ -206,14 +206,16 @@ module BVH =
                                 | _ -> None
                             else 
                                 match structure with
-                                | Node (left, right, _, _) ->
-                                    match searchStructure left ray shapes tmax with
+                                | Node (left, right, _, axis) ->
+                                    let dir = getRayDirectionValue ray axis
+                                    let fst, snd = order dir left right
+                                    match searchStructure fst ray shapes tmax with
                                     | Some hitPointfst ->
                                             let someResult = searchStructure structure ray shapes hitPointfst.Time
                                             match someResult with
                                             | Some hitPointSec -> Some hitPointSec
                                             | _ -> Some hitPointfst            
-                                    | _ -> searchStructure right ray shapes tmax
+                                    | _ -> searchStructure snd ray shapes tmax
                                 | _ -> None
                         else None
         | None -> None
