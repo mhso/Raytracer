@@ -29,7 +29,7 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes"
 
     override this.getBoundingBox () = this.bBox
 
@@ -37,8 +37,8 @@ type Rectangle(bottomLeft:Point, topLeft:Point, bottomRight:Point, tex:Texture)=
         match (r.GetDirection.Z = 0.0) with //This method checks if dz = 0.0, which would make the ray, parrallel to the plane
         |true -> HitPoint(r)
         |false -> 
-            let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
-            match t <= 0.0 with
+            let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z))) //gets the t-value
+            match t <= 0.0 with //This checks if t is 0 or smaller, in which case there is no hit
             |true -> HitPoint(r)
             |false ->
                 let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
@@ -70,7 +70,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes"
 
     override this.getBoundingBox () = this.bBox
 
@@ -78,7 +78,7 @@ type Disc(center:Point, radius:float, tex:Texture)=
 
     override this.hitFunction (r:Ray) = 
         match r with
-            |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This method checks if dz = 0.0, which would make the ray, parrallel to the plane 
+            |(r) when (r.GetDirection.Z) = 0.0 -> HitPoint(r) //This checks if dz = 0.0, which would make the ray, parrallel to the plane 
             |(r) when (-((r.GetOrigin.Z) / (r.GetDirection.Z))) <= 0.0 -> HitPoint(r) //This checks if t is 0 or smaller, in which case there is no hit
             |(r) -> let t = (-((r.GetOrigin.Z) / (r.GetDirection.Z)))
                     let px = (r.GetOrigin.X)+t*(r.GetDirection.X)
@@ -102,8 +102,8 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.b = b
     member this.c = c
     member this.mat = mat
-    member this.u = a-b //in case of errors try swithing a and b around
-    member this.v = a-c // same here
+    member this.u = a-b
+    member this.v = a-c
 
     member this.n = this.u.CrossProduct this.v
 
@@ -130,11 +130,11 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
     member this.beta with get() = be and set(value) = be <- value
     member this.gamma with get() = ga and set(value) = ga <- value
 
-    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" //this could also just return false...
+    override this.isInside (p:Point) = failwith "Cannot be inside 2D shapes" 
 
     override this.getBoundingBox () = this.bBox
     
-    //the many let statements are for simplifying cramers rule
+
     override this.hitFunction (r:Ray) = 
         let pc = (r.GetDirection.X)
         let g = (r.GetDirection.Y)
@@ -156,7 +156,7 @@ and Triangle(a:Point, b:Point, c:Point, mat:Material)=
                         if (x <= 1.0 && x >= 0.0) && (y <= 1.0 && y >= 0.0) && (x+y <= 1.0 && x+y >= 0.0) && (z>0.0) then
                                 this.beta <- x
                                 this.gamma <- y
-                                HitPoint(r, z, this.n, mat, this) else HitPoint(r) //why mat instead of texture???
+                                HitPoint(r, z, this.n, mat, this) else HitPoint(r)
                     else HitPoint(r)
                             
 
@@ -183,7 +183,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         BBox(Point(lx, ly, lz), Point(hx, hy, hz))
 
     override this.isInside (p:Point) =
-        let x = (p.X)**2. + (p.Y)**2. + (p.Z)**2. // i might be able to remove origin from this, as it should always be 0,0,0
+        let x = (p.X)**2. + (p.Y)**2. + (p.Z)**2.
         (x < (radius**2.))
 
     override this.getBoundingBox () = this.bBox    
@@ -192,7 +192,7 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         Vector((p.X/radius),(p.Y/radius),(p.Z/radius)).Normalise
     
     member this.getTextureCoords (p:Point) =
-        let n = this.NormalAtPoint p //might be able to remove one of these calls to normal
+        let n = this.NormalAtPoint p
         let u = Math.Atan2(n.X, n.Z) / pimult2
         let v = 1. - (Math.Acos(n.Y) / Math.PI)
 
@@ -201,12 +201,12 @@ type SphereShape(origin: Point, radius: float, tex: Texture) =
         (uF, vF)
 
 
-    member this.determineHitPoint (r:Ray) (t:float) = 
+    member this.determineHitPoint (r:Ray) (t:float) = //determines the hipoint and the texture
         let p = r.PointAtTime t
         let (u,v) = this.getTextureCoords (p)
         let func = Textures.getFunc tex
         let mat = func u v 
-        HitPoint(r, t, this.NormalAtPoint p, mat, this, u, v) //might be able to remove one of these calls to normal
+        HitPoint(r, t, this.NormalAtPoint p, mat, this, u, v)
 
     override this.hitFunction (r:Ray) = 
         match (this.bBox.intersect r).IsSome with
@@ -408,7 +408,7 @@ type SolidCylinder(center:Point, radius:float, height:float, cylinder:Texture, t
 
         match ((hpBottom.DidHit || hpTop.DidHit) || hpCylinder.DidHit) with
         |true ->
-            //extract time from hitPoints
+            //extract t from hitPoints
             let tTop = match hpTop.DidHit with
                             |true -> hpTop.Time
                             |false -> infinity

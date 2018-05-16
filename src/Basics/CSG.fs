@@ -167,19 +167,17 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
             match (s2.isInside (p1.Move (originalRay.GetDirection.MultScalar (this.epsilon)).Invert)) with
             |true -> //refire Ray
                 let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
-                let r2 = new Ray(newOrigin, r.GetDirection.Normalise) //make new ray, so you dont repeat hits
+                let r2 = new Ray(newOrigin, r.GetDirection.Normalise) //make new ray, so we dont repeat hits
                 let s2Hit = s2.hitFunction r2 //fire new ray at second shape
 
                 let p2 = r2.PointAtTime s2Hit.Time
-                match s2Hit.DidHit with //can it even not hit s2, after i make a new ray with origin inside s2?
-                |true ->
-                    match (s1.isInside p2) with 
-                    |true ->                                                                       
-                        HitPoint(originalRay, originalRay.TimeAtPoint p2, s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
-                    |false -> 
-                        let newnewOrigin = p2.Move (r2.GetDirection.MultScalar (this.epsilon))
-                        this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection.Normalise)) //the direction vector should be the same for r and r2
-                |false -> HitPoint(r)
+                 //it should always hit s2, when fired from inside s2?
+                match (s1.isInside p2) with 
+                |true ->                                                                       
+                    HitPoint(originalRay, originalRay.TimeAtPoint p2, s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
+                |false -> 
+                    let newnewOrigin = p2.Move (r2.GetDirection.MultScalar (this.epsilon))
+                    this.subtractionHitFunction originalRay (new Ray(newnewOrigin, r2.GetDirection.Normalise)) //the direction vector should be the same for r and r2
             |false -> HitPoint(originalRay, originalRay.TimeAtPoint p1, s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
         |false -> HitPoint(r)
     
