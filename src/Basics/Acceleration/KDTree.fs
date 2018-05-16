@@ -92,24 +92,24 @@ module KD_tree =
             3
         else 3
 
-    let mutable avgLeafSize = 0.
+    //let mutable avgLeafSize = 0.
 
-    let mutable totalLeafs = 0
+    //let mutable totalLeafs = 0
 
-    let mutable totalLeafSize = 0
+    //let mutable totalLeafSize = 0
 
-    let mutable maxLeafSize = 0
+    //let mutable maxLeafSize = 0
 
-    let mutable emptyleafs = 0
+    //let mutable emptyleafs = 0
     let threshold = 10.**(-3.)
 
     let rec createKDTreeFromList currentDepth (hi:Point) (lo:Point) (boxes:list<ShapeBBox>) = 
         match boxes with
         | []    -> failwith "There are no shapes to build a tree with!"
         | boxes -> 
-            if boxes.Length <= 1 then if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
-                                      totalLeafs <- totalLeafs+1
-                                      totalLeafSize <- totalLeafSize+boxes.Length
+            if boxes.Length <= 1 then //if boxes.Length > maxLeafSize then maxLeafSize <- boxes.Length
+                                      //totalLeafs <- totalLeafs+1
+                                      //totalLeafSize <- totalLeafSize+boxes.Length
                                       Leaf(BBox(lo, hi), boxes)
             else
             let boxesLength = boxes.Length
@@ -131,7 +131,7 @@ module KD_tree =
                            | _ -> 0.3
             let (ax,em,len) = empty.[empty.Length - 1]
             if em/len >= minSpace && abs em > threshold  then
-                emptyleafs <- emptyleafs+1
+                //emptyleafs <- emptyleafs+1
                 //printfn "empty found: %i, %f" (fst empty) (snd empty)
                 //printfn "hi.Y: %f, maxy: %f" (hi.Y) maxy
                 match ax with
@@ -151,9 +151,9 @@ module KD_tree =
 
             let axis = findPlane fxIntersect sxIntersect fyIntersect syIntersect fzIntersect szIntersect hi lo true true true
             if axis = 3 then
-                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
-                totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+boxesLength
+                //if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
+                //totalLeafs <- totalLeafs+1
+                //totalLeafSize <- totalLeafSize+boxesLength
                 Leaf(BBox(lo, hi), boxes)
             else
 
@@ -188,28 +188,28 @@ module KD_tree =
             //    totalLeafSize <- totalLeafSize+boxesLength
             //    Leaf(BBox(KDMinXYZ, KDMaxXYZ),boxes)
             if firstLength = boxesLength && secondLength = boxesLength then 
-                if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
-                totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+boxesLength
+                //if boxesLength > maxLeafSize then maxLeafSize <- boxesLength
+                //totalLeafs <- totalLeafs+1
+                //totalLeafSize <- totalLeafSize+boxesLength
                 Leaf(BBox(lo, hi), boxes)
             else if firstLength = boxesLength then 
-                if boxesLength > maxLeafSize then maxLeafSize <- firstLength
-                totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+firstLength
+                //if boxesLength > maxLeafSize then maxLeafSize <- firstLength
+                //totalLeafs <- totalLeafs+1
+                //totalLeafSize <- totalLeafSize+firstLength
                 Node(axis, splitValue, BBox(lo, hi), Leaf(BBox(lo, firstHigh), first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
             else if secondLength = boxesLength then 
-                if boxesLength > maxLeafSize then maxLeafSize <- secondLength
-                totalLeafs <- totalLeafs+1
-                totalLeafSize <- totalLeafSize+secondLength
+                //if boxesLength > maxLeafSize then maxLeafSize <- secondLength
+                //totalLeafs <- totalLeafs+1
+                //totalLeafSize <- totalLeafSize+secondLength
                 Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), Leaf((BBox(secondLow, hi)), second))
             else Node(axis, splitValue, BBox(lo, hi), createKDTreeFromList (currentDepth+1) lo firstHigh (first), createKDTreeFromList (currentDepth+1) secondLow hi (second))
                 
     let buildKDTree (shapes:array<Shape>) = 
-        maxLeafSize <- 0
-        totalLeafs <- 0
-        totalLeafSize <- 0
-        totalLeafs <- 0
-        timer.Reset()
+        //maxLeafSize <- 0
+        //totalLeafs <- 0
+        //totalLeafSize <- 0
+        //totalLeafs <- 0
+        //timer.Reset()
         let shapeBoxArray = Array.zeroCreate(shapes.Length)
         for i in 0..(shapes.Length-1) do
             let id = i
@@ -217,27 +217,27 @@ module KD_tree =
             let newShapeBox = ShapeBBox(shape.getBoundingBox (), id)
             shapeBoxArray.[i] <- newShapeBox
         let ShapeBoxList = shapeBoxArray |> Array.toList
-        let shapeString = if ShapeBoxList.Length = 1 then "shape" else "shapes"
-        if debug then printfn "KD-build initialized with %A %s" ShapeBoxList.Length shapeString
-        timer.Start()
+        //let shapeString = if ShapeBoxList.Length = 1 then "shape" else "shapes"
+        //if debug then printfn "KD-build initialized with %A %s" ShapeBoxList.Length shapeString
+        //timer.Start()
         let (KDMaxXYZ, KDMinXYZ) = findMaxMin ShapeBoxList
         let kdTree = if shapeBoxArray.Length < 10 then 
                          
                          let leaf = Leaf(BBox(KDMinXYZ, KDMaxXYZ), ShapeBoxList) //Check for less than 10 shapes. If that is the case, no KD-tree will be built
-                         timer.Stop()
-                         if debug then printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
+                         //timer.Stop()
+                         //if debug then printfn "KD-Leaf build in %f Seconds - 10 or less shapes were given" timer.Elapsed.TotalSeconds
                          leaf
                      else
                          let kdTree = createKDTreeFromList 0 KDMaxXYZ KDMinXYZ ShapeBoxList
-                         timer.Stop()
-                         if debug then printfn "KD-Tree build in %f seconds" timer.Elapsed.TotalSeconds
-                         if debug then printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
-                         if debug then printfn "Total leafs: %A" totalLeafs
-                         if debug then printfn "Total references to shapes in leafs: %A" totalLeafSize
-                         if debug then printfn "Avg leaf Size: %A" (totalLeafSize/totalLeafs)
-                         if debug then printfn "Empty Leafs: %A" emptyleafs
+                         //timer.Stop()
+                         //if debug then printfn "KD-Tree build in %f seconds" timer.Elapsed.TotalSeconds
+                         //if debug then printfn "Maximum shapes referenced in one Leaf: %A" maxLeafSize
+                         //if debug then printfn "Total leafs: %A" totalLeafs
+                         //if debug then printfn "Total references to shapes in leafs: %A" totalLeafSize
+                         //if debug then printfn "Avg leaf Size: %A" (totalLeafSize/totalLeafs)
+                         //if debug then printfn "Empty Leafs: %A" emptyleafs
                          kdTree
-        if debug then printfn ""
+        //if debug then printfn ""
         kdTree
 
     let findRayDirectionFromA (a:int) (r:Ray) =
@@ -252,8 +252,8 @@ module KD_tree =
         | 1 -> r.GetOrigin.Y
         | 2 -> r.GetOrigin.Z
 
-    let mutable leafsHitReturnEmpty = 0
-    let mutable leafsHitReturnSome = 0
+    //let mutable leafsHitReturnEmpty = 0
+    //let mutable leafsHitReturnSome = 0
 
     let closestHit (shapeBoxes:list<ShapeBBox>) (ray:Ray) (shapes:array<Shape>) =
         // Get closest hitpoint
@@ -268,11 +268,11 @@ module KD_tree =
         // Check if the ray hit
         if hit.DidHit then
             // If the ray hit, then return the first hit point
-            leafsHitReturnSome <- leafsHitReturnSome+1
+            //leafsHitReturnSome <- leafsHitReturnSome+1
             Some (hit)
         else
             // If not, return none
-            if shapeBoxes.IsEmpty = false then leafsHitReturnEmpty <- leafsHitReturnEmpty+1
+            //if shapeBoxes.IsEmpty = false then leafsHitReturnEmpty <- leafsHitReturnEmpty+1
             None
     
     let order (d:float, left:KDTree, right:KDTree) =
