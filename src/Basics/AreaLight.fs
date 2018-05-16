@@ -1,6 +1,6 @@
 ﻿namespace Tracer.Basics
 
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open System
 open Tracer.BaseShape
 
@@ -27,7 +27,7 @@ type AreaLight(surfaceMaterial: Material, sampler: Sampler) =
                 let n = this.SamplePointNormal sp
                 yield 
                     if n * (hitPoint.Point - sp).Normalise > 0. then
-                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this)
+                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this, AmbientLight(Colour.White, 0.))
                     else
                         Colour.Black] 
         
@@ -108,7 +108,7 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
         let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
 
         // Transform orthonormal coordinate space
-        let d_c_p = (point - this.SphereShape.Origin).Normalise
+        let d_c_p = (point - this.SphereShape.origin).Normalise
         let up = new Vector(0., 1., 0.)
         let w = d_c_p.Normalise
         let v = (up % w).Normalise
@@ -119,20 +119,20 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
         Point(v.X/2.,v.Y/2., v.Z/2.)
 
     override this.SamplePointNormal point = 
-        (point - this.SphereShape.Origin).Normalise
+        (point - this.SphereShape.origin).Normalise
 
     override this.GetProbabilityDensity hitPoint = 
-        2. * Math.PI * (this.SphereShape.Radius * this.SphereShape.Radius)
+        2. * Math.PI * (this.SphereShape.radius * this.SphereShape.radius)
 
 module TransformLight = 
     let transformDirectionalLight ((light:DirectionalLight),t) = 
         let matrix = Transformation.vectorToMatrix (light.GetDirectionFromPoint (HitPoint(Point(0.,0.,0.))))
-        let transMatrix = Transformation.Matrix.multi (Transformation.getMatrix(t),matrix)
+        let transMatrix = Transformation.QuickMatrix.multi (Transformation.getMatrix(t),matrix)
         Transformation.matrixToVector transMatrix
 
     let transformPointLight ((light:PointLight),t) = 
         let matrix = Transformation.pointToMatrix (light.Position)
-        let transMatrix = Transformation.Matrix.multi (Transformation.getMatrix(t),matrix)
+        let transMatrix = Transformation.QuickMatrix.multi (Transformation.getMatrix(t),matrix)
         Transformation.matrixToPoint transMatrix
 
     let transformLight (light:Light) t =
@@ -141,12 +141,15 @@ module TransformLight =
         | :? PointLight as p -> PointLight(p.BaseColour, p.Intensity, transformPointLight (p,t)) :> Light
         | :? AreaLight as a -> 
                 let movedShape = Transform.transform a.Shape t
-                let newPoint (p:Point) = a.SamplePoint (Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix p))))
                 let movedArea = 
                     {new AreaLight(a.SurfaceMaterial, a.Sampler) with
                         member this.Shape = movedShape
-                        member this.SamplePoint p = newPoint p(*(Transformation.matrixToPoint (Transformation.Matrix.multi (Transformation.getInvMatrix t, (Transformation.pointToMatrix (newPoint p)))))*)
-                        member this.SamplePointNormal p = a.SamplePointNormal p
+                        member this.SamplePoint p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            Transformation.transformPoint (a.SamplePoint inverted, Transformation.getMatrix t)
+                        member this.SamplePointNormal p = 
+                            let inverted = Transformation.transformPoint (p, Transformation.getInvMatrix t)
+                            a.SamplePointNormal inverted
                         member this.GetProbabilityDensity h = a.GetProbabilityDensity h
                     }            
                 movedArea :> Light

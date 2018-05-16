@@ -2,13 +2,15 @@
 
 module Acceleration = 
     open KD_tree
-    open Tracer.BVH
-
+    open BVH
+    open RegularGrids
+    
     let mutable acceleration = "KDTree"
 
-    type IAcceleration = KDTree of KDTree
-                       | BVHStructure of BVHStructure
-                       | RegularGrid of float // Swap with actual RG
+    type IAcceleration = | KDTree of KDTree
+                         | BVHStructure of BVHStructure
+                         | RGStructure of RGStructure
+                         member this.IsEmpty = false
 
     type shapeArray (number: int, shapes:Shape array, acceleration:IAcceleration Option)  = 
         member this.number = number
@@ -20,34 +22,29 @@ module Acceleration =
     let createAcceleration (shape: shapeArray) = 
         if (listOfKDTree.Length < shape.number) then
             let shapes = shape.shapes
+            
             match acceleration with
             | "KDTree" -> 
                 let accel = KDTree(buildKDTree shapes)
-                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
-                printfn "Number of kdtrees %A" shape.number
+                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree              
                 accel
             | "BVH"    ->
-                let accel = BVHStructure (build shapes)
+                let accel = BVHStructure (BVH.build shapes)
                 listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
                 accel
-            | "RG"     -> failwith "Not Implemented"
+            | "RG"     -> 
+                let accel =  RGStructure (RegularGrids.build shapes)
+                listOfKDTree <- (shapeArray(shape.number,shape.shapes,Some accel))::listOfKDTree
+                accel
             | _        -> failwith "NOT A ACCELERATION TYPE"
         else listOfKDTree.[shape.number-1].acceleration.Value
-
-    let getAccelBoundingBox (accel:IAcceleration) = 
-        match accel with
-        | KDTree(kdTree) -> 
-            match kdTree with
-            | KDTree.Leaf(bBox, shapes) -> bBox
-            | KDTree.Node(axis, value, bBox, left, right) -> bBox
-        | BVHStructure(bvh)       -> failwith "Not Implemented"
-        | RegularGrid(rg)         -> failwith "Not Implemented"
+        
 
     let traverseIAcceleration (accel:IAcceleration) (ray:Ray) (shapes:array<Shape>) = 
         match accel with
         | KDTree(kdTree) -> traverseKDTree kdTree ray shapes
-        | BVHStructure(bvhStructure) -> traverse bvhStructure ray shapes
-        | RegularGrid(rg) -> failwith "Not Implemented" //Look above...
+        | BVHStructure(bvhStructure) -> BVH.traverse bvhStructure ray shapes
+        | RGStructure(rgStructure) -> RegularGrids.traverse rgStructure ray shapes
 
     type Acceleration = KDTree
                       | BVH

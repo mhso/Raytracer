@@ -2,17 +2,16 @@
 
 open System.Drawing
 open System
-open Tracer.Sampling
+open Tracer.Basics.Sampling
 
 [<AbstractClass>]
 type Camera(position: Tracer.Basics.Point, lookat: Tracer.Basics.Point, up: Vector, zoom: float, width: float, height: float, resX: int, resY: int) =
     // Field of view and orthonormal coordinate system.
     let w = (position - lookat).Normalise
-    let v = up % w
-    let u = -(w % v) // <-- HACK ALERT!! We invert y because otherwise up would be negative and down would be positive.
+    let v = (up % w).Normalise
+    let u = w % v
     let pw = width/float resX
     let ph = height/float resY
-
     member this.W = w
     member this.U = u
     member this.V = v

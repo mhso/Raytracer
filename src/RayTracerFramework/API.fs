@@ -1,12 +1,12 @@
 ﻿namespace Tracer
 
-open Tracer.Sampling.Sampling
+open Tracer.Basics.Sampling
 open Tracer.Basics
+open Tracer.Basics.Sampling
 open Tracer.Basics.Render
 open Tracer.BaseShape
-open Tracer.ImplicitSurfaces.Main
+open Tracer.ImplicitSurfaces
 open Transformation
-open Tracer.Basics.Acceleration
 
 module API = 
 
@@ -70,28 +70,28 @@ module API =
   ///////////////
 
   let mkMatteMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) : material = 
-    MatteMaterial(ca, ka, cd, kd) :> material
+    new MatteMaterial(ca, ka, cd, kd) :> material
   
   let mkPhongMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (exp : int) : material = 
-    PhongMaterial(ca, ka, cd, kd, cs, ks, exp) :> material
+    new PhongMaterial(ca, ka, cd, kd, cs, ks, exp) :> material
   
   let mkMatteReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cr : colour) (kr : float) : material = 
-    MatteReflectiveMaterial(ca, ka, cd, kd, cr, kr) :> material
+    new MatteReflectiveMaterial(ca, ka, cd, kd, cr, kr) :> material
   
   let mkMatteGlossyReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cr : colour) (kr : float) (exps : int) (s : sampler) : material = 
-    MatteGlossyReflectiveMaterial(ca, ka, cd, kd, cr, kr, exps, s) :> material
+    new MatteGlossyReflectiveMaterial(ca, ka, cd, kd, cr, kr, exps, s) :> material
   
   let mkPhongReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (cr : colour) (kr : float) (exps : int) : material = 
-    PhongReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps) :> material
+    new PhongReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps) :> material
   
   let mkPhongGlossyReflectiveMaterial (ca : colour) (ka : float) (cd : colour) (kd : float) (cs : colour) (ks : float) (cr : colour) (kr : float) (exps : int) (expr : int) (s : sampler) : material = 
-    PhongGlossyReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps, expr, s) :> material
+    new PhongGlossyReflectiveMaterial(ca, ka, cd, kd, cs, ks, cr, kr, exps, expr, s) :> material
   
   let mkEmissive (c : colour) (i : float) : material = 
-    EmissiveMaterial(c, i) :> material
+    new EmissiveMaterial(c, i) :> material
 
   let mkTransparent (cf_in : colour) (cf_out : colour) (eta_in : float) (eta_out : float) : material = 
-    failwith "mkTransparent not implemented"
+    new TransparentMaterial(cf_in, cf_out, eta_in, eta_out) :> material
 
   let mkTexture (f : float -> float -> material) : texture = 
     Textures.mkTexture f
@@ -107,7 +107,8 @@ module API =
     b.toShape t
   
   let mkSphere (p : point) (r : float) (m : texture) : shape = 
-    new SphereShape(p, r, m) :> shape
+    let sphere = SphereShape(p, r, m)
+    Transform.transform sphere (Transformation.translate p.X p.Y p.Z)
   
   let mkBaseSphere (p : point) (r : float)  : baseShape = 
     new BaseSphere(p, r) :> baseShape
@@ -119,8 +120,7 @@ module API =
     new Rectangle(bottomLeft, topLeft, bottomRight, t) :> shape
   
   let mkTriangle (a:point) (b:point) (c:point) (m : material) : shape = 
-    failwith "needs to take material, not texture"
-    //new Triangle(a, b, c, m) :> shape
+    new Triangle(a, b, c, m) :> shape
 
   let mkPlane (m : texture) : shape = 
     new InfinitePlane(m) :> shape
@@ -132,13 +132,16 @@ module API =
     TriangleMes.drawTriangles filename smooth
 
   let mkHollowCylinder (c : point) (r : float) (h : float) (t : texture) : shape = 
-    new HollowCylinder(c, r, h, t) :> shape
+    let s = HollowCylinder(c, r, h, t)
+    Transform.transform s (Transformation.translate c.X c.Y c.Z)
 
   let mkSolidCylinder (c : point) (r : float) (h : float) (t : texture) (top : texture) (bottom : texture) : shape = 
-    new SolidCylinder(c, r, h, t, top, bottom) :> shape
+    let s = SolidCylinder(c, r, h, t, top, bottom) :> shape
+    Transform.transform s (Transformation.translate c.X c.Y c.Z)
 
   let mkDisk (c : point) (r : float) (t : texture) : shape = 
-    new Disc(c, r, t) :> shape
+    let disc = Disc(Point.Zero, r, t) :> shape
+    Transform.transform disc (Transformation.translate c.X c.Y c.Z)
 
   let mkBaseDisk (c : point) (r : float) : baseShape = 
     new BaseDisc(c, r) :> baseShape
@@ -190,13 +193,13 @@ module API =
         | _ -> failwith "Specified baseShape type not supported for AreaLight"
   
   let mkEnvironmentLight (r : float) (tex : texture) (s : sampler) : light = 
-    EnvironmentLight(r, tex, s) :> light
+    new EnvironmentLight(r, tex, s) :> light
   
   let mkAmbientLight (c : colour) (i : float) : ambientLight = 
-    AmbientLight(c, i)
+    new AmbientLight(c, i)
   
   let mkAmbientOccluder (c : colour) (l : float) (lmin : float) (s : sampler) : ambientLight = 
-    AmbientOccluder(l, c, lmin, s) :> AmbientLight
+    new AmbientOccluder(l, c, lmin, s) :> AmbientLight
 
   /////////////////////
   // Scene rendering //
