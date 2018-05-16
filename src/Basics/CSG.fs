@@ -14,7 +14,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
     member this.s1 = s1
     member this.s2 = s2
     member this.op = op
-    member this.epsilon = 0.00001
+    member this.epsilon = 0.00005
     member this.bBox = match op with
                        |Union|Grouping -> //merges the two BBoxes, by combining the highest high coords, and the lowest low coords, to form a new bounding box
                             let bBox1 = s1.getBoundingBox ()
@@ -121,7 +121,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                     let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
                     this.intersectionHitFunction originalRay (new Ray(newOrigin, r.GetDirection))
                     
-            |(s1T, s2T) when (s2T - this.epsilon*5.) < s1T && s1T < (s2T + this.epsilon*5.) -> //if both shapes are hit, and they overlap
+            |(s1T, s2T) when (s2T - this.epsilon) < s1T && s1T < (s2T + this.epsilon) -> //if both shapes are hit, and they overlap
                 HitPoint(originalRay, originalRay.TimeAtPoint (r.PointAtTime s1T), s1Hit.Normal, s1Hit.Material, this, s1Hit.U, s1Hit.V, s1Hit.DidHit)
 
             |(s1T, s2T) -> //both shapes are hit, and they dont overlap
@@ -164,7 +164,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
         match s1Hit.DidHit with 
         |true -> 
             let p1 = r.PointAtTime s1Hit.Time
-            match (s2.isInside p1) with
+            match (s2.isInside (p1.Move (originalRay.GetDirection.MultScalar (this.epsilon)).Invert)) with
             |true -> //refire Ray
                 let newOrigin = p1.Move (r.GetDirection.MultScalar (this.epsilon))
                 let r2 = new Ray(newOrigin, r.GetDirection.Normalise) //make new ray, so you dont repeat hits
@@ -173,7 +173,7 @@ type CSG(s1:Shape, s2:Shape, op:CSGOperator) =
                 let p2 = r2.PointAtTime s2Hit.Time
                 match s2Hit.DidHit with //can it even not hit s2, after i make a new ray with origin inside s2?
                 |true ->
-                    match (s1.isInside (p2.Move (originalRay.GetDirection.MultScalar (this.epsilon)))) with 
+                    match (s1.isInside p2) with 
                     |true ->                                                                       
                         HitPoint(originalRay, originalRay.TimeAtPoint p2, s2Hit.Normal.Invert, s2Hit.Material, this, s2Hit.U, s2Hit.V, s2Hit.DidHit)
                     |false -> 
