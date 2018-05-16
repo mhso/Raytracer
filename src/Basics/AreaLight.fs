@@ -9,37 +9,35 @@ open Tracer.BaseShape
 type AreaLight(surfaceMaterial: Material, sampler: Sampler) = 
     inherit Light(Colour.White, 1.)
 
+    // Pre-defined methods
     member this.Texture = Textures.mkMatTexture surfaceMaterial // Texture of emissive surface
     member this.SurfaceMaterial = surfaceMaterial               // Material of emissive surface
     member this.SampleCount = sampler.SampleCount               // Sampler sample count
     member this.SampleSetCount = sampler.SetCount               // Sampler sample set count
     member this.Sampler = sampler
+
+    // Abstract methods
     abstract member Shape: Shape                                // Shape of the surface
     abstract member SamplePoint: Point -> Point                 // Returns a new sample point
     abstract member SamplePointNormal: Point -> Vector          // Returns the normal of a sample point
-
-    // Colour of the light
+    
+    // Overwritten methods
     override this.GetColour hitPoint = 
-        // List the colours of the samples
-        let totalColourList = 
-            [for i in [0..sampler.SampleCount] do 
-                let sp = this.SamplePoint hitPoint.Point
-                let n = this.SamplePointNormal sp
-                yield 
-                    if n * (hitPoint.Point - sp).Normalise > 0. then
-                        surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this, AmbientLight(Colour.White, 0.))
-                    else
-                        Colour.Black] 
-        
-        // Return the average
-        totalColourList |> List.average
-        
-    // Hit direction
-    override this.GetDirectionFromPoint hitPoint = 
-        // Get the average direction for the samples
-        [for i=0 to sampler.SampleCount-1 do yield (this.SamplePoint hitPoint.Point - hitPoint.Point).Normalise] |> List.average
 
-    // Shadow rays
+        let getSampleColour() =
+            
+            // Get a sample point
+            let sp = this.SamplePoint hitPoint.Point
+            let n = this.SamplePointNormal sp
+            if n * (hitPoint.Point - sp).Normalise > 0. then surfaceMaterial.Bounce(hitPoint.Shape, hitPoint, this)
+            else Colour.Black
+
+        // Find the average colour
+        [for _ in 0..sampler.SampleCount-1 do yield getSampleColour()] |> List.average
+        
+    override this.GetDirectionFromPoint hitPoint = 
+        [for i in 0..sampler.SampleCount-1 do yield (this.SamplePoint hitPoint.Point - hitPoint.Point).Normalise] |> List.average
+        
     override this.GetShadowRay hitPoint = 
         // EmissiveMaterial does not cast or recieve shadows
         if hitPoint.Material :? EmissiveMaterial then [||]
@@ -65,45 +63,48 @@ type AreaLight(surfaceMaterial: Material, sampler: Sampler) =
 type DiscAreaLight(surfaceMaterial: Material, disc: BaseDisc, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
-    override this.Shape = disc.toShape this.Texture
+    // Local methods
+    member this.DiscShape = this.Shape :?> Disc
 
-    override this.SamplePoint point = 
+    // Overwritten methods
+    override this.Shape = disc.toShape this.Texture
+    override this.SamplePointNormal _ = this.DiscShape.normal
+    override this.GetProbabilityDensity _ = Math.PI * disc.radius * disc.radius
+    override this.SamplePoint _ = 
         let sp = sampler.Next()
         let (x,y) = mapToDisc sp
         Point(x * disc.radius, y * disc.radius, disc.center.Z)
-
-    override this.SamplePointNormal point = 
-        Vector(0.,1.,0.)
-
-    override this.GetProbabilityDensity hitPoint = 
-        Math.PI * disc.radius * disc.radius
-
+        
 
 //- RECTANGLE (AREA LIGHT)
 type RectangleAreaLight(surfaceMaterial: Material, rect: BaseRectangle, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
-    override this.Shape = rect.toShape this.Texture
-    member this.RectShape = this.Shape :?> Rectangle
+    // Local methods
+    member this.RectangleShape = this.Shape :?> Rectangle
 
-    override this.SamplePoint point = 
+    // Overwritten methods
+    override this.GetProbabilityDensity _ = rect.width * rect.height
+    override this.SamplePointNormal _ = this.RectangleShape.normal
+    override this.Shape = rect.toShape this.Texture
+    override this.SamplePoint _ = 
         let (x,y) = sampler.Next()
         Point(x * rect.width, y * rect.height, 0.)
-
-    override this.SamplePointNormal point = 
-        this.RectShape.normal
-
-    override this.GetProbabilityDensity hitPoint = 
-        rect.width * rect.height
 
 
 //- SPHERE (AREA LIGHT)
 type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Sampler) = 
     inherit AreaLight (surfaceMaterial, sampler)
     
-    override this.Shape = sphere.toShape this.Texture
+    // Local methods
     member this.SphereShape = this.Shape :?> SphereShape
+
+    // Overwritten methods
+    override this.Shape = sphere.toShape this.Texture
+    override this.SamplePointNormal point = (point - this.SphereShape.origin).Normalise
+    override this.GetProbabilityDensity _ = 2. * Math.PI * (this.SphereShape.radius * this.SphereShape.radius)
     override this.SamplePoint point = 
+
         // Hemisphere transform the samples
         let hem_sp = Point((mapToHemisphere (sampler.Next()) 50.))
 
@@ -116,14 +117,9 @@ type SphereAreaLight(surfaceMaterial: Material, sphere: BaseShape, sampler: Samp
         let v = hem_sp.OrthonormalTransform (u, v, w)
 
         // Return the sample point
-        Point(v.X/2.,v.Y/2., v.Z/2.)
+        Point(v.X/2., v.Y/2., v.Z/2.)
 
-    override this.SamplePointNormal point = 
-        (point - this.SphereShape.origin).Normalise
-
-    override this.GetProbabilityDensity hitPoint = 
-        2. * Math.PI * (this.SphereShape.radius * this.SphereShape.radius)
-
+   
 module TransformLight = 
     let transformDirectionalLight ((light:DirectionalLight),t) = 
         let matrix = Transformation.vectorToMatrix (light.GetDirectionFromPoint (HitPoint(Point(0.,0.,0.))))

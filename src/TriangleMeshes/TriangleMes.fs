@@ -5,6 +5,7 @@ open Tracer.Basics.Acceleration
 open System.Threading.Tasks
 open PLYParser
 open Tracer.BaseShape
+open Tracer.Basics.Textures
 
 type TriPoint (v : Vertex) = 
     inherit Point(v.x,v.y,v.z)

@@ -1,7 +1,7 @@
 namespace Tracer.Basics
 open System
 open Transformation
-
+open Textures
 
 ///////////////////////////////////
 /////////////SHAPES!!!/////////////
